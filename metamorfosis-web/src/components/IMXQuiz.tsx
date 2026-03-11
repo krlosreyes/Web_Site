@@ -196,34 +196,32 @@ const IMXQuiz = () => {
         const finalIMX = calculateProxyIMX(scores);
 
         try {
-            const { db } = await import('../lib/firebase');
-            const { collection, addDoc, query, where, getDocs, serverTimestamp } = await import('firebase/firestore');
+            const response = await fetch('/api/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: userName.trim(),
+                    email: userEmail.trim().toLowerCase(),
+                    estimated_imx: finalIMX,
+                    quiz_type: 'proxy_v1',
+                    proxy_scores: scores
+                })
+            });
 
-            // ─── UNIQUE EMAIL CHECK ───
-            const q = query(collection(db, 'waitlist_leads'), where('email', '==', userEmail.trim().toLowerCase()));
-            const querySnapshot = await getDocs(q);
+            const data = await response.json();
 
-            if (!querySnapshot.empty) {
-                setFormError('Ya has realizado tu diagnóstico y estás en lista de espera. Pronto te contactaremos.');
+            if (!response.ok) {
+                setFormError(data.error || 'Hubo un error al procesar tu solicitud.');
                 setIsSaving(false);
                 return;
             }
-
-            await addDoc(collection(db, 'waitlist_leads'), {
-                name: userName.trim(),
-                email: userEmail.trim().toLowerCase(),
-                estimated_imx: finalIMX,
-                quiz_type: 'proxy_v1',
-                proxy_scores: scores,
-                created_at: serverTimestamp()
-            });
 
             sessionStorage.setItem('imx_score', finalIMX.toString());
             sessionStorage.setItem('imx_userName', userName.trim());
             window.location.href = '/diagnostico';
         } catch (error) {
             console.error("Error saving lead:", error);
-            setFormError('Hubo un error al procesar tu solicitud. Por favor intenta de nuevo.');
+            setFormError('Hubo un error de conexión. Por favor intenta de nuevo.');
             setIsSaving(false);
         }
     };
