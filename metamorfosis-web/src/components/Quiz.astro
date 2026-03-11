@@ -1,0 +1,281 @@
+---
+interface Props {
+    questions: Array<{
+        question: string;
+        options: string[];
+        correctIndex: number;
+        rationale: string;
+    }>;
+}
+
+const { questions } = Astro.props;
+const quizId = `quiz-${Math.random().toString(36).slice(2, 11)}`;
+---
+
+<!-- Dashboard-style Quiz Container -->
+<div class="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+    <!-- Quiz Header -->
+    <div class="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-8 py-6">
+        <div class="flex items-center justify-between mb-2">
+            <h2 class="text-2xl font-bold flex items-center gap-3">
+                📝 Evalúa tu Conocimiento
+            </h2>
+            <span id={`quiz-score-${quizId}`} class="text-sm font-semibold bg-white/20 px-4 py-2 rounded-full">
+                Pregunta <span id={`current-question-${quizId}`}>1</span> de {questions.length}
+            </span>
+        </div>
+        <p class="text-gray-300 text-sm">
+            Demuestra lo que aprendiste y gana puntos en la Elena App
+        </p>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="bg-gray-100 h-2">
+        <div
+            id={`progress-bar-${quizId}`}
+            class="h-full bg-gradient-to-r from-blue-600 to-blue-700 transition-all duration-500"
+            style="width: 0%"
+        >
+        </div>
+    </div>
+
+    <!-- Quiz Content -->
+    <div class="p-8 quiz-content" id={quizId}>
+        <!-- Will be populated by JavaScript -->
+    </div>
+</div>
+
+<script is:inline define:vars={{ questions, quizId }}>
+    class QuizManager {
+        constructor(containerId, questions) {
+            this.containerId = containerId;
+            this.questions = questions;
+            this.currentQuestionIndex = 0;
+            this.score = 0;
+            this.answered = false;
+            this.init();
+        }
+
+        init() {
+            this.renderQuestion();
+        }
+
+        renderQuestion() {
+            const container = document.getElementById(this.containerId);
+            const question = this.questions[this.currentQuestionIndex];
+            const progress = ((this.currentQuestionIndex) / this.questions.length) * 100;
+
+            // Update progress bar
+            document.getElementById(`progress-bar-${this.containerId}`).style.width = `${progress}%`;
+            document.getElementById(`current-question-${this.containerId}`).textContent = this.currentQuestionIndex + 1;
+
+            container.innerHTML = `
+                <div class="mb-8">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6 leading-relaxed">
+                        ${question.question}
+                    </h3>
+                    
+                    <div class="space-y-3" id="options-container-${this.containerId}">
+                        ${question.options
+                            .map(
+                                (option, idx) => `
+                            <button
+                                class="quiz-option w-full text-left px-6 py-4 rounded-xl border-2 border-gray-200 hover:border-blue-600 hover:bg-blue-50 transition-all duration-200 font-medium text-gray-800 shadow-sm hover:shadow-md group"
+                                data-index="${idx}"
+                            >
+                                <div class="flex items-start gap-4">
+                                    <span class="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 font-bold flex items-center justify-center group-hover:from-blue-100 group-hover:to-blue-200 group-hover:text-blue-700 transition-all">
+                                        ${String.fromCharCode(65 + idx)}
+                                    </span>
+                                    <span class="flex-1 pt-0.5">${option}</span>
+                                </div>
+                            </button>
+                        `
+                            )
+                            .join("")}
+                    </div>
+
+                    <div id="feedback-${this.containerId}" class="mt-6"></div>
+                </div>
+
+                <div id="navigation-${this.containerId}" class="flex justify-end">
+                    <!-- Navigation will appear after answering -->
+                </div>
+            `;
+
+            this.attachEventListeners();
+        }
+
+        attachEventListeners() {
+            const options = document.querySelectorAll(`#options-container-${this.containerId} .quiz-option`);
+            options.forEach((option) => {
+                option.addEventListener("click", () => {
+                    if (!this.answered) {
+                        this.handleAnswer(parseInt(option.dataset.index));
+                    }
+                });
+            });
+        }
+
+        handleAnswer(selectedIndex) {
+            this.answered = true;
+            const question = this.questions[this.currentQuestionIndex];
+            const isCorrect = selectedIndex === question.correctIndex;
+
+            if (isCorrect) {
+                this.score++;
+            }
+
+            // Update UI
+            const options = document.querySelectorAll(`#options-container-${this.containerId} .quiz-option`);
+            options.forEach((option, idx) => {
+                option.disabled = true;
+                option.classList.remove("hover:border-blue-600", "hover:bg-blue-50");
+
+                if (idx === question.correctIndex) {
+                    option.classList.add("border-green-500", "bg-green-50");
+                    option.innerHTML = `
+                        <div class="flex items-start gap-4">
+                            <span class="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 text-white font-bold flex items-center justify-center">
+                                ✓
+                            </span>
+                            <span class="flex-1 pt-0.5 text-green-900">${question.options[idx]}</span>
+                        </div>
+                    `;
+                } else if (idx === selectedIndex && !isCorrect) {
+                    option.classList.add("border-red-500", "bg-red-50");
+                    option.innerHTML = `
+                        <div class="flex items-start gap-4">
+                            <span class="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white font-bold flex items-center justify-center">
+                                ✗
+                            </span>
+                            <span class="flex-1 pt-0.5 text-red-900">${question.options[idx]}</span>
+                        </div>
+                    `;
+                } else {
+                    option.classList.add("opacity-50");
+                }
+            });
+
+            // Show feedback
+            const feedbackContainer = document.getElementById(`feedback-${this.containerId}`);
+            feedbackContainer.innerHTML = `
+                <div class="bg-gradient-to-r ${isCorrect ? "from-green-50 to-emerald-50 border-green-200" : "from-red-50 to-orange-50 border-red-200"} border-2 rounded-xl p-6">
+                    <div class="flex items-start gap-4">
+                        <span class="text-3xl flex-shrink-0">
+                            ${isCorrect ? "✅" : "💡"}
+                        </span>
+                        <div class="flex-1">
+                            <p class="font-bold text-lg mb-2 ${isCorrect ? "text-green-900" : "text-red-900"}">
+                                ${isCorrect ? "¡Correcto!" : "Respuesta incorrecta"}
+                            </p>
+                            <p class="text-gray-700 leading-relaxed">
+                                ${question.rationale}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Show navigation
+            const navigationContainer = document.getElementById(`navigation-${this.containerId}`);
+            if (this.currentQuestionIndex < this.questions.length - 1) {
+                navigationContainer.innerHTML = `
+                    <button
+                        id="next-btn-${this.containerId}"
+                        class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                        Siguiente Pregunta →
+                    </button>
+                `;
+                document.getElementById(`next-btn-${this.containerId}`).addEventListener("click", () => {
+                    this.nextQuestion();
+                });
+            } else {
+                navigationContainer.innerHTML = `
+                    <button
+                        id="finish-btn-${this.containerId}"
+                        class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                        Ver Resultados 🏆
+                    </button>
+                `;
+                document.getElementById(`finish-btn-${this.containerId}`).addEventListener("click", () => {
+                    this.showResults();
+                });
+            }
+        }
+
+        nextQuestion() {
+            this.currentQuestionIndex++;
+            this.answered = false;
+            this.renderQuestion();
+        }
+
+        showResults() {
+            const container = document.getElementById(this.containerId);
+            const percentage = Math.round((this.score / this.questions.length) * 100);
+            const progress = 100;
+
+            // Update progress bar to 100%
+            document.getElementById(`progress-bar-${this.containerId}`).style.width = `${progress}%`;
+
+            let resultMessage = "";
+            let emoji = "";
+            if (percentage >= 80) {
+                resultMessage = "¡Excelente! Dominas el tema completamente.";
+                emoji = "🏆";
+            } else if (percentage >= 60) {
+                resultMessage = "¡Buen trabajo! Tienes una buena comprensión.";
+                emoji = "👍";
+            } else {
+                resultMessage = "Sigue practicando. Revisa el contenido nuevamente.";
+                emoji = "📚";
+            }
+
+            container.innerHTML = `
+                <div class="text-center py-12">
+                    <div class="text-7xl mb-6">${emoji}</div>
+                    <h3 class="text-3xl font-bold text-gray-900 mb-4">
+                        Resultados Finales
+                    </h3>
+                    <div class="mb-8">
+                        <div class="inline-flex items-center gap-4 bg-gradient-to-r from-blue-50 to-emerald-50 border-2 border-blue-200 rounded-2xl px-8 py-6">
+                            <span class="text-5xl font-bold text-blue-600">
+                                ${this.score}/${this.questions.length}
+                            </span>
+                            <div class="text-left">
+                                <p class="text-sm text-gray-600 font-medium">Tu puntuación</p>
+                                <p class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-600">
+                                    ${percentage}%
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xl text-gray-700 mb-8 max-w-md mx-auto">
+                        ${resultMessage}
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button
+                            onclick="location.reload()"
+                            class="px-8 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200"
+                        >
+                            Reintentar Quiz
+                        </button>
+                        <a
+                            href="elenaapp://register"
+                            class="px-8 py-3 bg-gradient-to-r from-emerald-500 to-blue-600 text-white rounded-xl font-bold hover:from-emerald-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                        >
+                            Guardar Puntos en Elena App →
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    // Initialize quiz
+    document.addEventListener("DOMContentLoaded", () => {
+        new QuizManager(quizId, questions);
+    });
+</script>

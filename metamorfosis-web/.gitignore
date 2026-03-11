@@ -1,0 +1,39 @@
+# Build output
+dist/
+.output/
+
+# Astro internals
+.astro/
+
+# Dependencies
+node_modules/
+.quarantine_modules/
+.bad_modules2/
+.bad_modules3/
+npm-cache/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Firebase & Secret Keys
+*.json
+!package.json
+!tsconfig.json
+!firebase.json
+
+# Credentials específicos
+service-account-*.json
+*-adminsdk-*.json
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Logs
+*.log
+npm-debug.log*

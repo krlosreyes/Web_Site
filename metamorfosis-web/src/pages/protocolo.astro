@@ -1,0 +1,52 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ProtocolDashboard from '../components/ProtocolDashboard.tsx';
+---
+
+<Layout title="Protocolo de Reinicio (7 Días) | Metamorfosis">
+    <main class="min-h-screen bg-black text-white py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+            <header class="text-center mb-16 animate-fade-in">
+                <span class="inline-block py-1 px-3 rounded-full bg-blue-900/30 text-blue-400 text-xs font-bold border border-blue-800 mb-4">
+                    ACCESO EXCLUSIVO
+                </span>
+                <h1 class="text-4xl sm:text-5xl font-black text-white mb-6 tracking-tight">
+                    Protocolo de <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00C49A] to-blue-600">Reinicio Metabólico</span>
+                </h1>
+                <p class="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                    Tu misión es simple: completa los 7 días consecutivos para desbloquear tu acceso completo a la comunidad.
+                </p>
+            </header>
+
+            <!-- Interactive Dashboard -->
+            <ProtocolDashboard client:only="react" />
+
+            <footer class="mt-20 text-center border-t border-gray-800 pt-8">
+                <p class="text-gray-600 text-sm">
+                    © 2026 Metamorfosis Real. Todos los derechos reservados.
+                    <br/>
+                    <span class="text-gray-700">Sistema V1.0 - Ingenieria Metabólica</span>
+                </p>
+            </footer>
+        </div>
+    </main>
+</Layout>
+
+<style>
+    .animate-fade-in {
+        animation: fadeIn 1s ease-out;
+    }
+    .animate-fade-in-up {
+        animation: fadeInUp 0.8s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>

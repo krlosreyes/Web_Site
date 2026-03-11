@@ -1,0 +1,45 @@
+name: Despliegue a Hostinger
+
+on:
+  push:
+    branches:
+      - main # O 'master' si usaste ese nombre
+
+jobs:
+  web-deploy:
+    name: 🎉 Desplegar a Hostinger
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Obtener el último código
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Instalar dependencias
+        run: npm ci
+
+      - name: 🏗️ Construir el proyecto (Astro Build)
+        run: npm run build
+        env:
+          # Aquí mapeas el secreto de GitHub con la variable que espera Astro
+          PUBLIC_FIREBASE_API_KEY: ${{ secrets.PUBLIC_FIREBASE_API_KEY }}
+          PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.PUBLIC_FIREBASE_PROJECT_ID }}
+          PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          PUBLIC_FIREBASE_APP_ID: ${{ secrets.PUBLIC_FIREBASE_APP_ID }}
+
+      - name: 🚀 Subir archivos a Hostinger (FTP)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: 
+          port: 21
+          protocol: ftps
+          timeout: 600000 # Aumentamos el tiempo de espera a 10 minutos

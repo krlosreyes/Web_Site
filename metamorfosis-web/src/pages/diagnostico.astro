@@ -1,0 +1,253 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Tu Diagnóstico Metabólico | Metamorfosis Real">
+    <div
+        class="min-h-screen bg-gray-900 text-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+    >
+        <div
+            id="result-container"
+            class="max-w-3xl w-full space-y-8 text-center hidden"
+        >
+            <!-- Score Circle -->
+            <div class="relative w-48 h-48 mx-auto">
+                <svg class="w-full h-full transform -rotate-90">
+                    <circle
+                        cx="96"
+                        cy="96"
+                        r="88"
+                        stroke="currentColor"
+                        stroke-width="12"
+                        fill="transparent"
+                        class="text-gray-700"></circle>
+                    <circle
+                        id="score-circle"
+                        cx="96"
+                        cy="96"
+                        r="88"
+                        stroke="currentColor"
+                        stroke-width="12"
+                        fill="transparent"
+                        stroke-dasharray="553"
+                        stroke-dashoffset="553"
+                        class="transition-all duration-1000 ease-out"></circle>
+                </svg>
+                <div
+                    class="absolute inset-0 flex flex-col items-center justify-center"
+                >
+                    <span id="score-value" class="text-5xl font-extrabold"
+                        >0</span
+                    >
+                    <span
+                        class="text-sm text-gray-400 uppercase tracking-widest mt-1"
+                        >Puntos IMX</span
+                    >
+                </div>
+            </div>
+
+            <!-- Level Title -->
+            <div>
+                <h1
+                    id="level-title"
+                    class="text-4xl sm:text-5xl font-black tracking-tight mb-4"
+                >
+                    <!-- Injected via JS -->
+                </h1>
+                <p
+                    id="level-description"
+                    class="text-xl text-gray-300 max-w-2xl mx-auto"
+                >
+                    <!-- Injected via JS -->
+                </p>
+            </div>
+
+            <!-- Analysis Card -->
+            <div
+                class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 text-left"
+            >
+                <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                    <svg
+                        class="w-6 h-6 text-[#00C49A]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        ><path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"
+                        ></path>
+                    </svg>
+                    Análisis Inicial
+                </h3>
+                <p id="level-analysis" class="text-gray-300 leading-relaxed">
+                    <!-- Injected via JS -->
+                </p>
+            </div>
+
+            <!-- CTA Section (Monetization) -->
+            <div
+                id="cta-section"
+                class="bg-gradient-to-br from-[#00C49A]/20 to-[#007BFF]/20 border border-[#00C49A]/30 rounded-2xl p-8 relative overflow-hidden group"
+            >
+                <div
+                    class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+                >
+                    <svg
+                        class="w-32 h-32 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        ><path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+
+                <h3
+                    id="cta-title"
+                    class="text-2xl font-bold text-white mb-2 relative z-10"
+                >
+                    <!-- Injected via JS -->
+                </h3>
+                <p id="cta-desc" class="text-gray-200 mb-6 relative z-10">
+                    <!-- Injected via JS -->
+                </p>
+
+                <div
+                    id="cta-buttons"
+                    class="flex flex-col sm:flex-row gap-4 justify-center relative z-10"
+                >
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="text-center">
+            <div
+                class="w-16 h-16 border-4 border-[#00C49A] border-t-transparent rounded-full animate-spin mx-auto mb-4"
+            >
+            </div>
+            <p class="text-gray-400">Analizando tus respuestas...</p>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Simulator delay for realistic analysis feel
+        setTimeout(() => {
+            const scoreStr = sessionStorage.getItem("imx_score");
+            // Default to empty string if not found, or a generic term if preferred,
+            // but the prompt implies we captured it.
+            // Fallback to "Sujeto" if empty/null.
+            const userName = sessionStorage.getItem("imx_userName") || "Sujeto";
+
+            if (!scoreStr) {
+                window.location.href = "/";
+                return;
+            }
+
+            const loadingAPI = document.getElementById("loading");
+            const resultContainer = document.getElementById("result-container");
+
+            if (loadingAPI) loadingAPI.classList.add("hidden");
+            if (resultContainer) resultContainer.classList.remove("hidden");
+
+            // Populate Data
+            const scoreValue = document.getElementById("score-value");
+            const scoreCircle = document.getElementById("score-circle");
+            const levelTitle = document.getElementById("level-title");
+            const levelDesc = document.getElementById("level-description");
+            const levelAnalysis = document.getElementById("level-analysis");
+            const ctaTitle = document.getElementById("cta-title");
+            const ctaDesc = document.getElementById("cta-desc");
+            const ctaButtons = document.getElementById("cta-buttons");
+
+            const score = parseInt(scoreStr);
+
+            // Animation
+            let currentScore = 0;
+            const duration = 1500;
+            const stepTime = Math.abs(Math.floor(duration / score));
+
+            if (scoreValue) {
+                const timer = setInterval(() => {
+                    currentScore++;
+                    scoreValue.innerText = currentScore.toString();
+                    if (currentScore >= score) clearInterval(timer);
+                }, stepTime);
+            }
+
+            // Circle Stroke Animation
+            const circumference = 553;
+            const offset = circumference - (score / 100) * circumference;
+            if (scoreCircle) {
+                scoreCircle.style.strokeDashoffset = offset.toString();
+            }
+
+            // Logic Levels (only for Title and Circle Colors)
+            let colorClass = "";
+
+            if (score <= 40) {
+                // ALERTA (0-40)
+                colorClass = "text-red-500";
+                if (scoreCircle) {
+                    scoreCircle.classList.add(
+                        "text-red-500",
+                        "drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]"
+                    );
+                }
+                if (levelTitle)
+                    levelTitle.innerHTML = `<span class="${colorClass}">⚠️ ${userName}, tu sistema está en Bloqueo Metabólico.</span>`;
+            } else if (score <= 70) {
+                // ESTANCAMIENTO (41-70)
+                colorClass = "text-yellow-400";
+                if (scoreCircle) {
+                    scoreCircle.classList.add(
+                        "text-yellow-400",
+                        "drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]"
+                    );
+                }
+                if (levelTitle)
+                    levelTitle.innerHTML = `<span class="${colorClass}">⚠️ ${userName}, tu sistema está en Bloqueo Metabólico.</span>`;
+            } else {
+                // MANTENIMIENTO (71-100)
+                colorClass = "text-[#00C49A]";
+                if (scoreCircle) {
+                    scoreCircle.classList.add(
+                        "text-[#00C49A]",
+                        "drop-shadow-[0_0_10px_rgba(0,196,154,0.5)]"
+                    );
+                }
+                if (levelTitle)
+                    levelTitle.innerHTML = `<span class="${colorClass}">⚠️ ${userName}, tu sistema está en Bloqueo Metabólico.</span>`; 
+                    // Maintaining the title per user request: "Deja el título de alerta: "⚠️ [Nombre], tu sistema está en Bloqueo Metabólico.""
+            }
+
+            // Universal Waitlist Text & CTA
+            if (levelDesc)
+                levelDesc.innerText = ""; // Clearing original description to focus on the analysis block
+            
+            if (levelAnalysis)
+                levelAnalysis.innerHTML = `Las dietas tradicionales no van a funcionar. Tu Índice Metamorfosis (IMX) indica que necesitas reparar tu flexibilidad metabólica antes de intentar perder peso. Contar calorías solo empeorará el daño.`;
+
+            if (ctaTitle)
+                ctaTitle.innerText = "Acceso a ElenaApp: Lista de Espera Privada";
+            
+            if (ctaDesc)
+                ctaDesc.innerText = "Tu correo ha sido registrado exitosamente. Estamos seleccionando a un grupo reducido de personas para nuestro programa piloto gratuito de 30 días. Te notificaremos por correo si eres seleccionado para desbloquear tu metabolismo.";
+            
+            if (ctaButtons)
+                ctaButtons.innerHTML = `
+                <a href="/" class="inline-flex items-center justify-center px-8 py-3 text-sm font-bold text-[#00C49A] hover:bg-[#00C49A]/10 border border-[#00C49A]/50 rounded-xl transition-all w-full sm:w-auto">
+                    Volver al Inicio
+                </a>
+            `;
+        }, 800);
+    });
+</script>

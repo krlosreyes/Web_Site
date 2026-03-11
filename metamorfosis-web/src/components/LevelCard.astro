@@ -1,0 +1,53 @@
+---
+interface Props {
+    level: string;
+    title: string;
+    description: string;
+    icon?: string;
+    color?: "green" | "blue" | "purple";
+}
+
+const { level, title, description, icon = "📊", color = "green" } = Astro.props;
+
+const colorClasses = {
+    green: {
+        badge: "bg-brand-green text-white",
+        border: "border-brand-green/20 hover:border-brand-green/40",
+        shadow: "hover:shadow-brand-green/20",
+    },
+    blue: {
+        badge: "bg-brand-blue text-white",
+        border: "border-brand-blue/20 hover:border-brand-blue/40",
+        shadow: "hover:shadow-brand-blue/20",
+    },
+    purple: {
+        badge: "bg-purple-600 text-white",
+        border: "border-purple-200 hover:border-purple-300",
+        shadow: "hover:shadow-purple-200",
+    },
+};
+
+const currentColors = colorClasses[color];
+---
+
+<div
+    class={`bg-white rounded-xl border-2 ${currentColors.border} p-6 transition-all duration-300 hover:shadow-xl ${currentColors.shadow}`}
+>
+    <div class="flex items-start gap-4 mb-4">
+        <span class="text-4xl">{icon}</span>
+        <div class="flex-1">
+            <span
+                class={`inline-block ${currentColors.badge} px-3 py-1 rounded-full text-sm font-bold mb-2`}
+            >
+                {level}
+            </span>
+            <h3 class="text-xl font-bold text-gray-900">
+                {title}
+            </h3>
+        </div>
+    </div>
+    <p class="text-gray-600 leading-relaxed">
+        {description}
+    </p>
+    <slot />
+</div>

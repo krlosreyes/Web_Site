@@ -1,0 +1,149 @@
+---
+import { Youtube, Facebook, Instagram } from "lucide-astro";
+import { Settings } from "lucide-astro";
+
+// Check if user is an admin by reading the SSR cookie
+const sessionCookie = Astro.cookies.get('admin_session');
+const isAdmin = sessionCookie && sessionCookie.value === (import.meta.env.ADMIN_PASSWORD || 'metamorfosis2026');
+---
+
+<footer class="bg-gray-900 text-gray-300 py-12 border-t border-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Brand -->
+            <div>
+                <h3 class="text-white text-lg font-bold mb-4">
+                    Metamorfosis Real
+                </h3>
+                <p class="text-sm">
+                    Optimización metabólica e ingeniería humana para una vida
+                    sin límites.
+                </p>
+
+                <!-- Social Icons (Moved here to match typical layout, or keep separate if preferred, but user didn't specify position so I'll keep them here or below) -->
+                <div class="flex items-center gap-4 mt-6">
+                    <a
+                        href="https://youtube.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-gray-400 hover:text-[#00C49A] transition-colors duration-300"
+                    >
+                        <Youtube class="w-5 h-5" />
+                        <span class="sr-only">YouTube</span>
+                    </a>
+                    <a
+                        href="https://facebook.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-gray-400 hover:text-[#00C49A] transition-colors duration-300"
+                    >
+                        <Facebook class="w-5 h-5" />
+                        <span class="sr-only">Facebook</span>
+                    </a>
+                    <a
+                        href="https://instagram.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-gray-400 hover:text-[#00C49A] transition-colors duration-300"
+                    >
+                        <Instagram class="w-5 h-5" />
+                        <span class="sr-only">Instagram</span>
+                    </a>
+                    <a
+                        href="https://tiktok.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-gray-400 hover:text-[#00C49A] transition-colors duration-300"
+                    >
+                        <svg
+                            class="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"
+                            ></path>
+                        </svg>
+                        <span class="sr-only">TikTok</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div>
+                <h4 class="text-white font-semibold mb-4">Navegación</h4>
+                <ul class="space-y-2 text-sm">
+                    <li>
+                        <a href="/" class="hover:text-[#00C49A] transition"
+                            >Inicio</a
+                        >
+                    </li>
+                    <li>
+                        <a href="/posts" class="hover:text-[#00C49A] transition"
+                            >Artículos</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="/sobre-mi"
+                            class="hover:text-[#00C49A] transition">Sobre Mí</a
+                        >
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Legal -->
+            <div>
+                <h4 class="text-white font-semibold mb-4">Legal</h4>
+                <ul class="space-y-2 text-sm">
+                    <li>
+                        <a
+                            href="/terminos"
+                            class="hover:text-[#00C49A] transition"
+                            >Términos y Condiciones</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="/privacidad"
+                            class="hover:text-[#00C49A] transition"
+                            >Política de Privacidad</a
+                        >
+                    </li>
+                    <li class="pt-2 text-xs text-gray-500 italic">
+                        metamorfosisvitaloficial@gmail.com
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Copyright & Admin Entry -->
+        <div class="mt-12 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center text-xs">
+            <p>
+                &copy; {new Date().getFullYear()} Metamorfosis Real. Todos los derechos reservados. Colombia.
+            </p>
+            {isAdmin ? (
+                <a 
+                    href="/admin/dashboard" 
+                    class="mt-4 md:mt-0 flex items-center gap-1 opacity-50 hover:opacity-100 hover:text-[#007BFF] transition-all duration-300"
+                    title="Mission Control"
+                >
+                    <Settings class="w-3 h-3" />
+                    <span>Admin</span>
+                </a>
+            ) : (
+                <a 
+                    href="/admin/dashboard" 
+                    class="mt-4 md:mt-0 w-3 h-3 opacity-0 hover:opacity-10 hover:text-[#007BFF] transition-all duration-300"
+                    title="Console"
+                    aria-label="Admin Access"
+                >
+                    <Settings class="w-full h-full" />
+                </a>
+            )}
+        </div>
+    </div>
+</footer>

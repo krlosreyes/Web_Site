@@ -1,0 +1,104 @@
+---
+interface TimelineStep {
+    title: string;
+    description: string;
+    time?: string;
+    icon?: string;
+}
+
+interface Props {
+    steps: TimelineStep[];
+    orientation?: "vertical" | "horizontal";
+}
+
+const { steps, orientation = "vertical" } = Astro.props;
+---
+
+{
+    orientation === "vertical" ? (
+        <div class="relative py-6">
+            {steps.map((step, index) => {
+                const isLast = index === steps.length - 1;
+                const color = index % 2 === 0 ? "brand-blue" : "brand-green";
+
+                return (
+                    <div class="relative flex gap-6 pb-8">
+                        {/* Timeline line */}
+                        {!isLast && (
+                            <div
+                                class={`absolute left-4 top-10 bottom-0 w-0.5 bg-${color}/30`}
+                            />
+                        )}
+
+                        {/* Dot */}
+                        <div class="relative z-10 flex-shrink-0">
+                            <div
+                                class={`w-8 h-8 rounded-full bg-${color} flex items-center justify-center text-white font-bold shadow-lg`}
+                            >
+                                {step.icon || index + 1}
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div class="flex-1 pt-0.5">
+                            {step.time && (
+                                <span
+                                    class={`text-sm font-semibold text-${color} mb-1 block`}
+                                >
+                                    {step.time}
+                                </span>
+                            )}
+                            <h4 class="font-bold text-lg text-gray-900 mb-2">
+                                {step.title}
+                            </h4>
+                            <p class="text-gray-600 leading-relaxed">
+                                {step.description}
+                            </p>
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    ) : (
+        <div class="flex overflow-x-auto gap-4 py-6 px-2">
+            {steps.map((step, index) => {
+                const color = index % 2 === 0 ? "brand-blue" : "brand-green";
+
+                return (
+                    <div class="flex flex-col items-center min-w-[200px]">
+                        {/* Dot */}
+                        <div
+                            class={`w-12 h-12 rounded-full bg-${color} flex items-center justify-center text-white font-bold text-lg shadow-lg mb-3`}
+                        >
+                            {step.icon || index + 1}
+                        </div>
+
+                        {/* Content */}
+                        <div class="text-center">
+                            {step.time && (
+                                <span
+                                    class={`text-sm font-semibold text-${color} mb-1 block`}
+                                >
+                                    {step.time}
+                                </span>
+                            )}
+                            <h4 class="font-bold text-base text-gray-900 mb-2">
+                                {step.title}
+                            </h4>
+                            <p class="text-sm text-gray-600">
+                                {step.description}
+                            </p>
+                        </div>
+
+                        {/* Connector line */}
+                        {index < steps.length - 1 && (
+                            <div
+                                class={`hidden md:block absolute top-6 left-1/2 w-full h-0.5 bg-${color}/30`}
+                            />
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+    )
+}

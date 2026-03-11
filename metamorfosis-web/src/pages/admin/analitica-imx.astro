@@ -1,0 +1,96 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import AnaliticaIMX from "../../components/admin/AnaliticaIMX";
+
+// Forzar SSR en Astro (Necesario para Cookies)
+export const prerender = false;
+
+// Check matching password with .env or fallback
+const ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD || "metamorfosis2026";
+
+// Check cookie on GET request
+const sessionCookie = Astro.cookies.get("admin_session");
+const isAuthenticated =
+    sessionCookie &&
+    (sessionCookie.value === "firebase_auth" ||
+        sessionCookie.value === ADMIN_PASSWORD);
+
+if (!isAuthenticated) {
+    return Astro.redirect("/admin/login");
+}
+
+// Handling Logout
+if (Astro.url.searchParams.get("logout") === "true") {
+    Astro.cookies.delete("admin_session", { path: "/" });
+    return Astro.redirect("/admin/login");
+}
+---
+
+<Layout title="Mission Control | Analítica IMX">
+    <div class="min-h-screen bg-[#050505] text-white font-sans flex flex-col">
+        <header
+            class="border-b border-white/10 bg-black/80 backdrop-blur-md sticky top-0 z-50 shrink-0"
+        >
+            <div
+                class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between"
+            >
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">⚡️</span>
+                    <h1
+                        class="text-xl font-black tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-[#00C49A] to-blue-500"
+                    >
+                        Mission Control
+                    </h1>
+                    <span
+                        class="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30 uppercase tracking-wider hidden sm:inline-block"
+                    >
+                        Analítica IMX
+                    </span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a
+                        href="/admin/dashboard"
+                        class="text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-colors px-3 py-1.5 hover:bg-white/10 rounded-lg"
+                    >
+                        ← Volver al Dashboard
+                    </a>
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-2 h-2 rounded-full bg-[#00C49A] animate-pulse"
+                        >
+                        </div>
+                        <span
+                            class="text-sm font-medium text-gray-400 font-mono"
+                            >SYS_ADMIN</span
+                        >
+                    </div>
+                    <form method="GET" action="/admin/dashboard">
+                        <input type="hidden" name="logout" value="true" />
+                        <button
+                            type="submit"
+                            class="text-xs font-bold uppercase tracking-wider text-red-500 hover:text-red-400 transition-colors px-4 py-1.5 rounded-full border border-red-500/30 hover:bg-red-500/10 flex items-center gap-2"
+                        >
+                            <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                ><path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                ></path>
+                            </svg>
+                            Salir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
+            <AnaliticaIMX client:only="react" />
+        </div>
+    </div>
+</Layout>

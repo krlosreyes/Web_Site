@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro';
+import MetamorfosisCalculator from '../components/calculator/MetamorfosisCalculator';
+
+---
+
+<Layout title="Calculadora de Longevidad PRO | Metamorfosis">
+    <main>
+        {/* Usamos client:load para que el componente React y Framer Motion se hidraten inmediatamente */}
+        <MetamorfosisCalculator client:load />
+    </main>
+
+    {/* ePayco Script Inclusion */}
+    <script is:inline type="text/javascript" src="https://checkout.epayco.co/checkout.js"></script>
+</Layout>
