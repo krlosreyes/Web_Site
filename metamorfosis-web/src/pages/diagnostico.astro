@@ -142,9 +142,8 @@ import Layout from "../layouts/Layout.astro";
         // Simulator delay for realistic analysis feel
         setTimeout(() => {
             const scoreStr = sessionStorage.getItem("imx_score");
-            // Default to empty string if not found, or a generic term if preferred,
-            // but the prompt implies we captured it.
-            // Fallback to "Sujeto" if empty/null.
+            const ffmiStr = sessionStorage.getItem("imx_ffmi") || "0";
+            const interpretation = sessionStorage.getItem("imx_interpretation") || "Analizando tu estado metabólico...";
             const userName = sessionStorage.getItem("imx_userName") || "Sujeto";
 
             if (!scoreStr) {
@@ -162,7 +161,6 @@ import Layout from "../layouts/Layout.astro";
             const scoreValue = document.getElementById("score-value");
             const scoreCircle = document.getElementById("score-circle");
             const levelTitle = document.getElementById("level-title");
-            const levelDesc = document.getElementById("level-description");
             const levelAnalysis = document.getElementById("level-analysis");
             const ctaTitle = document.getElementById("cta-title");
             const ctaDesc = document.getElementById("cta-desc");
@@ -173,7 +171,7 @@ import Layout from "../layouts/Layout.astro";
             // Animation
             let currentScore = 0;
             const duration = 1500;
-            const stepTime = Math.abs(Math.floor(duration / score));
+            const stepTime = Math.max(10, Math.abs(Math.floor(duration / score)));
 
             if (scoreValue) {
                 const timer = setInterval(() => {
@@ -190,64 +188,45 @@ import Layout from "../layouts/Layout.astro";
                 scoreCircle.style.strokeDashoffset = offset.toString();
             }
 
-            // Logic Levels (only for Title and Circle Colors)
-            let colorClass = "";
-
+            // Logic Levels
             if (score <= 40) {
-                // ALERTA (0-40)
-                colorClass = "text-red-500";
-                if (scoreCircle) {
-                    scoreCircle.classList.add(
-                        "text-red-500",
-                        "drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]"
-                    );
-                }
-                if (levelTitle)
-                    levelTitle.innerHTML = `<span class="${colorClass}">⚠️ ${userName}, tu sistema está en Bloqueo Metabólico.</span>`;
+                scoreCircle?.classList.add("text-red-500", "drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]");
             } else if (score <= 70) {
-                // ESTANCAMIENTO (41-70)
-                colorClass = "text-yellow-400";
-                if (scoreCircle) {
-                    scoreCircle.classList.add(
-                        "text-yellow-400",
-                        "drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]"
-                    );
-                }
-                if (levelTitle)
-                    levelTitle.innerHTML = `<span class="${colorClass}">⚠️ ${userName}, tu sistema está en Bloqueo Metabólico.</span>`;
+                scoreCircle?.classList.add("text-yellow-400", "drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]");
             } else {
-                // MANTENIMIENTO (71-100)
-                colorClass = "text-[#00C49A]";
-                if (scoreCircle) {
-                    scoreCircle.classList.add(
-                        "text-[#00C49A]",
-                        "drop-shadow-[0_0_10px_rgba(0,196,154,0.5)]"
-                    );
-                }
-                if (levelTitle)
-                    levelTitle.innerHTML = `<span class="${colorClass}">⚠️ ${userName}, tu sistema está en Bloqueo Metabólico.</span>`; 
-                    // Maintaining the title per user request: "Deja el título de alerta: "⚠️ [Nombre], tu sistema está en Bloqueo Metabólico.""
+                scoreCircle?.classList.add("text-[#00C49A]", "drop-shadow-[0_0_10px_rgba(0,196,154,0.5)]");
             }
 
-            // Universal Waitlist Text & CTA
-            if (levelDesc)
-                levelDesc.innerText = ""; // Clearing original description to focus on the analysis block
-            
-            if (levelAnalysis)
-                levelAnalysis.innerHTML = `Las dietas tradicionales no van a funcionar. Tu Índice Metamorfosis (IMX) indica que necesitas reparar tu flexibilidad metabólica antes de intentar perder peso. Contar calorías solo empeorará el daño.`;
+            if (levelTitle) {
+                levelTitle.innerHTML = `<span class="text-white">Análisis de Authority V2 para ${userName}</span>`;
+            }
 
-            if (ctaTitle)
-                ctaTitle.innerText = "Acceso a ElenaApp: Lista de Espera Privada";
+            if (levelAnalysis) {
+                levelAnalysis.innerHTML = `
+                    <div class="space-y-4">
+                        <p class="text-xl font-bold text-[#00C49A]">Interpretación: ${interpretation}</p>
+                        <div class="bg-black/40 p-4 rounded-xl border border-white/5">
+                            <span class="text-xs text-gray-400 uppercase tracking-widest">Músculo (FFMI) Detectado</span>
+                            <div class="text-2xl font-black text-white">${ffmiStr} pts</div>
+                        </div>
+                        <p class="text-gray-300 leading-relaxed">
+                            Tu Índice Metamorfosis (IMX) ha sido validado por el motor central. 
+                            La relación entre tu cuello, cintura y FFMI indica que necesitas una reparación estructural.
+                        </p>
+                    </div>
+                `;
+            }
+
+            if (ctaTitle) ctaTitle.innerText = "Acceso a ElenaApp: Lista de Espera Privada";
+            if (ctaDesc) ctaDesc.innerText = "Tu diagnóstico ha sido sincronizado. Te notificaremos por correo para el programa piloto de optimización de FFMI.";
             
-            if (ctaDesc)
-                ctaDesc.innerText = "Tu correo ha sido registrado exitosamente. Estamos seleccionando a un grupo reducido de personas para nuestro programa piloto gratuito de 30 días. Te notificaremos por correo si eres seleccionado para desbloquear tu metabolismo.";
-            
-            if (ctaButtons)
+            if (ctaButtons) {
                 ctaButtons.innerHTML = `
-                <a href="/" class="inline-flex items-center justify-center px-8 py-3 text-sm font-bold text-[#00C49A] hover:bg-[#00C49A]/10 border border-[#00C49A]/50 rounded-xl transition-all w-full sm:w-auto">
-                    Volver al Inicio
-                </a>
-            `;
+                    <a href="/" class="inline-flex items-center justify-center px-8 py-3 text-sm font-bold text-[#00C49A] hover:bg-[#00C49A]/10 border border-[#00C49A]/50 rounded-xl transition-all w-full sm:w-auto">
+                        Volver al Inicio
+                    </a>
+                `;
+            }
         }, 800);
     });
 </script>

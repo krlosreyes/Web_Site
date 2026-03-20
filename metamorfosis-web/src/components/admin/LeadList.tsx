@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, getDocs, orderBy } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
-import { db, auth } from '../../lib/firebase';
 
 interface Lead {
     id: string;
+    name: string;
     email: string;
-    weight: string;
-    waist: string;
-    hip: string;
-    icc: string;
+    imx_score: string | number;
+    quiz_type: string;
     dateCompleted: string;
 }
 
@@ -18,86 +14,43 @@ const LeadList = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                const fetchLeads = async () => {
-                    try {
-                        const pruebasRef = collection(db, 'pruebas');
-                        // No usamos orderBy para evitar fallos si no existe el índice compuesto
-                        const q = query(pruebasRef);
-                        const snap = await getDocs(q);
+        const fetchLeads = async () => {
+            try {
+                const response = await fetch('/api/admin/leads');
+                
+                if (response.status === 401) {
+                    // Fallback to login if session expired or unauthorized
+                    window.location.href = '/admin/login';
+                    return;
+                }
 
-                        const data: Lead[] = [];
-                        snap.forEach(doc => {
-                            const d = doc.data();
-                            const quizInputs = d.quiz?.inputs || {};
-                            let icc = "N/A";
-
-                            if (quizInputs.waist && quizInputs.hip) {
-                                icc = (Number(quizInputs.waist) / Number(quizInputs.hip)).toFixed(2);
-                            }
-
-                            const createdAtRaw = d.metadata?.timestamp || d.createdAt;
-                            let dateStr = 'Desconocido';
-                            if (createdAtRaw) {
-                                if (createdAtRaw.toDate) {
-                                    dateStr = createdAtRaw.toDate().toLocaleDateString();
-                                } else if (createdAtRaw.seconds) {
-                                    dateStr = new Date(createdAtRaw.seconds * 1000).toLocaleDateString();
-                                } else {
-                                    const dParsed = new Date(createdAtRaw);
-                                    if (!isNaN(dParsed.getTime())) dateStr = dParsed.toLocaleDateString();
-                                }
-                            }
-
-                            data.push({
-                                id: doc.id,
-                                email: d.email_sintetico || d.email || `anon-${doc.id.slice(0, 5)}@metamorfosis.com`,
-                                weight: quizInputs.weight ? String(quizInputs.weight) : 'N/A',
-                                waist: quizInputs.waist ? String(quizInputs.waist).slice(0, 5) : 'N/A',
-                                hip: quizInputs.hip ? String(quizInputs.hip).slice(0, 5) : 'N/A',
-                                icc: icc,
-                                dateCompleted: dateStr
-                            });
-                        });
-
-                        // Client-side sort by newest first
-                        data.sort((a, b) => {
-                            if (a.dateCompleted === 'Desconocido') return 1;
-                            if (b.dateCompleted === 'Desconocido') return -1;
-                            return new Date(b.dateCompleted).getTime() - new Date(a.dateCompleted).getTime();
-                        });
-
-                        setLeads(data);
-                    } catch (error) {
-                        console.error("Error fetching leads:", error);
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-
-                fetchLeads();
-            } else {
+                if (!response.ok) throw new Error('Failed to fetch leads');
+                
+                const data = await response.json();
+                if (data.success) {
+                    setLeads(data.leads);
+                }
+            } catch (error) {
+                console.error("Error fetching leads via API:", error);
+            } finally {
                 setLoading(false);
-                console.warn("User not authenticated, skipping fetch.");
             }
-        });
+        };
 
-        return () => unsubscribe();
+        fetchLeads();
     }, []);
 
     const exportCsv = () => {
         if (leads.length === 0) return;
-        const headers = ['Email', 'Peso_Inicial', 'Cintura', 'Cadera', 'ICC', 'Fecha_Registro'];
+        const headers = ['Nombre', 'Email', 'IMX Score', 'Tipo', 'Fecha_Registro'];
         const csvRows = [headers.join(',')];
 
         for (const lead of leads) {
             csvRows.push([
+                `"${lead.name || 'N/A'}"`,
                 lead.email,
-                lead.weight,
-                lead.waist,
-                lead.hip,
-                lead.icc,
+                lead.imx_score,
+                lead.quiz_type,
                 lead.dateCompleted
             ].join(','));
         }
@@ -143,27 +96,27 @@ const LeadList = () => {
                 <table className="w-full text-left text-sm text-gray-400">
                     <thead className="text-[10px] uppercase tracking-widest bg-black/50 text-gray-500">
                         <tr>
-                            <th className="px-4 py-3 rounded-tl-lg">Email</th>
-                            <th className="px-4 py-3">Peso (kg)</th>
-                            <th className="px-4 py-3">Cint/Cad (cm)</th>
-                            <th className="px-4 py-3">ICC</th>
-                            <th className="px-4 py-3 text-right rounded-tr-lg">Fecha</th>
+                            <th className="px-4 py-3 rounded-tl-lg">Nombre</th>
+                            <th className="px-4 py-3">Email</th>
+                            <th className="px-4 py-3">IMX Score</th>
+                            <th className="px-4 py-3">Tipo Lead</th>
+                            <th className="px-4 py-3 text-right rounded-tr-lg">Fecha Captura</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800/50">
                         {leads.length === 0 ? (
                             <tr>
                                 <td colSpan={5} className="px-4 py-8 text-center text-gray-600 font-mono text-xs">
-                                    No captured leads yet.
+                                    No hay leads capturados todavía.
                                 </td>
                             </tr>
                         ) : (
                             leads.map((lead: Lead) => (
                                 <tr key={lead.id} className="hover:bg-white/[0.02] transition-colors group">
-                                    <td className="px-4 py-4 font-medium text-gray-200">{lead.email}</td>
-                                    <td className="px-4 py-4">{lead.weight}</td>
-                                    <td className="px-4 py-4">{lead.waist} / {lead.hip}</td>
-                                    <td className="px-4 py-4 font-mono text-blue-400">{lead.icc}</td>
+                                    <td className="px-4 py-4 font-medium text-gray-200">{lead.name}</td>
+                                    <td className="px-4 py-4">{lead.email}</td>
+                                    <td className="px-4 py-4 font-mono text-blue-400">{lead.imx_score}</td>
+                                    <td className="px-4 py-4 font-mono text-[#00C49A] text-xs uppercase">{lead.quiz_type}</td>
                                     <td className="px-4 py-4 text-right text-xs">
                                         {lead.dateCompleted}
                                     </td>
@@ -175,7 +128,7 @@ const LeadList = () => {
             </div>
 
             <div className="mt-4 pt-4 border-t border-gray-800 text-xs text-gray-600 font-mono">
-                Total Leads: {leads.length}
+                Conversiones Totales Registradas: {leads.length}
             </div>
         </div>
     );

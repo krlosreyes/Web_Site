@@ -6,7 +6,11 @@ import AdminApp from "../../components/admin/AdminApp";
 export const prerender = false;
 
 // Check matching password with .env or fallback
-const ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD || "metamorfosis2026";
+const ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD;
+
+if (import.meta.env.MODE === 'production' && !ADMIN_PASSWORD) {
+    throw new Error('ADMIN_PASSWORD must be set in production');
+}
 
 // Check cookie on GET request
 const sessionCookie = Astro.cookies.get("admin_session");

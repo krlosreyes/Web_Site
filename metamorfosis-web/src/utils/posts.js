@@ -1,23 +1,33 @@
+import { db } from "../lib/firebaseAdmin";
 
-import { collection, getDocs, query, orderBy, where } from "firebase/firestore";
-import { db } from "../lib/firebase";
-
-const COLLECTION_NAME = "metamorfosis_posts";
+const COLLECTION_NAME = "post";
 
 export async function getPosts() {
     const posts = [];
     try {
-        const q = query(
-            collection(db, COLLECTION_NAME),
-            where("metadata.status", "==", "published")
-        );
-        const querySnapshot = await getDocs(q);
+        const postsRef = db.collection(COLLECTION_NAME);
+        const snapshot = await postsRef.get();
 
-        querySnapshot.forEach((doc) => {
-            posts.push({
-                id: doc.id,
-                ...doc.data()
-            });
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            
+            // Reconciliar viejos vs nuevos esquemas (Tolerancia a versiones planas)
+            const normalizedMetadata = data.metadata || {
+                seoTitle: data.title || doc.id,
+                slug: data.slug || doc.id,
+                status: data.status || 'published',
+                category: data.category || 'Guía',
+            };
+
+            // Solo mostrar publicados
+            if (normalizedMetadata.status === 'published' || data.status === 'published') {
+                posts.push({
+                    id: doc.id,
+                    ...data,
+                    metadata: normalizedMetadata, 
+                    title: data.title || normalizedMetadata.seoTitle
+                });
+            }
         });
     } catch (error) {
         console.error("Error fetching posts:", error);
@@ -26,29 +36,30 @@ export async function getPosts() {
 }
 
 export async function getPostBySlug(slug) {
-    // Since we don't have slug as document ID, we might need a query
-    // Ideally, slug should be unique.
-    // Assuming for now we query by a 'metadata.slug' field or simply fetch all and find.
-    // Better approach: query by slug field.
-
     try {
-        const q = query(
-            collection(db, COLLECTION_NAME),
-            where("metadata.status", "==", "published")
-        );
-        // Optimization: In a real app, you'd want an index on slug and use `where("metadata.slug", "==", slug)`
-        // For now, let's fetch all and filter or use the ID if the slug IS the ID.
-        // The prompt implies we use "metamorfosis_posts". 
-        // Let's assume the document ID is NOT the slug unless specified.
+        const postsRef = db.collection(COLLECTION_NAME);
+        const snapshot = await postsRef.get();
+        
+        const postDoc = snapshot.docs.find(doc => {
+            const data = doc.data();
+            const docSlug = data.metadata?.slug || data.slug || doc.id;
+            return docSlug === slug;
+        });
 
-        // Let's try to find by query first
-        const querySnapshot = await getDocs(q);
-        const post = querySnapshot.docs.find(doc => doc.data().metadata?.slug === slug || doc.id === slug);
+        if (postDoc) {
+            const data = postDoc.data();
+             const normalizedMetadata = data.metadata || {
+                seoTitle: data.title || postDoc.id,
+                slug: data.slug || postDoc.id,
+                status: data.status || 'published',
+                category: data.category || 'Guía',
+            };
 
-        if (post) {
             return {
-                id: post.id,
-                ...post.data()
+                id: postDoc.id,
+                ...data,
+                metadata: normalizedMetadata,
+                content: typeof data.content === 'string' ? { body: data.content } : data.content
             };
         }
     } catch (error) {

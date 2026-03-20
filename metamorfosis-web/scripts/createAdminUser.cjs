@@ -39,7 +39,12 @@ try {
 }
 
 const adminEmail = 'admin@metamorfosis.com';
-const adminPassword = envVars['ADMIN_PASSWORD'] || 'metamorfosis2026';
+const adminPassword = envVars['ADMIN_PASSWORD'];
+
+if (!adminPassword) {
+    console.error('❌ Error: ADMIN_PASSWORD is missing in your .env file. For security, this script requires ADMIN_PASSWORD to be set.');
+    process.exit(1);
+}
 
 async function createAdminUser() {
     try {

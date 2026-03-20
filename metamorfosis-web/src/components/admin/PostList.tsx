@@ -1,7 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, limit, getDocs } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
-import { db, auth } from '../../lib/firebase';
 
 interface Post {
     id: string;
@@ -16,51 +13,31 @@ const PostList = () => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                const fetchPosts = async () => {
-                    try {
-                        const postsRef = collection(db, 'posts');
-                        // Normally order by createdAt desc, but we'll fetch all or limit
-                        const q = query(postsRef, limit(10));
-                        const snap = await getDocs(q);
-
-                        const data: Post[] = [];
-                        snap.forEach(doc => {
-                            const postData = doc.data();
-                            // Mocking metrics if they don't exist yet in the schema
-                            const mockViews = Math.floor(Math.random() * 5000) + 500;
-                            const mockClicks = Math.floor(mockViews * (Math.random() * 0.3 + 0.1));
-                            const mockConversions = Math.floor(mockClicks * (Math.random() * 0.1 + 0.02));
-                            data.push({
-                                id: doc.id,
-                                title: postData.title || 'Untitled',
-                                slug: postData.slug || doc.id,
-                                views: postData.views || mockViews,
-                                clicks: postData.clicks || mockClicks,
-                                conversions: postData.conversions || mockConversions,
-                            });
-                        });
-
-                        // Sort by views
-                        data.sort((a, b) => b.views - a.views);
-                        setPosts(data);
-                    } catch (error) {
-                        console.error("Error fetching posts:", error);
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-
-                fetchPosts();
-            } else {
-                setLoading(false);
-                console.warn("User not authenticated, skipping fetch.");
+    const fetchPosts = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('/api/admin/posts');
+            
+            if (response.status === 401) {
+                window.location.href = '/admin/login';
+                return;
             }
-        });
 
-        return () => unsubscribe();
+            if (!response.ok) throw new Error('Failed to fetch posts');
+            
+            const data = await response.json();
+            if (data.success) {
+                setPosts(data.posts);
+            }
+        } catch (error) {
+            console.error("Error fetching posts via API:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchPosts();
     }, []);
 
     if (loading) {
@@ -79,9 +56,9 @@ const PostList = () => {
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h2 className="text-lg font-bold text-white uppercase tracking-widest mb-1">Index de Contenido</h2>
-                    <p className="text-xs text-gray-500 font-mono">Últimas 10 publicaciones inyectadas por IA</p>
+                    <p className="text-xs text-gray-500 font-mono">Últimas 50 publicaciones</p>
                 </div>
-                <button className="text-xs font-bold uppercase tracking-wider text-blue-400 hover:text-blue-300 transition-colors px-3 py-1.5 rounded-full border border-blue-500/30 hover:bg-blue-500/10">
+                <button onClick={fetchPosts} className="text-xs font-bold uppercase tracking-wider text-blue-400 hover:text-blue-300 transition-colors px-3 py-1.5 rounded-full border border-blue-500/30 hover:bg-blue-500/10">
                     Sincronizar Datos ↻
                 </button>
             </div>
@@ -126,7 +103,7 @@ const PostList = () => {
                                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                                             </span>
                                             <a
-                                                href={`/blog/${post.slug}`}
+                                                href={`/posts/${post.slug}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold uppercase tracking-widest border border-gray-600 px-2 py-1 rounded text-gray-400 hover:text-white hover:border-gray-400"
@@ -144,7 +121,7 @@ const PostList = () => {
 
             <div className="mt-4 pt-4 border-t border-gray-800 text-xs text-gray-600 font-mono flex justify-between">
                 <span>System Status: <span className="text-[#00C49A]">Optimal</span></span>
-                <span>DB: Firestore /posts</span>
+                <span>DB: /post</span>
             </div>
         </div>
     );

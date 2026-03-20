@@ -1,7 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
-import { db, auth } from '../../lib/firebase';
 import {
     PieChart, Pie, Cell,
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend,
@@ -51,97 +48,92 @@ const AnaliticaIMX = () => {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                const fetchPruebas = async () => {
-                    try {
-                        // Fetch records without orderBy to avoid index errors
-                        const q = query(collection(db, 'pruebas'), limit(200));
-                        const snapshot = await getDocs(q);
+        const fetchPruebas = async () => {
+            try {
+                const response = await fetch('/api/admin/analitica');
+                if (response.status === 401) {
+                    window.location.href = '/admin/login';
+                    return;
+                }
+                if (!response.ok) throw new Error('Error de conexión a la API');
 
-                        const users: syntheticUser[] = [];
-                        snapshot.forEach(doc => {
-                            const d = doc.data();
-                            const quiz = d.quiz || {};
-                            const inputs = quiz.inputs || {};
+                const resData = await response.json();
+                if (!resData.success) {
+                    throw new Error(resData.error || 'Error al obtener datos');
+                }
 
-                            const userRecord: syntheticUser = {
-                                id: doc.id,
-                                gender: inputs.gender || 'unknown',
-                                age: inputs.age || 30, // Default if not provided
-                                initial_weight: inputs.weight || 70,
-                                height: inputs.height || 170,
-                                waist: inputs.waist || 90,
-                                hip: inputs.hip || 100,
-                                neck: inputs.neck || 35,
-                                body_fat: 20,
-                                diet_type: 'mixto',
-                                ultra_processed_score: inputs.nutritionScore || 5,
-                                energy_score: inputs.energyLevel || 5,
-                                exercise_days: inputs.exerciseScore || 0,
-                                sleep_hours: inputs.sleepHours || 6,
-                                fasting_hours: inputs.fastingHours || 12,
-                                createdAt: d.metadata?.timestamp || d.createdAt,
+                const users: syntheticUser[] = [];
+                resData.docs.forEach((d: any) => {
+                    const quiz = d.quiz || {};
+                    const inputs = quiz.inputs || {};
 
-                                imx_score: Math.round(quiz.imxScore || 0),
-                                b_score: quiz.bodyScore_B ? Math.round(quiz.bodyScore_B * 100) : 0,
-                                m_score: quiz.metabolicScore_M ? Math.round(quiz.metabolicScore_M * 100) : 0,
-                                h_score: quiz.lifestyleScore_H ? Math.round(quiz.lifestyleScore_H * 100) : 0,
-                            };
+                    const userRecord: syntheticUser = {
+                        id: d._id,
+                        gender: inputs.gender || 'unknown',
+                        age: inputs.age || 30, // Default if not provided
+                        initial_weight: inputs.weight || 70,
+                        height: inputs.height || 170,
+                        waist: inputs.waist || 90,
+                        hip: inputs.hip || 100,
+                        neck: inputs.neck || 35,
+                        body_fat: 20,
+                        diet_type: 'mixto',
+                        ultra_processed_score: inputs.nutritionScore || 5,
+                        energy_score: inputs.energyLevel || 5,
+                        exercise_days: inputs.exerciseScore || 0,
+                        sleep_hours: inputs.sleepHours || 6,
+                        fasting_hours: inputs.fastingHours || 12,
+                        createdAt: d.createdAtStr || d.metadata?.timestamp || d.createdAt,
 
-                            // Fallback calculation in case IMX relies on synthetic missing data
-                            if (!userRecord.imx_score || userRecord.imx_score === 0) {
-                                const payload: IMXVariables = {
-                                    gender: userRecord.gender as "male" | "female",
-                                    weight: userRecord.initial_weight,
-                                    height: userRecord.height,
-                                    waist: userRecord.waist,
-                                    hip: userRecord.hip,
-                                    neck: userRecord.neck,
-                                    fastingHours: userRecord.fasting_hours,
-                                    energyScore: userRecord.energy_score,
-                                    // nutritionScore: Elena stores ultra_processed_score (higher = worse), so we invert
-                                    nutritionScore: userRecord.ultra_processed_score ? 10 - userRecord.ultra_processed_score : 5,
-                                    exerciseDays: userRecord.exercise_days,
-                                    sleepHours: userRecord.sleep_hours
-                                };
-                                userRecord.imx_score = Math.round(calculateIMX(payload));
+                        imx_score: Math.round(quiz.imxScore || 0),
+                        b_score: quiz.bodyScore_B ? Math.round(quiz.bodyScore_B * 100) : 0,
+                        m_score: quiz.metabolicScore_M ? Math.round(quiz.metabolicScore_M * 100) : 0,
+                        h_score: quiz.lifestyleScore_H ? Math.round(quiz.lifestyleScore_H * 100) : 0,
+                    };
+
+                    // Fallback calculation in case IMX relies on synthetic missing data
+                    if (!userRecord.imx_score || userRecord.imx_score === 0) {
+                        const payload: IMXVariables = {
+                            peso: userRecord.initial_weight,
+                            altura: userRecord.height,
+                            grasa: userRecord.body_fat || 20
+                        };
+                        // Note: In a production sync, we might want to await this or use a batch process.
+                        // For the dashboard view, we'll trigger the authority fetch.
+                        calculateIMX(payload).then(res => {
+                            if (res) {
+                                // Update local state if needed or just log
+                                console.log(`Authority sync for user ${userRecord.id}: ${res.score}`);
                             }
-
-                            users.push(userRecord);
                         });
-
-                        // Sort newest first client-side safely checking timestamp formats
-                        users.sort((a, b) => {
-                            let timeA = 0; let timeB = 0;
-                            if (a.createdAt?.seconds) timeA = a.createdAt.seconds * 1000;
-                            else if (typeof a.createdAt === 'string' || typeof a.createdAt === 'number') timeA = new Date(a.createdAt).getTime();
-
-                            if (b.createdAt?.seconds) timeB = b.createdAt.seconds * 1000;
-                            else if (typeof b.createdAt === 'string' || typeof b.createdAt === 'number') timeB = new Date(b.createdAt).getTime();
-
-                            return timeB - timeA;
-                        });
-
-                        console.log("🔥 Registros IMX Crudos Descargados:", users.length);
-                        console.log("Primer Registro de Muestra:", users[0]);
-                        setData(users);
-                    } catch (err: any) {
-                        console.error("Error fetching pruebas:", err);
-                        setError(err.message);
-                    } finally {
-                        setLoading(false);
                     }
-                };
 
-                fetchPruebas();
-            } else {
+                    users.push(userRecord);
+                });
+
+                // Sort newest first client-side safely checking timestamp formats
+                users.sort((a, b) => {
+                    let timeA = 0; let timeB = 0;
+                    if (a.createdAt?.seconds) timeA = a.createdAt.seconds * 1000;
+                    else if (typeof a.createdAt === 'string' || typeof a.createdAt === 'number') timeA = new Date(a.createdAt).getTime();
+
+                    if (b.createdAt?.seconds) timeB = b.createdAt.seconds * 1000;
+                    else if (typeof b.createdAt === 'string' || typeof b.createdAt === 'number') timeB = new Date(b.createdAt).getTime();
+
+                    return timeB - timeA;
+                });
+
+                console.log("🔥 Registros IMX Crudos Descargados:", users.length);
+                setData(users);
+            } catch (err: any) {
+                console.error("Error fetching pruebas:", err);
+                setError(err.message);
+            } finally {
                 setLoading(false);
-                setError("Usuario no autenticado en Firebase.");
             }
-        });
+        };
 
-        return () => unsubscribe();
+        fetchPruebas();
     }, []);
 
     // ─── Proceso de Datos (useMemo) ──────────────────────────────────────────

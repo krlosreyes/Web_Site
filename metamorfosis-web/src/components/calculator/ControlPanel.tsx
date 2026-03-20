@@ -66,6 +66,10 @@ export interface ControlPanelProps {
     exerciseDays: number; setExerciseDays: (d: number) => void;
     sleepHours: number; setSleepHours: (h: number) => void;
 
+    // IMR Specific
+    age: number; setAge: (a: number) => void;
+    pathologies: string[]; togglePathology: (p: string) => void;
+
     textColor: string;
 }
 
@@ -73,7 +77,7 @@ const ControlPanel: React.FC<ControlPanelProps> = (props) => {
     return (
         <div className="w-full flex flex-col z-10 relative overflow-y-auto pr-2 max-h-[500px] custom-scrollbar">
             <h2 className="text-lg md:text-xl font-black uppercase tracking-widest text-[#00f5d4] mb-4 drop-shadow-[0_0_8px_rgba(0,245,212,0.5)] sticky top-0 bg-[#0c1f31]/90 backdrop-blur-md z-20 py-2">
-                EVALUACIÓN IMX
+                EVALUACIÓN IMR
             </h2>
 
             <div className="flex gap-4 mb-6">
@@ -93,8 +97,34 @@ const ControlPanel: React.FC<ControlPanelProps> = (props) => {
                 <SliderField label="Peso" value={props.weight} min={40} max={150} unit="kg" setter={props.setWeight} activeColor={props.textColor} />
                 <SliderField label="Altura" value={props.height} min={140} max={220} unit="cm" setter={props.setHeight} activeColor={props.textColor} />
                 <SliderField label="Cintura" value={props.waist} min={50} max={150} unit="cm" setter={props.setWaist} activeColor={props.textColor} />
+                <SliderField label="Edad" value={props.age} min={18} max={90} unit="años" setter={props.setAge} activeColor={props.textColor} />
                 <SliderField label="Cadera" value={props.hip} min={50} max={160} unit="cm" setter={props.setHip} activeColor={props.textColor} />
                 <SliderField label="Cuello" value={props.neck} min={25} max={60} unit="cm" setter={props.setNeck} activeColor={props.textColor} />
+            </div>
+
+            {/* Marcadores de Riesgo (Patologías) */}
+            <div className="mb-6 p-4 bg-red-950/20 border border-red-500/20 rounded-2xl">
+                <h3 className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-3">Marcadores Metabólicos</h3>
+                <div className="grid grid-cols-1 gap-2">
+                    {[
+                        { id: 'insulin_resistance', label: 'Resistencia Insulina' },
+                        { id: 'diabetes_t2', label: 'Diabetes Tipo 2' },
+                        { id: 'hypertension', label: 'Hipertensión' },
+                        { id: 'fatty_liver', label: 'Hígado Graso' }
+                    ].map(path => (
+                        <label key={path.id} className="flex items-center gap-3 cursor-pointer group">
+                            <input 
+                                type="checkbox" 
+                                checked={props.pathologies.includes(path.id)}
+                                onChange={() => props.togglePathology(path.id)}
+                                className="w-4 h-4 rounded border-gray-700 bg-gray-900 checked:bg-red-500"
+                            />
+                            <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400 group-hover:text-gray-200 transition-colors">
+                                {path.label}
+                            </span>
+                        </label>
+                    ))}
+                </div>
             </div>
 
             {/* Capa M: Metabolismo */}

@@ -7,10 +7,11 @@ import Navbar from "../../components/Navbar.astro";
 import Quiz from "../../components/Quiz.astro";
 import Footer from "../../components/Footer.astro";
 import StyleSafelist from "../../components/StyleSafelist.astro";
+import ArticleQuiz from "../../components/blog/ArticleQuiz";
+import DiscussionForum from "../../components/blog/DiscussionForum";
 import ComparisonTable from "../../components/editorial/ComparisonTable.astro";
 import ProtocolStepper from "../../components/editorial/ProtocolStepper.astro";
-import { db } from "../../lib/firebase";
-import { collection, query, where, getDocs, limit } from "firebase/firestore";
+import { db } from "../../lib/firebaseAdmin";
 import { marked } from "marked";
 import { BookOpen, Clock, Calendar, Link } from "lucide-astro";
 import type { PostData } from "../../lib/types/post";
@@ -19,17 +20,38 @@ const { slug } = Astro.params;
 let post: PostData | null = null;
 
 try {
-    const postsRef = collection(db, "metamorfosis_posts");
-    const q = query(postsRef, where("metadata.status", "==", "published"), where("metadata.slug", "==", slug), limit(1));
-    const querySnapshot = await getDocs(q);
+    const postsRef = db.collection("post");
+    const snapshot = await postsRef.get();
 
-    if (!querySnapshot.empty) {
-        const doc = querySnapshot.docs[0];
-        // Asignamos el ID y los datos con el tipo correcto
-        post = { id: doc.id, ...doc.data() } as PostData;
+    if (!snapshot.empty) {
+        // Find matching slug across both schemas
+        const matchedDoc = snapshot.docs.find(doc => {
+            const data = doc.data();
+            const docSlug = data.metadata?.slug || data.slug || doc.id;
+            const status = data.metadata?.status || data.status;
+            return docSlug === slug && status === 'published';
+        });
+
+        if (matchedDoc) {
+             const data = matchedDoc.data();
+             const normalizedMetadata = data.metadata || {
+                seoTitle: data.title || matchedDoc.id,
+                slug: data.slug || matchedDoc.id,
+                status: data.status || 'published',
+                category: data.category || 'Guía',
+                seoDescription: typeof data.content === 'string' ? data.content.substring(0, 150) : ''
+            };
+
+            post = { 
+                id: matchedDoc.id, 
+                ...data, 
+                metadata: normalizedMetadata,
+                content: typeof data.content === 'string' ? { body: data.content } : data.content
+            } as unknown as PostData;
+        }
     }
 } catch (error) {
-    console.error("Error en SSR Firestore:", error);
+    console.error("Error en SSR Firestore Admin:", error);
 }
 
 // Validación de existencia
@@ -38,7 +60,7 @@ if (!post) {
 }
 
 // Procesamiento de contenido (Marked puede devolver Promise o string, forzamos string)
-const rawBody = post.content?.body || "<p>No content available</p>";
+const rawBody = post.content?.body || (typeof post.content === 'string' ? post.content : "<p>No content available</p>");
 const content = typeof marked.parse(rawBody) === 'string' 
     ? marked.parse(rawBody) 
     : await marked.parse(rawBody);
@@ -114,6 +136,20 @@ const formatDate = (dateString?: string) => {
             </div>
 
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                {/* Video Original Incrustado (Si fue generado por IA desde YouTube) */}
+                {post.sourceVideoId && (
+                    <div class="mb-12 rounded-2xl overflow-hidden shadow-2xl border border-gray-200">
+                        <div class="aspect-w-16 aspect-h-9 relative" style="padding-bottom: 56.25%;">
+                            <iframe 
+                                src={`https://www.youtube.com/embed/${post.sourceVideoId}?autoplay=0&rel=0`}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen
+                                class="absolute top-0 left-0 w-full h-full"
+                            ></iframe>
+                        </div>
+                    </div>
+                )}
+
                 <article
                     class="prose prose-lg max-w-none prose-headings:font-bold prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6 prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4 prose-p:text-gray-700 prose-p:leading-relaxed prose-a:text-emerald-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-ul:my-6 prose-li:my-2 prose-blockquote:border-l-4 prose-blockquote:border-emerald-500 prose-blockquote:bg-emerald-50 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-img:rounded-xl prose-img:shadow-xl prose-img:object-cover prose-img:mx-auto prose-figure:my-10 prose-figcaption:text-center prose-figcaption:text-sm prose-figcaption:italic prose-figcaption:text-gray-500"
                     set:html={content}
@@ -133,11 +169,20 @@ const formatDate = (dateString?: string) => {
                 )}
                 {/* ------------------------------- */}
 
-                {post.quiz && post.quiz.length > 0 && (
+                {/* Fallback Legacy Quiz Astro (Si existe) */}
+                {post.quiz && post.quiz.length > 0 && !post.sourceVideoId && (
                     <div class="mt-16">
                         <Quiz questions={post.quiz} />
                     </div>
                 )}
+
+                {/* Nuevo Quiz Interactivo React (IA Auto-generado) */}
+                {post.quiz && post.quiz.length > 0 && post.sourceVideoId && (
+                    <ArticleQuiz client:only="react" quizData={post.quiz} />
+                )}
+
+                {/* Foro de Discusión React */}
+                <DiscussionForum client:only="react" postId={post.id} />
 
                 {Array.isArray(post.references) && post.references.length > 0 && (
                     <div class="mt-16 bg-gray-50 border-t border-gray-200 pt-10 pb-12 px-8 rounded-2xl shadow-sm">

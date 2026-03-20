@@ -1,53 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getCountFromServer, query, where } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
-import { db, auth } from '../../lib/firebase';
 
 const StatsGrid = () => {
     const [totalPosts, setTotalPosts] = useState<number | null>(null);
-    const [day7Users, setDay7Users] = useState<number | null>(null);
-    const [conversionRate, setConversionRate] = useState<number>(14.2); // Aggregated or Mocked for now
+    const [totalLeads, setTotalLeads] = useState<number | null>(null);
+    const [conversionRate, setConversionRate] = useState<number>(14.2); 
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                const fetchStats = async () => {
-                    try {
-                        // 1. Total Posts
-                        const postsSnap = await getCountFromServer(collection(db, 'posts'));
-                        setTotalPosts(postsSnap.data().count);
-
-                        // 2. Users that reached Day 7
-                        const protocolsRef = collection(db, 'protocols');
-                        const qFinished = query(protocolsRef, where('isFinished', '==', true));
-                        const finishedSnap = await getCountFromServer(qFinished);
-                        setDay7Users(finishedSnap.data().count);
-
-                        // 3. Conversion Rate (Simulated fluctuation for dashboard feel)
-                        setInterval(() => {
-                            setConversionRate(prev => {
-                                const variance = (Math.random() - 0.5) * 0.4;
-                                const newRate = prev + variance;
-                                return Number(Math.max(10, Math.min(25, newRate)).toFixed(1));
-                            });
-                        }, 5000);
-
-                    } catch (error) {
-                        console.error("Error fetching stats:", error);
-                        setTotalPosts(0);
-                        setDay7Users(0);
-                    }
-                };
-
-                fetchStats();
-            } else {
+        const fetchStats = async () => {
+            try {
+                const response = await fetch('/api/admin/stats');
+                if (!response.ok) throw new Error('Failed to fetch stats');
+                
+                const data = await response.json();
+                if (data.success) {
+                    setTotalPosts(data.totalPosts);
+                    setTotalLeads(data.totalLeads);
+                }
+            } catch (error) {
+                console.error("Error fetching stats:", error);
                 setTotalPosts(0);
-                setDay7Users(0);
-                console.warn("User not authenticated, skipping fetch.");
+                setTotalLeads(0);
             }
-        });
+        };
 
-        return () => unsubscribe();
+        fetchStats();
+
+        // Simulated fluctuation for dashboard feel
+        const interval = setInterval(() => {
+            setConversionRate(prev => {
+                const variance = (Math.random() - 0.5) * 0.4;
+                const newRate = prev + variance;
+                return Number(Math.max(10, Math.min(25, newRate)).toFixed(1));
+            });
+        }, 5000);
+
+        return () => clearInterval(interval);
     }, []);
 
     return (
@@ -90,10 +77,10 @@ const StatsGrid = () => {
             {/* Stat 3: Users Reached Day 7 */}
             <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group hover:border-blue-500/30 transition-colors">
                 <div className="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors"></div>
-                <h3 className="text-gray-500 font-bold uppercase tracking-widest text-xs mb-2">Completaron 7D Protocol</h3>
+                <h3 className="text-gray-500 font-bold uppercase tracking-widest text-xs mb-2">Leads Capturados (Klaviyo)</h3>
                 <div className="flex items-baseline gap-2 text-white">
                     <span className="text-4xl font-black">
-                        {day7Users !== null ? day7Users : <span className="animate-pulse text-gray-700">--</span>}
+                        {totalLeads !== null ? totalLeads : <span className="animate-pulse text-gray-700">--</span>}
                     </span>
                     <span className="text-blue-400 text-sm font-bold flex items-center">
                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
