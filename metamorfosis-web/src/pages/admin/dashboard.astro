@@ -6,7 +6,10 @@ import AdminApp from "../../components/admin/AdminApp";
 export const prerender = false;
 
 // Check matching password with .env or fallback
-const ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD;
+let ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD || '';
+if (ADMIN_PASSWORD.startsWith('"') && ADMIN_PASSWORD.endsWith('"')) {
+    ADMIN_PASSWORD = ADMIN_PASSWORD.slice(1, -1);
+}
 
 if (import.meta.env.MODE === 'production' && !ADMIN_PASSWORD) {
     throw new Error('ADMIN_PASSWORD must be set in production');
@@ -16,8 +19,7 @@ if (import.meta.env.MODE === 'production' && !ADMIN_PASSWORD) {
 const sessionCookie = Astro.cookies.get("admin_session");
 const isAuthenticated =
     sessionCookie &&
-    (sessionCookie.value === "firebase_auth" ||
-        sessionCookie.value === ADMIN_PASSWORD);
+    sessionCookie.value === ADMIN_PASSWORD;
 
 if (!isAuthenticated) {
     return Astro.redirect("/admin/login");
@@ -62,30 +64,46 @@ if (Astro.url.searchParams.get("logout") === "true") {
                             >SYS_ADMIN</span
                         >
                     </div>
-                    <form method="GET" action="/admin/dashboard">
-                        <input type="hidden" name="logout" value="true" />
-                        <button
-                            type="submit"
-                            class="text-xs font-bold uppercase tracking-wider text-red-500 hover:text-red-400 transition-colors px-4 py-1.5 rounded-full border border-red-500/30 hover:bg-red-500/10 flex items-center gap-2"
-                        >
-                            <svg
-                                class="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                ><path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                                ></path>
-                            </svg>
-                            Salir
-                        </button>
-                    </form>
+                    <button
+                        id="logout-btn"
+                        class="text-xs font-bold uppercase tracking-wider text-red-500 hover:text-red-400 transition-colors px-4 py-1.5 rounded-full border border-red-500/30 hover:bg-red-500/10 flex items-center gap-2"
+                    >
+                        <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            ><path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                            ></path>
+                        </svg>
+                        Salir
+                    </button>
                 </div>
             </div>
         </header>
+
+        <script>
+            import { auth } from "../../lib/firebase";
+            import { signOut } from "firebase/auth";
+
+            const logoutBtn = document.getElementById('logout-btn');
+            logoutBtn?.addEventListener('click', async () => {
+                try {
+                    // 1. Cerrar sesión en Firebase (Cliente)
+                    await signOut(auth);
+                    // 2. Redirigir a la ruta de logout para borrar la cookie (Servidor)
+                    window.location.href = "/admin/dashboard?logout=true";
+                } catch (error) {
+                    console.error("Error al cerrar sesión:", error);
+                    // Fallback: intentar borrar la cookie al menos
+                    window.location.href = "/admin/dashboard?logout=true";
+                }
+            });
+        </script>
 
         <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
             <AdminApp client:only="react" />

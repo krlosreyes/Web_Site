@@ -7,9 +7,18 @@ interface Post {
     views: number;
     clicks: number;
     conversions: number;
+    content?: string;
+    images?: string[];
+    references?: string[];
+    quiz?: any[];
 }
 
-const PostList = () => {
+interface PostListProps {
+    onEdit: (post: Post) => void;
+    onNew: () => void;
+}
+
+const PostList: React.FC<PostListProps> = ({ onEdit, onNew }) => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -17,22 +26,24 @@ const PostList = () => {
         setLoading(true);
         try {
             const response = await fetch('/api/admin/posts');
-            
-            if (response.status === 401) {
-                window.location.href = '/admin/login';
-                return;
-            }
-
-            if (!response.ok) throw new Error('Failed to fetch posts');
-            
-            const data = await response.json();
-            if (data.success) {
-                setPosts(data.posts);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) setPosts(data.posts);
             }
         } catch (error) {
-            console.error("Error fetching posts via API:", error);
+            console.error("Error fetching posts:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('¿Seguro que deseas eliminar este artículo permanentemente?')) return;
+        try {
+            const response = await fetch(`/api/admin/posts?id=${id}`, { method: 'DELETE' });
+            if (response.ok) fetchPosts();
+        } catch (error) {
+            console.error("Error deleting post:", error);
         }
     };
 
@@ -45,7 +56,7 @@ const PostList = () => {
             <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl h-full flex items-center justify-center min-h-[400px]">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-8 h-8 border-2 border-blue-500/30 border-t-[#00C49A] rounded-full animate-spin"></div>
-                    <span className="text-xs text-gray-500 uppercase tracking-widest font-mono">Fetching Archives...</span>
+                    <span className="text-xs text-gray-500 uppercase tracking-widest font-mono">Cargando Archivos...</span>
                 </div>
             </div>
         );
@@ -56,11 +67,16 @@ const PostList = () => {
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h2 className="text-lg font-bold text-white uppercase tracking-widest mb-1">Index de Contenido</h2>
-                    <p className="text-xs text-gray-500 font-mono">Últimas 50 publicaciones</p>
+                    <p className="text-xs text-gray-500 font-mono">Gestiona tus artículos de autoridad</p>
                 </div>
-                <button onClick={fetchPosts} className="text-xs font-bold uppercase tracking-wider text-blue-400 hover:text-blue-300 transition-colors px-3 py-1.5 rounded-full border border-blue-500/30 hover:bg-blue-500/10">
-                    Sincronizar Datos ↻
-                </button>
+                <div className="flex gap-3">
+                    <button onClick={onNew} className="text-xs font-bold uppercase tracking-wider bg-[#00C49A] text-black px-4 py-2 rounded-xl hover:bg-[#00C49A]/90 transition-all">
+                        + Nuevo Artículo
+                    </button>
+                    <button onClick={fetchPosts} className="text-xs font-bold uppercase tracking-wider text-blue-400 hover:text-blue-300 transition-colors px-3 py-1.5 rounded-full border border-blue-500/30 hover:bg-blue-500/10">
+                        ↻
+                    </button>
+                </div>
             </div>
 
             <div className="overflow-x-auto flex-1">
@@ -68,48 +84,44 @@ const PostList = () => {
                     <thead className="text-[10px] uppercase tracking-widest bg-black/50 text-gray-500">
                         <tr>
                             <th className="px-4 py-3 rounded-tl-lg">Artículo</th>
-                            <th className="px-4 py-3 text-right">Vistas</th>
-                            <th className="px-4 py-3 text-right">Clics IMX</th>
-                            <th className="px-4 py-3 text-right rounded-tr-lg">Subs Elena</th>
+                            <th className="px-4 py-3 text-right">Métricas</th>
+                            <th className="px-4 py-3 text-right rounded-tr-lg">Acciones</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800/50">
                         {posts.length === 0 ? (
                             <tr>
-                                <td colSpan={4} className="px-4 py-8 text-center text-gray-600 font-mono text-xs">
-                                    No records found in database.
+                                <td colSpan={3} className="px-4 py-8 text-center text-gray-600 font-mono text-xs">
+                                    No hay artículos publicados aún.
                                 </td>
                             </tr>
                         ) : (
                             posts.map((post) => (
                                 <tr key={post.id} className="hover:bg-white/[0.02] transition-colors group">
-                                    <td className="px-4 py-4">
-                                        <div className="font-medium text-gray-200 group-hover:text-white transition-colors line-clamp-1">{post.title}</div>
-                                        <div className="text-[10px] text-gray-600 font-mono mt-1">/{post.slug}</div>
+                                    <td className="px-4 py-4 max-w-md">
+                                        <div className="font-medium text-gray-200 group-hover:text-white transition-colors line-clamp-1 overflow-hidden">{post.title}</div>
+                                        <div className="text-[10px] text-gray-600 font-mono mt-1 truncate max-w-xs">/{post.slug}</div>
                                     </td>
                                     <td className="px-4 py-4 text-right">
-                                        <span className="inline-flex items-center gap-1">
-                                            {post.views.toLocaleString()}
-                                            <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                        </span>
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-[10px] uppercase tracking-tighter text-gray-500">Vistas: {post.views}</span>
+                                            <span className="text-[10px] uppercase tracking-tighter text-blue-400">Clics: {post.clicks}</span>
+                                        </div>
                                     </td>
                                     <td className="px-4 py-4 text-right">
-                                        <span className="font-mono text-blue-400">{post.clicks.toLocaleString()}</span>
-                                    </td>
-                                    <td className="px-4 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-3">
-                                            <span className="inline-flex items-center gap-1 font-bold text-[#00C49A] w-12 justify-end">
-                                                {post.conversions.toLocaleString()}
-                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                                            </span>
-                                            <a
-                                                href={`/posts/${post.slug}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold uppercase tracking-widest border border-gray-600 px-2 py-1 rounded text-gray-400 hover:text-white hover:border-gray-400"
+                                        <div className="flex items-center justify-end gap-2">
+                                            <button 
+                                                onClick={() => onEdit(post)}
+                                                className="text-[10px] font-bold uppercase tracking-widest border border-blue-500/30 px-2 py-1 rounded text-blue-400 hover:bg-blue-500/10"
                                             >
-                                                Preview
-                                            </a>
+                                                Editar
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDelete(post.id)}
+                                                className="text-[10px] font-bold uppercase tracking-widest border border-red-500/30 px-2 py-1 rounded text-red-500 hover:bg-red-500/10"
+                                            >
+                                                Borrar
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -117,11 +129,6 @@ const PostList = () => {
                         )}
                     </tbody>
                 </table>
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-gray-800 text-xs text-gray-600 font-mono flex justify-between">
-                <span>System Status: <span className="text-[#00C49A]">Optimal</span></span>
-                <span>DB: /post</span>
             </div>
         </div>
     );

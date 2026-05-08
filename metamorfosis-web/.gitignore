@@ -26,6 +26,7 @@ npm-cache/
 # Credentials específicos
 service-account-*.json
 *-adminsdk-*.json
+elena-app-2026-v1-firebase-adminsdk-*.json
 
 # macOS
 .DS_Store
@@ -36,5 +37,9 @@ service-account-*.json
 
 # Logs
 *.log
-npm-debug.log*elena-app-2026-v1-firebase-adminsdk-fbsvc-70d769aff1.json
-elena-app-2026-v1-firebase-adminsdk-fbsvc-70d769aff1.json
+npm-debug.log*
+
+# Env variants
+.env.local
+.env.production
+.env.development

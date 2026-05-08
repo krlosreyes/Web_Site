@@ -3,18 +3,18 @@ import { motion } from 'framer-motion';
 import { PATH_OPTIMAL, PATH_OVERWEIGHT, PATH_OBESE } from '../../utils/silhouettePaths';
 
 interface MorphingSilhouetteProps {
-    imx: number;
+    imr: number;
 }
 
-const MorphingSilhouette: React.FC<MorphingSilhouetteProps> = ({ imx }) => {
+const MorphingSilhouette: React.FC<MorphingSilhouetteProps> = ({ imr }) => {
 
-    // Lógica de Metamorfosis basada en IMX-V01 (0-100)
+    // Lógica de Metamorfosis basada en IMR-V01 (0-100)
     // Capa 1 (Cian/Saludable): Base siempre visible.
-    // Capa 2 (Amarillo/Deterioro): Aparece progresivamente cuando IMX < 65, llega a 100% en IMX = 50
-    const layer2Opacity = Math.max(0, Math.min(1, (65 - imx) / 15));
+    // Capa 2 (Amarillo/Deterioro): Aparece progresivamente cuando IMR < 65, llega a 100% en IMR = 50
+    const layer2Opacity = Math.max(0, Math.min(1, (65 - imr) / 15));
 
-    // Capa 3 (Ámbar/Crisis): Aparece progresivamente cuando IMX < 50, llega a 100% en IMX <= 30
-    const layer3Opacity = Math.max(0, Math.min(1, (50 - imx) / 20));
+    // Capa 3 (Ámbar/Crisis): Aparece progresivamente cuando IMR < 50, llega a 100% en IMR <= 30
+    const layer3Opacity = Math.max(0, Math.min(1, (50 - imr) / 20));
 
     return (
         <div className="relative w-full h-[500px] flex items-center justify-center overflow-visible">

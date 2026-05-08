@@ -33,7 +33,7 @@ export const GET: APIRoute = async ({ request }) => {
                 id: doc.id,
                 name: data.name || 'Desconocido',
                 email: data.email || 'N/A',
-                imx_score: data.estimated_imx || 'N/A',
+                imr_score: data.estimated_imr || 'N/A',
                 quiz_type: data.quiz_type || 'N/A',
                 dateCompleted: dateStr
             };

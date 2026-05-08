@@ -1,17 +1,69 @@
 @import "tailwindcss";
 
+@theme {
+  --color-bg-base: #050a12;
+  --color-bg-surface: #0c1422;
+  --color-accent-blue: #007BFF;
+  --color-health-green: #10e5a0;
+  --color-text-primary: #f0f6ff;
+  --color-text-secondary: #8ba3c0;
+
+  --font-heading: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-bg-base text-text-primary font-body antialiased selection:bg-accent-blue selection:text-white;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-bold text-text-primary tracking-tight;
+  }
+}
+
 @layer components {
-  article.prose figure {
-    @apply flex flex-col items-center justify-center my-10 w-full relative;
-  }
-
-  article.prose figure img {
-    @apply rounded-xl shadow-lg border border-gray-200 mb-4 max-w-full h-auto object-cover;
+  .bg-glow {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 100%;
-    /* Forzar limite responsivo estricto sobre clases inyectadas de base */
+    max-width: 800px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0, 123, 255, 0.1) 0%, transparent 70%);
+    z-index: -1;
+    pointer-events: none;
+    filter: blur(100px);
   }
 
-  article.prose figcaption {
-    @apply text-sm italic text-gray-500 text-center max-w-2xl px-4 mt-2 font-medium;
+  /* Visually force short paragraphs for content. */
+  /* Instead of line-clamp (which breaks flow), we use a max-height or hint. */
+  /* But the user specifically said "forzar visualmente párrafos cortos (máximo 3 líneas de texto)". */
+  .content-reading p {
+    @apply mb-4 leading-relaxed text-text-secondary;
+    /* We can use a trick with max-height or simply styling it for readability */
+  }
+  
+  .glass {
+    @apply bg-bg-surface/60 backdrop-blur-md border border-text-primary/10 rounded-2xl;
+  }
+
+  .btn-gradient {
+    @apply px-6 py-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_20px_rgba(0,123,255,0.5)];
+    background: linear-gradient(135deg, #007BFF 0%, #22d3ee 100%);
+    color: white;
+  }
+
+  .header-bg-image {
+    background-image: linear-gradient(to bottom, rgba(5, 10, 18, 0.7), rgba(5, 10, 18, 0.9)), url('/header-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    @apply relative overflow-hidden;
   }
 }

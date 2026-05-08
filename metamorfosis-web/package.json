@@ -25,5 +25,9 @@
     "recharts": "^3.8.0",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.1",
+    "ts-node": "^10.9.2"
   }
 }

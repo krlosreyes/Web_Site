@@ -1,0 +1,118 @@
+---
+import type { Post } from "../schemas/post";
+
+interface Props {
+    post: Post;
+}
+
+const { post } = Astro.props;
+---
+
+<html lang="es">
+    <head>
+        <title>{post.metadata.title} | Metamorfosis Real</title>
+    </head>
+    <body class="bg-[#050a12] text-[#f0f6ff] font-['Inter'] antialiased">
+        <main class="max-w-2xl mx-auto px-4 py-12">
+            <!-- Metadata -->
+            <header class="mb-10">
+                <span
+                    class="text-[#007BFF] text-xs font-bold uppercase tracking-widest"
+                    >{post.metadata.pillar}</span
+                >
+                <h1
+                    class="font-['Space_Grotesk'] text-4xl font-bold mt-2 mb-4 leading-tight"
+                >
+                    {post.metadata.title}
+                </h1>
+                <p class="text-[#8ba3c0] text-sm">
+                    Actualizado: {post.metadata.updated_at} | Nivel: {
+                        post.metadata.authority_level
+                    }
+                </p>
+            </header>
+
+            <!-- Content Blocks Renderer -->
+            <article class="space-y-6 text-lg leading-relaxed text-[#8ba3c0]">
+                {
+                    post.content.blocks.map((block) => {
+                        if (block.type === "text") {
+                            return <p>{block.content}</p>;
+                        }
+                        if (block.type === "science_box") {
+                            return (
+                                <div class="bg-[#007BFF]/10 border border-[#007BFF] rounded-xl p-6 my-8">
+                                    <h3 class="font-['Space_Grotesk'] text-[#007BFF] font-bold mb-2 flex items-center gap-2">
+                                        🔬 {block.title}
+                                    </h3>
+                                    <p class="text-sm m-0 text-[#f0f6ff]">
+                                        {block.content}
+                                    </p>
+                                </div>
+                            );
+                        }
+                        if (block.type === "tip_box") {
+                            return (
+                                <div class="bg-[#10e5a0]/10 border border-[#10e5a0] rounded-xl p-6 my-8">
+                                    <h3 class="font-['Space_Grotesk'] text-[#10e5a0] font-bold mb-2 flex items-center gap-2">
+                                        ⚡ {block.title}
+                                    </h3>
+                                    <p class="text-sm m-0 text-[#f0f6ff]">
+                                        {block.content}
+                                    </p>
+                                </div>
+                            );
+                        }
+                    })
+                }
+            </article>
+
+            <!-- Authority Evidence -->
+            <section class="border-t border-white/10 mt-16 pt-8">
+                <h3
+                    class="font-['Space_Grotesk'] text-sm uppercase tracking-widest text-[#8ba3c0] mb-4"
+                >
+                    Evidencia Científica
+                </h3>
+                <ul class="space-y-4">
+                    {
+                        post.authority_evidence.scientific_sources.map(
+                            (source) => (
+                                <li class="text-xs text-[#8ba3c0]">
+                                    <span class="text-[#007BFF] font-bold">
+                                        [{source.source_name}]
+                                    </span>{" "}
+                                    {source.study_title}.
+                                    <a
+                                        href={source.url}
+                                        target="_blank"
+                                        class="underline hover:text-white"
+                                    >
+                                        Ver estudio ↗
+                                    </a>
+                                </li>
+                            ),
+                        )
+                    }
+                </ul>
+            </section>
+
+            <!-- App Integration CTA -->
+            {
+                post.app_integration.active && (
+                    <div class="mt-12 p-8 bg-gradient-to-br from-[#0c1422] to-[#111d2e] border border-white/10 rounded-2xl text-center">
+                        <h2 class="font-['Space_Grotesk'] text-2xl font-bold mb-4">
+                            {post.app_integration.cta_text}
+                        </h2>
+                        <a
+                            href={post.app_integration.deep_link}
+                            class="inline-block bg-[#007BFF] hover:bg-[#3d9eff] text-white font-bold py-3 px-8 rounded-lg transition-colors"
+                        >
+                            Descargar ElenaApp
+                        </a>
+                    </div>
+                )
+            }
+        </main>
+    </body>
+</html>

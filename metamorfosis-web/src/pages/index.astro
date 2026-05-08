@@ -1,197 +1,167 @@
 ---
-import { getPosts } from "../utils/posts";
-import Layout from "../layouts/Layout.astro";
-import IMXQuiz from "../components/IMXQuiz.tsx";
-import PostCard from "../components/PostCard.astro";
-import EcosystemStats from "../components/EcosystemStats.astro"; // <-- NEW IMPORT
+import { Database, LayoutDashboard, Smartphone } from "lucide-astro";
+import Hero from "../components/Hero.astro";
+import Pillars from "../components/Pillars.astro";
+import ScienceBox from "../components/ScienceBox.astro";
+import TipsBox from "../components/TipsBox.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
 
-interface Post {
-	id: string;
-	metadata?: {
-		seoTitle?: string;
-		seoDescription?: string;
-		publishedAt?: string;
-		slug?: string;
-		tags?: string[];
-		thumbnailUrl?: string;
-		category?: string;
-		readingTime?: number;
-	};
-	title?: string;
-}
-
-const posts = (await getPosts()) as Post[];
+const title = "Tu Metabolismo, Reiniciado | Metamorfosis Real";
+const description =
+  "Ecosistema de salud metabólica de alta autoridad. Optimiza tu biología con ciencia real y el motor de inteligencia de ElenaApp.";
 ---
 
-<Layout
-	title="Metamorfosis Real - Ingeniería Humana para una Vida sin Límites"
-	description="Guías prácticas sobre salud metabólica, ayuno intermitente y transformación física. Basado en ciencia, escrito con experiencia."
->
-	<!-- Hero Section -->
-	<section
-		class="relative min-h-[85vh] flex justify-center items-start overflow-hidden bg-gray-950 pb-16 pt-32"
-	>
-		<!-- Slider Container -->
-		<div class="absolute inset-0 z-0 select-none pointer-events-none">
-			<div
-				id="hero-slide-0"
-				class="hero-slide absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ease-in-out opacity-100 mix-blend-overlay"
-				style="background-image: url('https://images.unsplash.com/photo-1550853024-fae8cd4be47f?auto=format&fit=crop&q=80&w=1920');"
-			>
-			</div>
-		</div>
+<BaseLayout title={title} description={description}>
+  <!-- HERO SECTION -->
+  <Hero />
 
-		<!-- Overlay (Gradient for readability) -->
-		<div
-			class="absolute inset-0 z-[1] bg-gradient-to-b from-gray-950/90 via-gray-900/80 to-gray-950"
-		>
-		</div>
+  <!-- METABOLIC PILLARS -->
+  <Pillars />
 
-		<!-- Content -->
-		<div
-			class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-start items-center text-center w-full"
-		>
-			<div class="mb-12 max-w-4xl flex flex-col items-center">
-				<span
-					class="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-[#007BFF]/10 text-[#007BFF] text-xs font-bold uppercase tracking-widest border border-[#007BFF]/20 mb-6 backdrop-blur-sm"
-				>
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                    </svg>
-					Metabolic Engineering Hub
-				</span>
-				<h1
-					class="text-5xl sm:text-7xl font-black tracking-tighter text-white mb-6 text-balance leading-[1.1] min-h-[120px]"
-				>
-					De la ciencia en video a la<br />
-					<span
-						class="text-transparent bg-clip-text bg-gradient-to-r from-[#00C49A] to-[#007BFF]"
-					>
-						acción en tu bolsillo.
-					</span>
-				</h1>
+  <!-- ELENA APP PREVIEW / CONVERSION SECTION -->
+  <section id="protocolos" class="py-24 px-6 relative overflow-hidden">
+    <div class="container mx-auto max-w-5xl">
+      <div
+        class="glass p-12 relative z-10 grid md:grid-cols-2 gap-12 items-center"
+      >
+        <div>
+          <div
+            class="flex items-center gap-2 text-accent-blue font-bold text-xs uppercase tracking-widest mb-4"
+          >
+            <Smartphone size={16} />
+            El Próximo Nivel: ElenaApp
+          </div>
+          <h2 class="text-4xl font-heading font-bold text-text-primary mb-6">
+            Tu Coach Metabólico <br /> en tu bolsillo
+          </h2>
+          <p class="text-text-secondary text-lg mb-8 leading-relaxed">
+            Metamorfosis Real integra el motor de inteligencia de <span
+              class="text-text-primary font-bold italic">ElenaApp</span
+            > para ofrecerte protocolos hiper-personalizados basados en tu IMR (Índice
+            de Metamorfosis Real).
+          </p>
 
-				<p
-					class="text-lg sm:text-2xl text-gray-400 max-w-2xl font-medium"
-				>
-					Explora protocolos clínicos convertidos en sistemas de la vida real. Calcula tu IMX y activa el cambio hoy.
-				</p>
-			</div>
+          <ul class="space-y-4 mb-10">
+            <li class="flex items-start gap-3">
+              <div
+                class="w-6 h-6 rounded-full bg-accent-blue/20 flex items-center justify-center text-accent-blue mt-1 shrink-0"
+              >
+                <LayoutDashboard size={14} />
+              </div>
+              <p class="text-sm text-text-secondary">
+                <strong class="text-text-primary"
+                  >Dynamic Protocol Logging:</strong
+                > Tu dieta cambia en tiempo real según tu bio-feedback diario.
+              </p>
+            </li>
+            <li class="flex items-start gap-3">
+              <div
+                class="w-6 h-6 rounded-full bg-accent-blue/20 flex items-center justify-center text-accent-blue mt-1 shrink-0"
+              >
+                <Database size={14} />
+              </div>
+              <p class="text-sm text-text-secondary">
+                <strong class="text-text-primary">Biometric Sync:</strong> Se integra
+                con tus métricas de salud profunda para ajustar la intensidad.
+              </p>
+            </li>
+          </ul>
 
-			<!-- Quiz Component Wrapper -->
-			<div class="w-full flex justify-center min-h-[350px]">
-				<IMXQuiz client:load />
-			</div>
+          <a href="/quiz" class="btn-gradient inline-flex px-10 py-4 text-center">
+            Iniciar Diagnóstico IMR
+          </a>
+        </div>
 
-			<div class="mt-12 flex items-center justify-center gap-6 opacity-60">
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Powered by</span>
-                <div class="flex gap-4">
-                    <svg class="h-6 text-gray-400 hover:text-white transition-colors" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
-                    <svg class="h-6 text-gray-400 hover:text-[#00C49A] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                </div>
+        <div class="relative">
+          <div
+            class="w-full aspect-[4/5] bg-bg-base/50 rounded-3xl border border-text-primary/5 shadow-2xl flex items-center justify-center overflow-hidden group"
+          >
+            <img 
+              src="/elena-mockup.png" 
+              alt="ElenaApp Metabolic Dashboard Mockup" 
+              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-bg-base/80 via-transparent to-transparent z-10"
+            >
             </div>
-		</div>
-	</section>
+          </div>
 
-    <!-- Global Statistics Module (Overlapping Hero) -->
-    <EcosystemStats />
+          <!-- Floating UI Elements for premium feel -->
+          <div
+            class="absolute top-12 -right-12 z-20 glass p-4 shadow-2xl animate-bounce hover:animate-none hidden lg:block rotate-3"
+          >
+            <div class="text-accent-blue font-bold text-lg">+14%</div>
+            <div class="text-[10px] text-text-secondary uppercase tracking-tighter">
+              Sensibilidad Insulínica
+            </div>
+          </div>
 
-	<!-- Posts Section -->
-	<section id="posts" class="bg-gray-50 pb-24">
-		<!-- Section Header / Category Bar -->
-		<div class="w-full bg-white border-b border-gray-200 sticky top-16 z-30 shadow-sm mb-16">
-			<div class="container mx-auto px-4 sm:px-6 lg:px-8">
-				<div class="flex items-center justify-between py-4 overflow-x-auto no-scrollbar gap-4">
-                    <h2 class="text-xl font-black text-gray-900 tracking-tight whitespace-nowrap min-w-max">
-                        Colecciones Centrales
-                    </h2>
-					<div class="flex gap-2 min-w-max" id="category-filters">
-                        <button data-filter="all" class="filter-btn px-4 py-2 bg-gray-900 text-white rounded-full text-sm font-bold shadow-sm transition-colors">Todos</button>
-                        <button data-filter="ayuno" class="filter-btn px-4 py-2 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-full text-sm font-bold transition-colors">🔥 Ayuno</button>
-                        <button data-filter="nutricion" class="filter-btn px-4 py-2 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-full text-sm font-bold transition-colors">🩸 Nutrición</button>
-                        <button data-filter="ejercicio" class="filter-btn px-4 py-2 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-full text-sm font-bold transition-colors">💪 Ejercicio</button>
-                    </div>
-                </div>
-			</div>
-		</div>
+          <div class="absolute bottom-12 -left-12 z-20 glass p-4 shadow-2xl hidden lg:block -rotate-3 border-health-green/20">
+            <div class="text-health-green font-bold text-lg">OPTIMIZADO</div>
+            <div class="text-[10px] text-text-secondary uppercase tracking-tighter">
+              Estado Cetogénico
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-		<div class="container mx-auto px-4 sm:px-6 lg:px-8">
-			<div class="max-w-7xl mx-auto">
-				{
-					posts.length > 0 ? (
-						<div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3" id="posts-grid">
-							{posts.map((post) => (
-                                <div class="post-item transition-all duration-300 transform scale-100 opacity-100" data-category={(post.metadata?.category || '').toLowerCase()}>
-								    <PostCard post={post} />
-                                </div>
-							))}
-						</div>
-					) : (
-						<div class="text-center py-32 bg-white rounded-3xl border border-dashed border-gray-200">
-							<div class="inline-flex items-center justify-center w-20 h-20 bg-gray-50 rounded-full mb-6">
-								<svg
-									class="w-10 h-10 text-gray-300"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="1.5"
-										d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-									/>
-								</svg>
-							</div>
-							<h3 class="text-xl font-bold text-gray-900 mb-2">
-								Base de Datos Vacía
-							</h3>
-							<p class="text-gray-500 max-w-sm mx-auto">
-								El servidor no ha inyectado aún módulos metabólicos desde YouTube.
-							</p>
-						</div>
-					)
-				}
-			</div>
-		</div>
-	</section>
+  <!-- SCIENCE IN ACTION SECTION -->
+  <section id="ciencia" class="py-24 px-6 bg-bg-surface/10">
+    <div class="container mx-auto max-w-2xl">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-heading font-bold mb-4">Ciencia Aplicada</h2>
+        <p class="text-text-secondary">
+          Mira cómo transformamos datos técnicos en resultados biológicos
+          reales.
+        </p>
+      </div>
 
-    <script>
-        // Vanilla JS for Category Filtering
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        const postItems = document.querySelectorAll('.post-item');
+      <div class="content-reading space-y-8">
+        <p>
+          El sistema Metamorfosis Real no se basa en conjeturas. Utilizamos el
+          análisis de la variabilidad de la frecuencia cardíaca (HRV).
+        </p>
+        
+        <p>
+          Orquestamos la carga metabólica ideal para tu cuerpo analizando la
+          respuesta glucémica postprandial en tiempo real.
+        </p>
 
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const filterValue = btn.getAttribute('data-filter');
+        <ScienceBox>
+          La autofagia selectiva inducida por el ayuno intermitente (16/8) 
+          aumenta la eficiencia mitocondrial en más de un 22%.
+        </ScienceBox>
 
-                // 1. Update Active Button Styles
-                filterBtns.forEach(b => {
-                    b.classList.remove('bg-gray-900', 'text-white');
-                    b.classList.add('bg-white', 'text-gray-600');
-                });
-                btn.classList.add('bg-gray-900', 'text-white');
-                btn.classList.remove('bg-white', 'text-gray-600');
+        <p>
+          No solo se trata de cuándo comer, sino de cómo la estructura molecular
+          de tus nutrientes interactúa con tu ritmo circadiano.
+        </p>
 
-                // 2. Filter Posts
-                postItems.forEach((item) => {
-                    const el = item as HTMLElement;
-                    if (filterValue === 'all' || el.getAttribute('data-category') === filterValue) {
-                        el.style.display = 'block';
-                        // Tiny timeout to allow display:block to apply before animating opacity
-                        setTimeout(() => {
-                            el.classList.remove('opacity-0', 'scale-95');
-                            el.classList.add('opacity-100', 'scale-100');
-                        }, 10);
-                    } else {
-                        el.classList.remove('opacity-100', 'scale-100');
-                        el.classList.add('opacity-0', 'scale-95');
-                        setTimeout(() => {
-                            el.style.display = 'none';
-                        }, 300); // Wait for transition
-                    }
-                });
-            });
-        });
-    </script>
-</Layout>
+        <TipsBox>
+          Consume el 70% de tus carbohidratos post-entrenamiento para maximizar 
+          el transporte de GLUT4 sin elevar la insulina basal.
+        </TipsBox>
+
+        <p>
+          Este es el futuro de la salud. Autoridad médica unida a inteligencia 
+          artificial para salvar el metabolismo moderno.
+        </p>
+      </div>
+
+      <div class="mt-16 pt-8 border-t border-text-primary/10 text-center">
+        <h3 class="font-heading font-bold mb-6 text-xl">
+          ¿Listo para calcular tu IMR?
+        </h3>
+        <a
+          href="/quiz"
+          class="btn-gradient px-12 py-5 text-xl inline-block shadow-accent-blue/20"
+        >
+          Iniciar Diagnóstico Gratuito IMR
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

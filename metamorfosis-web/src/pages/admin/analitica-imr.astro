@@ -1,6 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import AnaliticaIMX from "../../components/admin/AnaliticaIMX";
+import AnaliticaIMR from "../../components/admin/AnaliticaIMR";
 
 // Forzar SSR en Astro (Necesario para Cookies)
 export const prerender = false;
@@ -30,7 +30,7 @@ if (Astro.url.searchParams.get("logout") === "true") {
 }
 ---
 
-<Layout title="Mission Control | Analítica IMX">
+<Layout title="Mission Control | Analítica IMR">
     <div class="min-h-screen bg-[#050505] text-white font-sans flex flex-col">
         <header
             class="border-b border-white/10 bg-black/80 backdrop-blur-md sticky top-0 z-50 shrink-0"
@@ -48,7 +48,7 @@ if (Astro.url.searchParams.get("logout") === "true") {
                     <span
                         class="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30 uppercase tracking-wider hidden sm:inline-block"
                     >
-                        Analítica IMX
+                        Analítica IMR
                     </span>
                 </div>
                 <div class="flex items-center gap-4">
@@ -68,33 +68,46 @@ if (Astro.url.searchParams.get("logout") === "true") {
                             >SYS_ADMIN</span
                         >
                     </div>
-                    <form method="GET" action="/admin/dashboard">
-                        <input type="hidden" name="logout" value="true" />
-                        <button
-                            type="submit"
-                            class="text-xs font-bold uppercase tracking-wider text-red-500 hover:text-red-400 transition-colors px-4 py-1.5 rounded-full border border-red-500/30 hover:bg-red-500/10 flex items-center gap-2"
-                        >
-                            <svg
-                                class="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                ><path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                                ></path>
-                            </svg>
-                            Salir
-                        </button>
-                    </form>
+                    <button
+                        id="logout-btn"
+                        class="text-xs font-bold uppercase tracking-wider text-red-500 hover:text-red-400 transition-colors px-4 py-1.5 rounded-full border border-red-500/30 hover:bg-red-500/10 flex items-center gap-2"
+                    >
+                        <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            ><path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                            ></path>
+                        </svg>
+                        Salir
+                    </button>
                 </div>
             </div>
         </header>
 
+        <script>
+            import { auth } from "../../lib/firebase";
+            import { signOut } from "firebase/auth";
+
+            const logoutBtn = document.getElementById('logout-btn');
+            logoutBtn?.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    window.location.href = "/admin/dashboard?logout=true";
+                } catch (error) {
+                    console.error("Error al cerrar sesión:", error);
+                    window.location.href = "/admin/dashboard?logout=true";
+                }
+            });
+        </script>
+
         <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
-            <AnaliticaIMX client:only="react" />
+            <AnaliticaIMR client:only="react" />
         </div>
     </div>
 </Layout>

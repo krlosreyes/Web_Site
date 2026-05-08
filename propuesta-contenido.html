@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Elena · Propuesta de Contenido Ecosistema Completo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #050a12; --surface: #0c1422; --elevated: #111d2e; --card: #162033;
+  --blue: #007BFF; --blue-l: #3d9eff; --cyan: #00d4ff; --green: #10e5a0;
+  --amber: #f59e0b; --red: #f87171; --purple: #a78bfa;
+  --t1: #f0f6ff; --t2: #8ba3c0; --t3: #4a637e;
+  --border: rgba(0,123,255,0.15); --borderS: rgba(255,255,255,0.06);
+  --fd: 'Space Grotesk',sans-serif; --fb: 'Inter',sans-serif;
+  --r8:8px; --r12:12px; --r16:16px; --r24:24px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t1);font-family:var(--fb);font-size:14px;line-height:1.6}
+
+/* NAV */
+.sidenav{position:fixed;top:0;left:0;width:220px;height:100vh;background:var(--surface);border-right:1px solid var(--borderS);overflow-y:auto;padding:24px 0;z-index:100}
+.sidenav-logo{font-family:var(--fd);font-size:14px;font-weight:700;padding:0 20px 20px;border-bottom:1px solid var(--borderS);margin-bottom:16px;color:var(--blue-l)}
+.sidenav a{display:block;padding:7px 20px;font-size:12px;color:var(--t2);text-decoration:none;transition:all .15s;border-left:2px solid transparent}
+.sidenav a:hover{color:var(--t1);background:rgba(255,255,255,0.03);border-left-color:var(--blue)}
+.sidenav .nav-section{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);padding:14px 20px 6px}
+
+/* MAIN */
+main{margin-left:220px;padding:48px 48px 80px;max-width:1100px}
+
+/* SECTIONS */
+.section{margin-bottom:64px}
+.s-tag{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--blue);margin-bottom:8px}
+.s-title{font-family:var(--fd);font-size:24px;font-weight:700;letter-spacing:-.01em;margin-bottom:6px}
+.s-desc{color:var(--t2);font-size:13px;max-width:680px;margin-bottom:28px;line-height:1.65}
+hr.div{border:none;border-top:1px solid var(--borderS);margin:56px 0}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#050a12,#0a1628,#0c1e3a);border:1px solid var(--borderS);border-radius:var(--r24);padding:52px 48px;position:relative;overflow:hidden;margin-bottom:64px}
+.hero::before{content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(0,123,255,.15),transparent 70%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,123,255,.1);border:1px solid rgba(0,123,255,.25);color:var(--blue-l);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 14px;border-radius:100px;margin-bottom:18px}
+.hero h1{font-family:var(--fd);font-size:clamp(28px,3.5vw,44px);font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-bottom:14px}
+.hero h1 span{color:var(--blue)}
+.hero p{color:var(--t2);font-size:15px;max-width:560px;line-height:1.65;margin-bottom:28px;position:relative;z-index:1}
+.hero-stats{display:flex;gap:36px;flex-wrap:wrap;padding-top:28px;border-top:1px solid var(--borderS);position:relative;z-index:1}
+.hstat-val{font-family:var(--fd);font-size:26px;font-weight:700;color:var(--t1)}
+.hstat-val em{color:var(--blue);font-style:normal}
+.hstat-label{font-size:11px;color:var(--t2);margin-top:2px}
+
+/* PILLARS */
+.pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.pillar{background:var(--surface);border:1px solid var(--borderS);border-radius:var(--r16);padding:20px;transition:border-color .2s}
+.pillar:hover{border-color:var(--border)}
+.pillar-icon{font-size:28px;margin-bottom:12px}
+.pillar-name{font-family:var(--fd);font-size:14px;font-weight:600;margin-bottom:6px}
+.pillar-desc{font-size:12px;color:var(--t2);line-height:1.5}
+.pillar-tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;margin-top:10px}
+
+/* FUNNEL */
+.funnel{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.funnel-stage{background:var(--surface);border:1px solid var(--borderS);border-radius:var(--r16);padding:18px;position:relative}
+.funnel-stage::after{content:'→';position:absolute;right:-10px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:16px;z-index:1}
+.funnel-stage:last-child::after{display:none}
+.funnel-num{font-family:var(--fd);font-size:32px;font-weight:700;opacity:.12;position:absolute;top:10px;right:14px}
+.funnel-emoji{font-size:20px;margin-bottom:8px}
+.funnel-name{font-family:var(--fd);font-size:13px;font-weight:600;margin-bottom:6px}
+.funnel-insight{font-size:11px;color:var(--t2);line-height:1.5;margin-bottom:10px}
+.funnel-types{display:flex;flex-direction:column;gap:4px}
+.funnel-type{font-size:11px;color:var(--t3);display:flex;align-items:center;gap:5px}
+.funnel-type::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* CHANNELS */
+.channels{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.channel-card{background:var(--surface);border:1px solid var(--borderS);border-radius:var(--r16);padding:22px;transition:border-color .2s}
+.channel-card:hover{border-color:var(--border)}
+.channel-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.channel-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.channel-name{font-family:var(--fd);font-size:14px;font-weight:600}
+.channel-role{font-size:11px;color:var(--t2)}
+.channel-metric{font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;display:inline-block;margin-bottom:12px}
+.channel-list{display:flex;flex-direction:column;gap:6px}
+.channel-item{font-size:12px;color:var(--t2);display:flex;align-items:flex-start;gap:6px;line-height:1.4}
+.channel-item::before{content:'→';color:var(--blue);flex-shrink:0;margin-top:1px}
+
+/* CONTENT TABLE */
+.content-table{width:100%;border-collapse:collapse}
+.content-table th{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);padding:10px 12px;border-bottom:1px solid var(--borderS);text-align:left;white-space:nowrap}
+.content-table td{padding:12px;border-bottom:1px solid var(--borderS);font-size:12px;vertical-align:top}
+.content-table tr:hover td{background:rgba(255,255,255,.02)}
+.ct-title{font-size:13px;font-weight:500;color:var(--t1);line-height:1.4;margin-bottom:3px}
+.ct-kw{font-size:11px;color:var(--t3);font-style:italic}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:100px}
+.b-blue{background:rgba(0,123,255,.12);color:var(--blue-l);border:1px solid rgba(0,123,255,.2)}
+.b-green{background:rgba(16,229,160,.1);color:var(--green);border:1px solid rgba(16,229,160,.2)}
+.b-cyan{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.2)}
+.b-amber{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.b-red{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.b-purple{background:rgba(167,139,250,.1);color:var(--purple);border:1px solid rgba(167,139,250,.2)}
+
+/* CALENDAR */
+.cal-phase{margin-bottom:32px}
+.cal-phase-header{background:var(--elevated);border:1px solid var(--borderS);border-radius:var(--r12);padding:16px 20px;margin-bottom:12px;display:flex;align-items:center;gap:14px}
+.cal-phase-num{font-family:var(--fd);font-size:32px;font-weight:700;opacity:.2}
+.cal-phase-info{}
+.cal-phase-name{font-family:var(--fd);font-size:15px;font-weight:600}
+.cal-phase-period{font-size:12px;color:var(--t2);margin-top:2px}
+.cal-rows{display:flex;flex-direction:column;gap:8px}
+.cal-row{display:grid;grid-template-columns:80px 1fr 130px 110px 100px;gap:12px;align-items:start;background:var(--surface);border:1px solid var(--borderS);border-radius:var(--r8);padding:12px 14px}
+.cal-week{font-size:11px;font-weight:700;color:var(--t3);white-space:nowrap;padding-top:2px}
+.cal-content{font-size:12px;color:var(--t1);line-height:1.4}
+.cal-content small{display:block;color:var(--t2);margin-top:3px;font-style:italic}
+
+/* METRICS */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.metric-card{background:var(--surface);border:1px solid var(--borderS);border-radius:var(--r16);padding:18px}
+.metric-val{font-family:var(--fd);font-size:26px;font-weight:700;margin-bottom:2px}
+.metric-name{font-size:12px;color:var(--t2);margin-bottom:8px}
+.metric-bar{height:4px;background:var(--elevated);border-radius:100px;overflow:hidden}
+.metric-fill{height:100%;border-radius:100px}
+
+/* FORMAT TAGS */
+.fmt{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:var(--elevated);color:var(--t2);white-space:nowrap}
+
+/* INSIGHT BOX */
+.insight{background:rgba(0,123,255,.06);border:1px solid rgba(0,123,255,.18);border-radius:var(--r12);padding:14px 18px;font-size:12px;color:var(--t2);line-height:1.65;margin-top:16px}
+.insight strong{color:var(--blue-l)}
+
+/* PHASE TABS */
+.tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.tab{padding:7px 18px;border-radius:100px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--borderS);color:var(--t2);background:var(--surface);transition:all .15s}
+.tab.active,.tab:hover{background:rgba(0,123,255,.12);border-color:rgba(0,123,255,.3);color:var(--blue-l)}
+
+@media(max-width:900px){
+  .sidenav{display:none}
+  main{margin-left:0;padding:24px 20px 60px}
+  .funnel{grid-template-columns:1fr 1fr}
+  .cal-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDE NAV -->
+<nav class="sidenav">
+  <div class="sidenav-logo">⚡ Elena · Contenido</div>
+  <div class="nav-section">Estrategia</div>
+  <a href="#resumen">Resumen ejecutivo</a>
+  <a href="#pilares">Pilares de contenido</a>
+  <a href="#embudo">Mapa de embudo</a>
+  <div class="nav-section">Canales</div>
+  <a href="#canales">Estrategia por canal</a>
+  <a href="#blog">Blog / SEO</a>
+  <a href="#youtube">YouTube</a>
+  <a href="#social">Instagram / TikTok</a>
+  <a href="#email">Email / Waitlist</a>
+  <div class="nav-section">Ejecución</div>
+  <a href="#temas">Banco de temas</a>
+  <a href="#calendario">Calendario editorial</a>
+  <a href="#metricas">Métricas y KPIs</a>
+</nav>
+
+<main>
+
+<!-- HERO -->
+<div class="hero" id="resumen">
+  <div class="hero-badge">📋 Propuesta de Contenido · Ecosistema Completo · Abril 2026</div>
+  <h1>Estrategia de Contenido<br><span>Metamorfosis Real × ElenaApp</span></h1>
+  <p>Propuesta editorial integrada para el ecosistema completo de Elena: sitio web como hub central, YouTube como motor de autoridad, redes como captación y email como conversión. Diseñada a partir de la estrategia GTM, el mapa del customer journey y los objetivos de presales LATAM.</p>
+  <div class="hero-stats">
+    <div><div class="hstat-val"><em>5</em></div><div class="hstat-label">Pilares temáticos</div></div>
+    <div><div class="hstat-val"><em>6</em></div><div class="hstat-label">Canales integrados</div></div>
+    <div><div class="hstat-val"><em>48+</em></div><div class="hstat-label">Temas definidos</div></div>
+    <div><div class="hstat-val"><em>3</em></div><div class="hstat-label">Fases del GTM</div></div>
+    <div><div class="hstat-val"><em>18</em></div><div class="hstat-label">Meses de roadmap</div></div>
+  </div>
+</div>
+
+<!-- ── PILARES ─────────────────────────────────────── -->
+<section class="section" id="pilares">
+  <div class="s-tag">01 · Fundamentos</div>
+  <h2 class="s-title">Pilares de Contenido</h2>
+  <p class="s-desc">Cinco ejes temáticos que cubren el universo de Elena y la audiencia de 45-55 años en LATAM. Todo el contenido del ecosistema pertenece a uno o más pilares. Esta estructura garantiza coherencia de marca, profundidad SEO y progresión natural del usuario.</p>
+  <div class="pillars">
+    <div class="pillar">
+      <div class="pillar-icon">⚡</div>
+      <div class="pillar-name">Ayuno & Metabolismo</div>
+      <div class="pillar-desc">Ayuno intermitente, autofagia, ventanas de alimentación, tipos de ayuno, metabolismo basal, IMX explicado.</div>
+      <span class="pillar-tag b-blue">Pilar 1 · Core</span>
+    </div>
+    <div class="pillar">
+      <div class="pillar-icon">🥗</div>
+      <div class="pillar-name">Nutrición Real</div>
+      <div class="pillar-desc">Alimentación sin dietas extremas, proteína en LATAM, comida familiar y salud metabólica, carbohidratos después de los 45.</div>
+      <span class="pillar-tag b-green">Pilar 2 · Volumen</span>
+    </div>
+    <div class="pillar">
+      <div class="pillar-icon">🏃</div>
+      <div class="pillar-name">Movimiento & Fuerza</div>
+      <div class="pillar-desc">Entrenamiento de fuerza para 45+, cardio y metabolismo, sedentarismo, actividad física sin gimnasio.</div>
+      <span class="pillar-tag b-cyan">Pilar 3 · Apoyo</span>
+    </div>
+    <div class="pillar">
+      <div class="pillar-icon">💤</div>
+      <div class="pillar-name">Sueño & Recuperación</div>
+      <div class="pillar-desc">Calidad del sueño y metabolismo, cortisol nocturno, rutinas de recuperación, impacto hormonal del descanso.</div>
+      <span class="pillar-tag b-purple">Pilar 4 · Apoyo</span>
+    </div>
+    <div class="pillar">
+      <div class="pillar-icon">🧠</div>
+      <div class="pillar-name">Hábitos & Mentalidad</div>
+      <div class="pillar-desc">Cambio de hábitos, estrés crónico y grasa visceral, motivación real, por qué fallan las dietas, ciencia del comportamiento.</div>
+      <span class="pillar-tag b-amber">Pilar 5 · Retención</span>
+    </div>
+  </div>
+  <div class="insight"><strong>Regla editorial:</strong> El 40% del contenido debe ser del Pilar 1 (Ayuno & Metabolismo) — es el diferenciador de Elena y el término con mayor volumen de búsqueda en español para la audiencia objetivo. Los pilares 2-5 dan profundidad y alimentan el IMX score.</div>
+</section>
+
+<hr class="div"/>
+
+<!-- ── EMBUDO ─────────────────────────────────────── -->
+<section class="section" id="embudo">
+  <div class="s-tag">02 · Customer Journey</div>
+  <h2 class="s-title">Contenido por Etapa del Embudo</h2>
+  <p class="s-desc">Basado en el Customer Journey Map de Elena. Cada etapa del usuario requiere un tipo de contenido diferente. El sitio web es el hub central que conecta todas las etapas.</p>
+  <div class="funnel">
+    <div class="funnel-stage">
+      <div class="funnel-num">1</div>
+      <div class="funnel-emoji">😟</div>
+      <div class="funnel-name">Conciencia</div>
+      <div class="funnel-insight">Usuario frustrado que busca "ayuno intermitente" o "metabolismo lento". Llega por Google, YouTube o recomendación.</div>
+      <div class="funnel-types">
+        <div class="funnel-type">Artículos educativos largo</div>
+        <div class="funnel-type">Videos "5 mitos de..." YouTube</div>
+        <div class="funnel-type">Reels de datos sorprendentes</div>
+        <div class="funnel-type">Posts en grupos Facebook LATAM</div>
+      </div>
+    </div>
+    <div class="funnel-stage">
+      <div class="funnel-num">2</div>
+      <div class="funnel-emoji">🤔</div>
+      <div class="funnel-name">Consideración</div>
+      <div class="funnel-insight">Ya conoce Elena, compara con MyFitnessPal, entrenador personal. Busca diferenciadores y prueba social.</div>
+      <div class="funnel-types">
+        <div class="funnel-type">Case studies reales (LATAM)</div>
+        <div class="funnel-type">Comparativo "Elena vs. apps"</div>
+        <div class="funnel-type">Explicación del IMX score</div>
+        <div class="funnel-type">Webinar educativo gratuito</div>
+      </div>
+    </div>
+    <div class="funnel-stage">
+      <div class="funnel-num">3</div>
+      <div class="funnel-emoji">🎯</div>
+      <div class="funnel-name">Decisión</div>
+      <div class="funnel-insight">Momento crítico: calcular su IMX gratis o ver un caso similar al suyo. Los primeros 3 días son definitorios.</div>
+      <div class="funnel-types">
+        <div class="funnel-type">Calculadora IMX (sitio web)</div>
+        <div class="funnel-type">Video tutorial de 90 seg</div>
+        <div class="funnel-type">FAQ en profundidad</div>
+        <div class="funnel-type">Email secuencia waitlist</div>
+      </div>
+    </div>
+    <div class="funnel-stage">
+      <div class="funnel-num">4</div>
+      <div class="funnel-emoji">🏆</div>
+      <div class="funnel-name">Lealtad</div>
+      <div class="funnel-insight">Usuario activo que logra resultado visible. Convertirlo en defensor que refiere a otros y comparte su historia.</div>
+      <div class="funnel-types">
+        <div class="funnel-type">Email educativo semanal</div>
+        <div class="funnel-type">Community challenges</div>
+        <div class="funnel-type">Case study de su historia</div>
+        <div class="funnel-type">Acceso early a features</div>
+      </div>
+    </div>
+  </div>
+  <div class="insight"><strong>Punto crítico del journey:</strong> El contenido de Decisión es el más subestimado. La calculadora IMX gratuita en el sitio web es la pieza de contenido de mayor conversión — debe estar vinculada desde TODOS los artículos del blog y mencionada en TODOS los videos de YouTube.</div>
+</section>
+
+<hr class="div"/>
+
+<!-- ── CANALES ─────────────────────────────────────── -->
+<section class="section" id="canales">
+  <div class="s-tag">03 · Distribución</div>
+  <h2 class="s-title">Estrategia por Canal</h2>
+  <p class="s-desc">Seis canales integrados, cada uno con un rol específico en el ecosistema. El sitio web es el destino final de todo el tráfico generado por los demás canales.</p>
+  <div class="channels">
+
+    <div class="channel-card" id="blog">
+      <div class="channel-header">
+        <div class="channel-icon" style="background:rgba(0,123,255,.12)">📝</div>
+        <div><div class="channel-name">Blog / Sitio Web</div><div class="channel-role">Hub central · SEO · Conversión</div></div>
+      </div>
+      <div class="channel-metric b-blue">Meta: 2,000 visitas/mes · 8% conversión</div>
+      <div class="channel-list">
+        <div class="channel-item">1 artículo largo (1,500-2,500 palabras) por semana</div>
+        <div class="channel-item">Palabras clave long-tail en español para 45+</div>
+        <div class="channel-item">CTA a calculadora IMX en CADA artículo</div>
+        <div class="channel-item">Sección de glosario metabólico (SEO pasivo)</div>
+        <div class="channel-item">Protocolo 7 días como contenido evergreen</div>
+        <div class="channel-item">Case studies como posts completos</div>
+      </div>
+    </div>
+
+    <div class="channel-card" id="youtube">
+      <div class="channel-header">
+        <div class="channel-icon" style="background:rgba(248,113,113,.1)">▶️</div>
+        <div><div class="channel-name">YouTube</div><div class="channel-role">Autoridad · Educación profunda · SEO video</div></div>
+      </div>
+      <div class="channel-metric b-red">Meta: 5,000 vistas · 100 suscriptores (60 días)</div>
+      <div class="channel-list">
+        <div class="channel-item">Videos de 8-15 min: ciencia del metabolismo en español</div>
+        <div class="channel-item">Formato: "La verdad sobre X" / "Por qué falla Y"</div>
+        <div class="channel-item">Siempre linkear al artículo del blog en descripción</div>
+        <div class="channel-item">Shorts (60-90 seg) de los mejores clips de cada video</div>
+        <div class="channel-item">Webinar mensual: "Metabolismo Real vs. Mitos"</div>
+        <div class="channel-item">Playlist por pilar temático</div>
+      </div>
+    </div>
+
+    <div class="channel-card" id="social">
+      <div class="channel-header">
+        <div class="channel-icon" style="background:rgba(167,139,250,.1)">📱</div>
+        <div><div class="channel-name">Instagram / TikTok</div><div class="channel-role">Captación · Awareness · Viralidad</div></div>
+      </div>
+      <div class="channel-metric b-purple">Meta: 3 posts/semana · 200 referrals orgánicas</div>
+      <div class="channel-list">
+        <div class="channel-item">Reels de 30-60 seg: datos sorprendentes del metabolismo</div>
+        <div class="channel-item">Formato carrusel en Instagram: "5 cosas que no sabías..."</div>
+        <div class="channel-item">TikTok: clips del webinar + respuestas a comentarios</div>
+        <div class="channel-item">Stories: behind the scenes del proceso IMX</div>
+        <div class="channel-item">Testimonios en video: usuarios reales de LATAM</div>
+        <div class="channel-item">Siempre CTA: "Link en bio → Calcula tu IMX gratis"</div>
+      </div>
+    </div>
+
+    <div class="channel-card" id="email">
+      <div class="channel-header">
+        <div class="channel-icon" style="background:rgba(16,229,160,.1)">✉️</div>
+        <div><div class="channel-name">Email / Waitlist</div><div class="channel-role">Conversión · Retención · Nurture</div></div>
+      </div>
+      <div class="channel-metric b-green">Meta: 500 leads · 15% CTR · 10% presale</div>
+      <div class="channel-list">
+        <div class="channel-item">Secuencia bienvenida: 5 emails en 7 días post-registro</div>
+        <div class="channel-item">Newsletter 2x/semana: 1 insight metabólico + 1 CTA</div>
+        <div class="channel-item">Email de lanzamiento: "Tu acceso exclusivo por 48h"</div>
+        <div class="channel-item">Secuencia post-compra: onboarding IMX en 7 días</div>
+        <div class="channel-item">Re-engagement en día 5 de inactividad</div>
+      </div>
+    </div>
+
+    <div class="channel-card">
+      <div class="channel-header">
+        <div class="channel-icon" style="background:rgba(0,212,255,.1)">💬</div>
+        <div><div class="channel-name">WhatsApp / Discord</div><div class="channel-role">Comunidad · Retención · Word-of-mouth</div></div>
+      </div>
+      <div class="channel-metric b-cyan">Meta: 100 early adopters · feedback diario</div>
+      <div class="channel-list">
+        <div class="channel-item">Grupo privado de 100 usuarios piloto</div>
+        <div class="channel-item">Challenge 7 días: "Metabolismo Awareness"</div>
+        <div class="channel-item">Q&A semanal en vivo con el fundador</div>
+        <div class="channel-item">Contenido exclusivo: insights del IMX de la comunidad</div>
+        <div class="channel-item">Generación de UGC: testimonios reales del grupo</div>
+      </div>
+    </div>
+
+    <div class="channel-card">
+      <div class="channel-header">
+        <div class="channel-icon" style="background:rgba(245,158,11,.1)">🤝</div>
+        <div><div class="channel-name">Partnerships</div><div class="channel-role">Credibilidad · Reach · Afiliados</div></div>
+      </div>
+      <div class="channel-metric b-amber">Meta: 5 nutricionistas · 2 micro-influencers</div>
+      <div class="channel-list">
+        <div class="channel-item">Co-crear artículos con nutricionistas LATAM</div>
+        <div class="channel-item">Guest posts de médicos endocrinólogos</div>
+        <div class="channel-item">Instagram Lives con coaches de salud</div>
+        <div class="channel-item">Micro-influencers 10K-50K: comisión + acceso</div>
+        <div class="channel-item">Artículo validado: "Elena según un nutricionista"</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="div"/>
+
+<!-- ── BANCO DE TEMAS ──────────────────────────────── -->
+<section class="section" id="temas">
+  <div class="s-tag">04 · Contenido</div>
+  <h2 class="s-title">Banco de Temas</h2>
+  <p class="s-desc">48 piezas de contenido organizadas por pilar, canal, etapa del embudo y fase del GTM. Cada tema incluye keyword SEO principal y formato sugerido.</p>
+
+  <div class="tabs">
+    <span class="tab active">Todos</span>
+    <span class="tab">⚡ Ayuno</span>
+    <span class="tab">🥗 Nutrición</span>
+    <span class="tab">🏃 Movimiento</span>
+    <span class="tab">💤 Sueño</span>
+    <span class="tab">🧠 Hábitos</span>
+  </div>
+
+  <div style="overflow-x:auto">
+  <table class="content-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Título / Keyword</th>
+        <th>Pilar</th>
+        <th>Canal</th>
+        <th>Embudo</th>
+        <th>Fase GTM</th>
+        <th>Formato</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <!-- AYUNO -->
+      <tr><td style="color:var(--t3);font-weight:700">01</td>
+        <td><div class="ct-title">5 mitos sobre el metabolismo después de los 45 que te han frenado</div><div class="ct-kw">→ "metabolismo lento después de los 45"</div></td>
+        <td><span class="badge b-blue">⚡ Ayuno</span></td>
+        <td><span class="fmt">Blog + YouTube</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Artículo largo + Video 10 min</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">02</td>
+        <td><div class="ct-title">Ayuno 16:8 vs 18:6 vs 24h: cuál funciona para tu tipo de cuerpo</div><div class="ct-kw">→ "ayuno intermitente tipos"</div></td>
+        <td><span class="badge b-blue">⚡ Ayuno</span></td>
+        <td><span class="fmt">Blog + Reel</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Guía comparativa + carrusel IG</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">03</td>
+        <td><div class="ct-title">Qué pasa en tu cuerpo hora a hora durante el ayuno (con ciencia real)</div><div class="ct-kw">→ "qué pasa cuando ayunas"</div></td>
+        <td><span class="badge b-blue">⚡ Ayuno</span></td>
+        <td><span class="fmt">YouTube + Blog</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Video 12 min + infográfico</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">04</td>
+        <td><div class="ct-title">Por qué el ayuno no funciona si no duermes bien (el link oculto)</div><div class="ct-kw">→ "ayuno intermitente no funciona"</div></td>
+        <td><span class="badge b-blue">⚡ Ayuno</span></td>
+        <td><span class="fmt">Blog + Email</span></td>
+        <td><span class="badge b-amber">Consideración</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Artículo + newsletter</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">05</td>
+        <td><div class="ct-title">Cómo el IMX mide tu progreso de ayuno sin básculas ni apps complicadas</div><div class="ct-kw">→ "medir progreso ayuno intermitente"</div></td>
+        <td><span class="badge b-blue">⚡ Ayuno</span></td>
+        <td><span class="fmt">Blog + YouTube</span></td>
+        <td><span class="badge b-cyan">Decisión</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Artículo explicativo + video 8 min</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">06</td>
+        <td><div class="ct-title">Autofagia: qué es, cuándo ocurre y por qué cambia todo después de los 40</div><div class="ct-kw">→ "autofagia ayuno"</div></td>
+        <td><span class="badge b-blue">⚡ Ayuno</span></td>
+        <td><span class="fmt">Blog + TikTok</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Artículo técnico accesible + Short</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">07</td>
+        <td><div class="ct-title">Ayuno y diabetes tipo 2: lo que tu médico probablemente no te dijo</div><div class="ct-kw">→ "ayuno intermitente diabetes"</div></td>
+        <td><span class="badge b-blue">⚡ Ayuno</span></td>
+        <td><span class="fmt">Blog + YouTube</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-blue">Fase 2</span></td>
+        <td>Artículo con referencias + video</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">08</td>
+        <td><div class="ct-title">Los 7 errores más comunes al empezar el ayuno intermitente en LATAM</div><div class="ct-kw">→ "errores ayuno intermitente"</div></td>
+        <td><span class="badge b-blue">⚡ Ayuno</span></td>
+        <td><span class="fmt">YouTube + Email</span></td>
+        <td><span class="badge b-amber">Consideración</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Video 10 min + email nurture</td></tr>
+
+      <!-- NUTRICIÓN -->
+      <tr><td style="color:var(--t3);font-weight:700">09</td>
+        <td><div class="ct-title">Cómo comer tacos, pozole y tamales sin destruir tu metabolismo</div><div class="ct-kw">→ "comida mexicana dieta metabolismo"</div></td>
+        <td><span class="badge b-green">🥗 Nutrición</span></td>
+        <td><span class="fmt">Blog + Reel</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Artículo + carrusel IG</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">10</td>
+        <td><div class="ct-title">Proteína en México: las mejores fuentes accesibles para después de los 45</div><div class="ct-kw">→ "proteína alimentos México"</div></td>
+        <td><span class="badge b-green">🥗 Nutrición</span></td>
+        <td><span class="fmt">Blog + YouTube</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Guía visual + video 8 min</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">11</td>
+        <td><div class="ct-title">Insulina, carbohidratos y grasa abdominal: la triada que nadie te explica</div><div class="ct-kw">→ "insulina resistencia grasa abdominal"</div></td>
+        <td><span class="badge b-green">🥗 Nutrición</span></td>
+        <td><span class="fmt">Blog + Email</span></td>
+        <td><span class="badge b-amber">Consideración</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Artículo largo + infográfico</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">12</td>
+        <td><div class="ct-title">La ventana anabólica es un mito: qué dice la ciencia de verdad</div><div class="ct-kw">→ "ventana anabólica proteína"</div></td>
+        <td><span class="badge b-green">🥗 Nutrición</span></td>
+        <td><span class="fmt">Blog + TikTok</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-blue">Fase 2</span></td>
+        <td>Artículo + Short 60 seg</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">13</td>
+        <td><div class="ct-title">Comer en familia sin sabotear tu plan metabólico: estrategias reales</div><div class="ct-kw">→ "dieta familia México"</div></td>
+        <td><span class="badge b-green">🥗 Nutrición</span></td>
+        <td><span class="fmt">Blog + Email</span></td>
+        <td><span class="badge b-amber">Consideración</span></td>
+        <td><span class="badge b-blue">Fase 2</span></td>
+        <td>Artículo práctico + guía PDF</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">14</td>
+        <td><div class="ct-title">Ultra-procesados: qué son exactamente y cuánto daño hacen a los 45+</div><div class="ct-kw">→ "alimentos ultraprocesados daños"</div></td>
+        <td><span class="badge b-green">🥗 Nutrición</span></td>
+        <td><span class="fmt">YouTube + Blog</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Video 10 min + artículo</td></tr>
+
+      <!-- MOVIMIENTO -->
+      <tr><td style="color:var(--t3);font-weight:700">15</td>
+        <td><div class="ct-title">Entrenamiento de fuerza después de los 45: por qué es más importante que el cardio</div><div class="ct-kw">→ "ejercicio fuerza 45 años"</div></td>
+        <td><span class="badge b-cyan">🏃 Movimiento</span></td>
+        <td><span class="fmt">Blog + YouTube</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Artículo + Video 12 min</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">16</td>
+        <td><div class="ct-title">Cómo caminar 30 minutos puede cambiar tu metabolismo (con datos reales)</div><div class="ct-kw">→ "caminar metabolismo beneficios"</div></td>
+        <td><span class="badge b-cyan">🏃 Movimiento</span></td>
+        <td><span class="fmt">Reel + Blog</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Reel 45 seg + artículo accesible</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">17</td>
+        <td><div class="ct-title">Sarcopenia: la pérdida muscular silenciosa que te envejece por dentro</div><div class="ct-kw">→ "sarcopenia pérdida músculo edad"</div></td>
+        <td><span class="badge b-cyan">🏃 Movimiento</span></td>
+        <td><span class="fmt">Blog + Email</span></td>
+        <td><span class="badge b-amber">Consideración</span></td>
+        <td><span class="badge b-blue">Fase 2</span></td>
+        <td>Artículo técnico accesible</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">18</td>
+        <td><div class="ct-title">Rutina de 20 minutos sin gimnasio que mejora tu IMX en 4 semanas</div><div class="ct-kw">→ "ejercicio en casa metabolismo"</div></td>
+        <td><span class="badge b-cyan">🏃 Movimiento</span></td>
+        <td><span class="fmt">YouTube + Blog</span></td>
+        <td><span class="badge b-cyan">Decisión</span></td>
+        <td><span class="badge b-blue">Fase 2</span></td>
+        <td>Video tutorial + artículo con plan</td></tr>
+
+      <!-- SUEÑO -->
+      <tr><td style="color:var(--t3);font-weight:700">19</td>
+        <td><div class="ct-title">Dormir mal engorda: la relación entre sueño, cortisol y grasa abdominal</div><div class="ct-kw">→ "sueño cortisol grasa abdominal"</div></td>
+        <td><span class="badge b-purple">💤 Sueño</span></td>
+        <td><span class="fmt">Blog + YouTube</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Artículo largo + video 9 min</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">20</td>
+        <td><div class="ct-title">Rutina nocturna de 10 minutos que mejora tu metabolismo mientras duermes</div><div class="ct-kw">→ "rutina nocturna metabolismo"</div></td>
+        <td><span class="badge b-purple">💤 Sueño</span></td>
+        <td><span class="fmt">Reel + Blog</span></td>
+        <td><span class="badge b-cyan">Decisión</span></td>
+        <td><span class="badge b-blue">Fase 2</span></td>
+        <td>Reel tutorial + artículo práctico</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">21</td>
+        <td><div class="ct-title">Menopausia, testosterona y sueño: cómo los cambios hormonales afectan tu IMX</div><div class="ct-kw">→ "menopausia metabolismo sueño"</div></td>
+        <td><span class="badge b-purple">💤 Sueño</span></td>
+        <td><span class="fmt">Blog + Email</span></td>
+        <td><span class="badge b-amber">Consideración</span></td>
+        <td><span class="badge b-blue">Fase 2</span></td>
+        <td>Artículo especializado + newsletter</td></tr>
+
+      <!-- HÁBITOS -->
+      <tr><td style="color:var(--t3);font-weight:700">22</td>
+        <td><div class="ct-title">Por qué las dietas fallan a los 45: la psicología detrás del rebote</div><div class="ct-kw">→ "por qué fallan las dietas"</div></td>
+        <td><span class="badge b-amber">🧠 Hábitos</span></td>
+        <td><span class="fmt">Blog + YouTube</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Artículo narrativo + video 10 min</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">23</td>
+        <td><div class="ct-title">Estrés crónico y grasa visceral: el mecanismo que nadie explica en español</div><div class="ct-kw">→ "estrés crónico grasa visceral"</div></td>
+        <td><span class="badge b-amber">🧠 Hábitos</span></td>
+        <td><span class="fmt">Blog + Reel</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Artículo + carrusel explicativo</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">24</td>
+        <td><div class="ct-title">El hábito de 2 minutos que más mueve el IMX (según datos de usuarios piloto)</div><div class="ct-kw">→ "hábitos saludables metabolismo"</div></td>
+        <td><span class="badge b-amber">🧠 Hábitos</span></td>
+        <td><span class="fmt">Email + Reel</span></td>
+        <td><span class="badge b-cyan">Decisión</span></td>
+        <td><span class="badge b-blue">Fase 2</span></td>
+        <td>Email secuencia + Reel testimonio</td></tr>
+
+      <!-- CASE STUDIES / CONVERSIÓN -->
+      <tr><td style="color:var(--t3);font-weight:700">25</td>
+        <td><div class="ct-title">CASE STUDY: Cómo María (48, Ciudad de México) subió su IMX 22 pts en 90 días</div><div class="ct-kw">→ "resultados ayuno intermitente mujeres"</div></td>
+        <td><span class="badge b-blue">⚡ Ayuno</span></td>
+        <td><span class="fmt">Blog + YouTube + IG</span></td>
+        <td><span class="badge b-amber">Consideración</span></td>
+        <td><span class="badge b-blue">Fase 2</span></td>
+        <td>Artículo caso real + video 3 min + Reel</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">26</td>
+        <td><div class="ct-title">CASE STUDY: Roberto (52, Guadalajara) dejó 3 apps y encontró su IMX de 73</div><div class="ct-kw">→ "mejores apps salud metabolismo"</div></td>
+        <td><span class="badge b-amber">🧠 Hábitos</span></td>
+        <td><span class="fmt">Blog + Email</span></td>
+        <td><span class="badge b-amber">Consideración</span></td>
+        <td><span class="badge b-blue">Fase 2</span></td>
+        <td>Artículo case study + email testimonial</td></tr>
+
+      <!-- IMX / ELENA ESPECÍFICO -->
+      <tr><td style="color:var(--t3);font-weight:700">27</td>
+        <td><div class="ct-title">Qué es el IMX y por qué es diferente a todo lo que has visto</div><div class="ct-kw">→ "IMX índice metabólico"</div></td>
+        <td><span class="badge b-blue">⚡ Ayuno</span></td>
+        <td><span class="fmt">Blog + YouTube</span></td>
+        <td><span class="badge b-cyan">Decisión</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Artículo explicativo + video 6 min</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">28</td>
+        <td><div class="ct-title">Elena vs MyFitnessPal vs entrenador personal: comparativa honesta</div><div class="ct-kw">→ "mejor app salud metabolismo español"</div></td>
+        <td><span class="badge b-amber">🧠 Hábitos</span></td>
+        <td><span class="fmt">Blog</span></td>
+        <td><span class="badge b-amber">Consideración</span></td>
+        <td><span class="badge b-blue">Fase 2</span></td>
+        <td>Artículo comparativo + tabla</td></tr>
+
+      <!-- WEBINAR -->
+      <tr><td style="color:var(--t3);font-weight:700">29</td>
+        <td><div class="ct-title">WEBINAR: "Metabolismo Real vs. Mitos" — 90 min educativo gratuito</div><div class="ct-kw">→ Invitación directa a waitlist</div></td>
+        <td><span class="badge b-blue">⚡ Ayuno</span></td>
+        <td><span class="fmt">YouTube Live + Email</span></td>
+        <td><span class="badge b-cyan">Decisión</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Webinar en vivo + replay blog post</td></tr>
+
+      <!-- LATAM EXPANSIÓN -->
+      <tr><td style="color:var(--t3);font-weight:700">30</td>
+        <td><div class="ct-title">Cómo mejorar tu metabolismo en Colombia sin renunciar a la bandeja paisa</div><div class="ct-kw">→ "dieta colombiana metabolismo"</div></td>
+        <td><span class="badge b-green">🥗 Nutrición</span></td>
+        <td><span class="fmt">Blog + Reel</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-red">Fase 3</span></td>
+        <td>Artículo localizado + IG Colombia</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">31</td>
+        <td><div class="ct-title">Asado y metabolismo: cómo los argentinos pueden optimizar su IMX</div><div class="ct-kw">→ "dieta argentina saludable"</div></td>
+        <td><span class="badge b-green">🥗 Nutrición</span></td>
+        <td><span class="fmt">Blog</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-red">Fase 3</span></td>
+        <td>Artículo localizado Argentina</td></tr>
+
+      <!-- SEO PASIVO / EVERGREEN -->
+      <tr><td style="color:var(--t3);font-weight:700">32</td>
+        <td><div class="ct-title">Glosario metabólico: 40 términos explicados en español sin jerga</div><div class="ct-kw">→ "glosario metabolismo términos"</div></td>
+        <td><span class="badge b-blue">⚡ Ayuno</span></td>
+        <td><span class="fmt">Blog (evergreen)</span></td>
+        <td><span class="badge b-amber">Conciencia</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td>Página de recursos (SEO pasivo)</td></tr>
+
+      <tr><td style="color:var(--t3);font-weight:700">33</td>
+        <td><div class="ct-title">Protocolo de 7 días para reiniciar tu metabolismo (descarga gratuita)</div><div class="ct-kw">→ "protocolo metabolismo 7 días"</div></td>
+        <td><span class="badge b-blue">⚡ Ayuno</span></td>
+        <td><span class="fmt">Blog + Email</span></td>
+        <td><span class="badge b-cyan">Decisión</span></td>
+        <td><span class="badge b-green">Fase 1</span></td>
+        <td">Lead magnet PDF + artículo</td></tr>
+
+    </tbody>
+  </table>
+  </div>
+  <div class="insight"><strong>Prioridad absoluta:</strong> Los temas 01, 03, 22, 27 y 33 deben publicarse en los primeros 30 días. Son los de mayor volumen de búsqueda y mayor potencial de conversión a la calculadora IMX y al waitlist.</div>
+</section>
+
+<hr class="div"/>
+
+<!-- ── CALENDARIO ──────────────────────────────────── -->
+<section class="section" id="calendario">
+  <div class="s-tag">05 · Ejecución</div>
+  <h2 class="s-title">Calendario Editorial</h2>
+  <p class="s-desc">Tres fases alineadas al GTM. La Fase 1 es el período más crítico: construye la base de audiencia antes del lanzamiento público de Elena.</p>
+
+  <!-- FASE 1 -->
+  <div class="cal-phase">
+    <div class="cal-phase-header">
+      <div class="cal-phase-num">1</div>
+      <div class="cal-phase-info">
+        <div class="cal-phase-name">Pre-lanzamiento · Construir audiencia y validar mensaje</div>
+        <div class="cal-phase-period">Días 1 – 60 · Objetivo: 500 leads en waitlist</div>
+      </div>
+      <span class="badge b-green" style="margin-left:auto;white-space:nowrap">Fase 1</span>
+    </div>
+    <div class="cal-rows">
+      <div class="cal-row">
+        <div class="cal-week">Sem 1–2</div>
+        <div class="cal-content">Blog: "5 mitos del metabolismo después de los 45" + Glosario metabólico<small>YouTube: Video "Qué pasa hora a hora en tu ayuno" · Email: Secuencia bienvenida waitlist (5 emails) · IG: 3 Reels de datos sorprendentes</small></div>
+        <span class="badge b-blue">Blog + YT + IG</span>
+        <span class="badge b-amber">Conciencia</span>
+        <div><span class="fmt">2 artículos · 1 video · 3 reels</span></div>
+      </div>
+      <div class="cal-row">
+        <div class="cal-week">Sem 3–4</div>
+        <div class="cal-content">Blog: "Ayuno 16:8 vs 18:6 vs 24h" + "Por qué fallan las dietas a los 45"<small>YouTube: "Los 7 errores del ayuno en LATAM" · Webinar: anuncio y reclutamiento (Día 7–10) · Discord/WA: arranque challenge 7 días</small></div>
+        <span class="badge b-blue">Blog + YT + Email</span>
+        <span class="badge b-amber">Conciencia</span>
+        <div><span class="fmt">2 artículos · 1 video · webinar promo</span></div>
+      </div>
+      <div class="cal-row">
+        <div class="cal-week">Sem 5–6</div>
+        <div class="cal-content">Blog: "Qué es el IMX" + "Proteína en México: fuentes accesibles"<small>WEBINAR EN VIVO: "Metabolismo Real vs. Mitos" (90 min) · Reel: clips del webinar en TikTok/IG · Email: recap + CTA calculadora</small></div>
+        <span class="badge b-cyan">Todos los canales</span>
+        <span class="badge b-cyan">Decisión</span>
+        <div><span class="fmt">2 artículos · webinar · 5 clips</span></div>
+      </div>
+      <div class="cal-row">
+        <div class="cal-week">Sem 7–8</div>
+        <div class="cal-content">Blog: "Insulina, carbohidratos y grasa abdominal" + "Dormir mal engorda"<small>YouTube: "Ayuno y diabetes tipo 2" · Lead magnet publicado: Protocolo 7 días PDF · Contacto inicial a 5 nutricionistas para endorsement</small></div>
+        <span class="badge b-blue">Blog + YT + Email</span>
+        <span class="badge b-amber">Consideración</span>
+        <div><span class="fmt">2 artículos · 1 video · lead magnet</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE 2 -->
+  <div class="cal-phase">
+    <div class="cal-phase-header">
+      <div class="cal-phase-num">2</div>
+      <div class="cal-phase-info">
+        <div class="cal-phase-name">Lanzamiento y Post-lanzamiento · Conversión y retención</div>
+        <div class="cal-phase-period">Días 61 – 150 · Objetivo: 100 usuarios presale · 500 pagos</div>
+      </div>
+      <span class="badge b-blue" style="margin-left:auto;white-space:nowrap">Fase 2</span>
+    </div>
+    <div class="cal-rows">
+      <div class="cal-row">
+        <div class="cal-week">Día 61</div>
+        <div class="cal-content">LANZAMIENTO OFICIAL: Email masivo + posts simultáneos en todos los canales<small>Case study #1 publicado: "María, 48 años, +22 pts IMX" · YouTube: video de lanzamiento con demo de Elena · IG Live Q&A 30 min nocturno</small></div>
+        <span class="badge b-cyan">Todos</span>
+        <span class="badge b-cyan">Decisión</span>
+        <div><span class="fmt">Día de impacto máximo</span></div>
+      </div>
+      <div class="cal-row">
+        <div class="cal-week">Sem 9–12</div>
+        <div class="cal-content">Blog: Case study #2 + "Elena vs MyFitnessPal" + "Entrenamiento fuerza 45+"<small>YouTube: 2x/semana educativo · Email: 2x/semana nurture + testimonio · Programa referral activado ($20/referido) · 2 micro-influencers activos</small></div>
+        <span class="badge b-blue">Blog + YT + Email</span>
+        <span class="badge b-amber">Consideración</span>
+        <div><span class="fmt">3 artículos · 8 videos · referral activo</span></div>
+      </div>
+      <div class="cal-row">
+        <div class="cal-week">Sem 13–16</div>
+        <div class="cal-content">Blog: "Sarcopenia" + "Menopausia y metabolismo" + "El hábito de 2 minutos"<small>YouTube: Webinar mensual "Cómo usar Elena" · Case study #3 y #4 · Partnerships con nutricionistas activadas · Guest post de endocrinólogo</small></div>
+        <span class="badge b-green">Blog + YT + Partners</span>
+        <span class="badge b-green">Lealtad</span>
+        <div><span class="fmt">3 artículos · 1 webinar · 2 guest posts</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE 3 -->
+  <div class="cal-phase">
+    <div class="cal-phase-header">
+      <div class="cal-phase-num">3</div>
+      <div class="cal-phase-info">
+        <div class="cal-phase-name">Escala LATAM · Localización y expansión</div>
+        <div class="cal-phase-period">Meses 7 – 18 · Objetivo: 3,000+ usuarios pagos · ARR $100K+</div>
+      </div>
+      <span class="badge b-red" style="margin-left:auto;white-space:nowrap">Fase 3</span>
+    </div>
+    <div class="cal-rows">
+      <div class="cal-row">
+        <div class="cal-week">Mes 7–9</div>
+        <div class="cal-content">Localización: Argentina, Colombia, Perú — 3 artículos por mercado adaptados<small>Blog en español regional: comida local + metabolismo · Partnerships locales con nutricionistas en cada país · YouTube: playlist por país</small></div>
+        <span class="badge b-red">Blog + YT LATAM</span>
+        <span class="badge b-amber">Conciencia</span>
+        <div><span class="fmt">9 artículos localizados</span></div>
+      </div>
+      <div class="cal-row">
+        <div class="cal-week">Mes 10–18</div>
+        <div class="cal-content">Contenido evergreen escalado: guías definitivas por pilar (10,000+ palabras c/u)<small>SEO authority building: backlinks con nutricionistas · YouTube: 50+ videos por playlist · Programa de afiliados para coaches LATAM · Consideración Brasil</small></div>
+        <span class="badge b-blue">SEO Authority</span>
+        <span class="badge b-green">Lealtad</span>
+        <div><span class="fmt">5 guías definitivas · autoridad SEO</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="div"/>
+
+<!-- ── MÉTRICAS ────────────────────────────────────── -->
+<section class="section" id="metricas">
+  <div class="s-tag">06 · Medición</div>
+  <h2 class="s-title">Métricas y KPIs de Contenido</h2>
+  <p class="s-desc">10 métricas clave para evaluar el rendimiento del ecosistema de contenido. Revisar semanalmente en los primeros 60 días, mensualmente después.</p>
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--blue)">2K</div>
+      <div class="metric-name">Visitas/mes blog (meta día 60)</div>
+      <div class="metric-bar"><div class="metric-fill" style="background:linear-gradient(90deg,var(--blue),var(--cyan));width:35%"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--green)">8%</div>
+      <div class="metric-name">Conversión blog → waitlist</div>
+      <div class="metric-bar"><div class="metric-fill" style="background:linear-gradient(90deg,#059669,var(--green));width:60%"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--cyan)">500</div>
+      <div class="metric-name">Leads en waitlist (día 60)</div>
+      <div class="metric-bar"><div class="metric-fill" style="background:linear-gradient(90deg,var(--blue),var(--cyan));width:20%"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--purple)">5K</div>
+      <div class="metric-name">Vistas YouTube (día 60)</div>
+      <div class="metric-bar"><div class="metric-fill" style="background:linear-gradient(90deg,#7c3aed,var(--purple));width:25%"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--blue)">15%</div>
+      <div class="metric-name">CTR email newsletter</div>
+      <div class="metric-bar"><div class="metric-fill" style="background:linear-gradient(90deg,var(--blue),var(--cyan));width:70%"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--green)">10%</div>
+      <div class="metric-name">Conversión waitlist → presale</div>
+      <div class="metric-bar"><div class="metric-fill" style="background:linear-gradient(90deg,#059669,var(--green));width:50%"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--amber)">70+</div>
+      <div class="metric-name">NPS post-contenido</div>
+      <div class="metric-bar"><div class="metric-fill" style="background:linear-gradient(90deg,#d97706,var(--amber));width:80%"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--cyan)">200</div>
+      <div class="metric-name">Referrals orgánicas/mes</div>
+      <div class="metric-bar"><div class="metric-fill" style="background:linear-gradient(90deg,var(--blue),var(--cyan));width:30%"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--red)">300</div>
+      <div class="metric-name">Registros webinar</div>
+      <div class="metric-bar"><div class="metric-fill" style="background:linear-gradient(90deg,#dc2626,var(--red));width:40%"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--green)">1.2x</div>
+      <div class="metric-name">Coeficiente viral (K-factor)</div>
+      <div class="metric-bar"><div class="metric-fill" style="background:linear-gradient(90deg,#059669,var(--green));width:55%"></div></div>
+    </div>
+  </div>
+
+  <div class="insight" style="margin-top:28px">
+    <strong>Señal de alarma:</strong> Si el CTR del email baja de 8% o la conversión blog→waitlist baja de 5% en los primeros 30 días, el mensaje central del IMX no está resonando. Acción inmediata: A/B test del headline de la landing y simplificación del CTA principal.
+    <br/><br/>
+    <strong>Señal de éxito:</strong> Cuando el coeficiente viral supere 1.0 (cada usuario trae al menos 1 más), el canal de referrals se convierte en el motor principal de crecimiento — momento para activar el programa de afiliados para nutricionistas.
+  </div>
+</section>
+
+<hr class="div"/>
+
+<!-- CIERRE -->
+<section class="section">
+  <div class="s-tag">Resumen Final</div>
+  <h2 class="s-title">Próximos 30 Días: Acción Inmediata</h2>
+  <p class="s-desc">5 pasos ordenados por prioridad para activar el ecosistema de contenido esta semana.</p>
+  <div class="pillars" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+    <div class="pillar"><div class="pillar-icon">1️⃣</div><div class="pillar-name">Publicar 2 artículos base</div><div class="pillar-desc">Tema #01 ("5 mitos del metabolismo") y Tema #27 ("Qué es el IMX") — son el ancla de SEO y la puerta de entrada al funnel.</div></div>
+    <div class="pillar"><div class="pillar-icon">2️⃣</div><div class="pillar-name">Grabar video fundacional</div><div class="pillar-desc">Tema #03 ("Qué pasa hora a hora en el ayuno") para YouTube. Este video solo puede generar tráfico orgánico por años.</div></div>
+    <div class="pillar"><div class="pillar-icon">3️⃣</div><div class="pillar-name">Activar secuencia de email</div><div class="pillar-desc">5 emails en 7 días para los primeros suscribers del waitlist. Educación pura, sin ventas. Construye confianza antes de cualquier oferta.</div></div>
+    <div class="pillar"><div class="pillar-icon">4️⃣</div><div class="pillar-name">Preparar Webinar Día 7–10</div><div class="pillar-desc">"Metabolismo Real vs. Mitos" — 90 min, gratis, sin mencionar Elena hasta el final. Meta: 300 registros, 150 asistentes.</div></div>
+    <div class="pillar"><div class="pillar-icon">5️⃣</div><div class="pillar-name">Publicar lead magnet</div><div class="pillar-desc">Protocolo de 7 días en PDF descargable. Esta única pieza puede generar cientos de emails calificados si se distribuye bien por redes y grupos LATAM.</div></div>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

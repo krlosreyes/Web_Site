@@ -59,7 +59,11 @@ export function verifyAdminPassword(inputPassword: string): boolean {
     }
     
     // Use constant-time comparison to prevent timing attacks
-    return constantTimeCompare(inputPassword, envPassword);
+    let envPass = envPassword;
+    if (envPass.startsWith('"') && envPass.endsWith('"')) {
+        envPass = envPass.slice(1, -1);
+    }
+    return constantTimeCompare(inputPassword, envPass);
 }
 
 /**
@@ -74,10 +78,12 @@ export function isAuthenticatedFromCookie(cookies: Record<string, string>): bool
         return false;
     }
     
-    // Firebase auth token or legacy password cookie
-    const isValid = 
-        sessionCookie === 'firebase_auth' || 
-        constantTimeCompare(sessionCookie, import.meta.env.ADMIN_PASSWORD || '');
+    // Firebase legacy password cookie verification
+    let envPass = import.meta.env.ADMIN_PASSWORD || '';
+    if (envPass.startsWith('"') && envPass.endsWith('"')) {
+        envPass = envPass.slice(1, -1);
+    }
+    const isValid = constantTimeCompare(sessionCookie, envPass);
     
     return isValid;
 }

@@ -7,7 +7,7 @@ export const POST: APIRoute = async ({ request }) => {
     try {
         const payload = await request.json();
         
-        const { name, email, estimated_imx, quiz_type, proxy_scores } = payload;
+        const { name, email, estimated_imr, quiz_type, proxy_scores } = payload;
         
         if (!name || !email) {
             return new Response(JSON.stringify({ error: 'Nombre y correo son requeridos' }), { 
@@ -35,7 +35,7 @@ export const POST: APIRoute = async ({ request }) => {
         await leadsRef.add({
             name: name.trim(),
             email: emailClean,
-            estimated_imx: estimated_imx || 0,
+            estimated_imr: estimated_imr || 0,
             quiz_type: quiz_type || 'proxy_v1',
             proxy_scores: proxy_scores || {},
             created_at: new Date() // El Admin SDK usa Date standard que luego Firestore convierte a Timestamp

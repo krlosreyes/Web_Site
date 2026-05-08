@@ -6,7 +6,7 @@
 
 ```bash
 # En tu archivo .env local o variables de entorno
-ADMIN_PASSWORD="tu_contraseña_super_segura_minimo_8_caracteres"
+ADMIN_PASSWORD="Metamorfosis2026*"
 ```
 
 ### 2️⃣ Ir a página de login

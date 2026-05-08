@@ -105,7 +105,7 @@ const MetamorfosisCalculator = () => {
                                     <circle cx="200" cy="300" r="280" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-teal-500" />
                                 </svg>
                             </div>
-                            <MorphingSilhouette imx={imrScore} />
+                            <MorphingSilhouette imr={imrScore} />
                         </div>
 
                         <div className="bg-[#0c1f31]/60 backdrop-blur-xl rounded-[28px] border border-[#2DD4BF]/20 p-8">

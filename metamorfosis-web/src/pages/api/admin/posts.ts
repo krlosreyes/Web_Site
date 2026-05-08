@@ -18,7 +18,7 @@ export const GET: APIRoute = async ({ request }) => {
             });
         }
         
-        const postsRef = db.collection('post');
+        const postsRef = db.collection('metamorfosis_posts');
         // Fetch up to 50 recent posts
         const snapshot = await postsRef.limit(50).get();
 
@@ -32,6 +32,7 @@ export const GET: APIRoute = async ({ request }) => {
 
             return {
                 id: doc.id,
+                ...data, // Incluir todo el contenido original (content, images, etc.)
                 title: data.metadata?.title || data.title || 'Untitled',
                 slug: data.metadata?.slug || data.slug || doc.id,
                 views: data.analytics?.views || mockViews,
@@ -47,9 +48,82 @@ export const GET: APIRoute = async ({ request }) => {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
         });
-
     } catch (error) {
-        console.error("Error fetching posts via Admin API:", error);
-        return new Response(JSON.stringify({ error: 'Error interno del servidor' }), { status: 500 });
+        console.error("Error fetching posts:", error);
+        return new Response(JSON.stringify({ error: 'Error al obtener' }), { status: 500 });
+    }
+};
+
+export const POST: APIRoute = async ({ request }) => {
+    try {
+        enforceProductionSecurity();
+        const cookies = parseCookies(request);
+        if (!isAuthenticatedFromCookie(cookies)) return new Response(null, { status: 401 });
+
+        const body = await request.json();
+        const { title, content, images, references, quiz } = body;
+        
+        // Slug ultra-seguro y truncado
+        let slug = title.toLowerCase()
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/[^\w\-]+/g, '')
+            .replace(/\-\-+/g, '-')
+            .substring(0, 100);
+            
+        if (slug.endsWith('-')) slug = slug.slice(0, -1);
+
+        const newPost = {
+            title,
+            slug,
+            content,
+            images,
+            references,
+            quiz,
+            metadata: { title, slug },
+            analytics: { views: 0, clicks: 0, conversions: 0 },
+            createdAt: new Date().toISOString()
+        };
+
+        const docRef = await db.collection('metamorfosis_posts').add(newPost);
+        return new Response(JSON.stringify({ success: true, id: docRef.id }), { status: 201 });
+    } catch (error) {
+        return new Response(JSON.stringify({ error: 'Error al crear' }), { status: 500 });
+    }
+};
+
+export const PUT: APIRoute = async ({ request }) => {
+    try {
+        enforceProductionSecurity();
+        const cookies = parseCookies(request);
+        if (!isAuthenticatedFromCookie(cookies)) return new Response(null, { status: 401 });
+
+        const body = await request.json();
+        const { id, ...data } = body;
+        
+        await db.collection('metamorfosis_posts').doc(id).update({
+            ...data,
+            updatedAt: new Date().toISOString()
+        });
+
+        return new Response(JSON.stringify({ success: true }), { status: 200 });
+    } catch (error) {
+        return new Response(JSON.stringify({ error: 'Error al actualizar' }), { status: 500 });
+    }
+};
+
+export const DELETE: APIRoute = async ({ url, request }) => {
+    try {
+        enforceProductionSecurity();
+        const cookies = parseCookies(request);
+        if (!isAuthenticatedFromCookie(cookies)) return new Response(null, { status: 401 });
+
+        const id = url.searchParams.get('id');
+        if (!id) return new Response(null, { status: 400 });
+
+        await db.collection('metamorfosis_posts').doc(id).delete();
+        return new Response(JSON.stringify({ success: true }), { status: 200 });
+    } catch (error) {
+        return new Response(JSON.stringify({ error: 'Error al borrar' }), { status: 500 });
     }
 };

@@ -6,7 +6,7 @@ import {
     ResponsiveContainer
 } from 'recharts';
 
-// Definición de Interfaces según IMX-V01
+// Definición de Interfaces según IMR-V01
 interface syntheticUser {
     id: string;
     gender: 'male' | 'female';
@@ -25,14 +25,14 @@ interface syntheticUser {
     sleep_hours: number;
     createdAt?: any;
     // Agregados Post-Cálculo
-    imx_score?: number;
+    imr_score?: number;
     b_score?: number;
     m_score?: number;
     h_score?: number;
 }
 
-// Helper: Traer cálculo IMX localmente si los datos en BD no lo tienen pre-calculado
-import { calculateIMX, type IMXVariables } from '../../utils/biometrics';
+// Helper: Traer cálculo IMR localmente si los datos en BD no lo tienen pre-calculado
+import { calculateIMR, type IMRVariables } from '../../utils/biometrics';
 
 const COLORS = {
     optimal: '#2DD4BF', // Cian
@@ -42,7 +42,7 @@ const COLORS = {
     neutral: '#6B7280'
 };
 
-const AnaliticaIMX = () => {
+const AnaliticaIMR = () => {
     const [data, setData] = useState<syntheticUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -85,22 +85,22 @@ const AnaliticaIMX = () => {
                         fasting_hours: inputs.fastingHours || 12,
                         createdAt: d.createdAtStr || d.metadata?.timestamp || d.createdAt,
 
-                        imx_score: Math.round(quiz.imxScore || 0),
+                        imr_score: Math.round(quiz.imrScore || quiz.imxScore || 0),
                         b_score: quiz.bodyScore_B ? Math.round(quiz.bodyScore_B * 100) : 0,
                         m_score: quiz.metabolicScore_M ? Math.round(quiz.metabolicScore_M * 100) : 0,
                         h_score: quiz.lifestyleScore_H ? Math.round(quiz.lifestyleScore_H * 100) : 0,
                     };
 
-                    // Fallback calculation in case IMX relies on synthetic missing data
-                    if (!userRecord.imx_score || userRecord.imx_score === 0) {
-                        const payload: IMXVariables = {
+                    // Fallback calculation in case IMR relies on synthetic missing data
+                    if (!userRecord.imr_score || userRecord.imr_score === 0) {
+                        const payload: IMRVariables = {
                             peso: userRecord.initial_weight,
                             altura: userRecord.height,
                             grasa: userRecord.body_fat || 20
                         };
                         // Note: In a production sync, we might want to await this or use a batch process.
                         // For the dashboard view, we'll trigger the authority fetch.
-                        calculateIMX(payload).then(res => {
+                        calculateIMR(payload).then((res: any) => {
                             if (res) {
                                 // Update local state if needed or just log
                                 console.log(`Authority sync for user ${userRecord.id}: ${res.score}`);
@@ -123,7 +123,7 @@ const AnaliticaIMX = () => {
                     return timeB - timeA;
                 });
 
-                console.log("🔥 Registros IMX Crudos Descargados:", users.length);
+                console.log("🔥 Registros IMR Crudos Descargados:", users.length);
                 setData(users);
             } catch (err: any) {
                 console.error("Error fetching pruebas:", err);
@@ -139,9 +139,9 @@ const AnaliticaIMX = () => {
     // ─── Proceso de Datos (useMemo) ──────────────────────────────────────────
 
     const processedData = useMemo(() => {
-        if (!data.length) return { categoryData: [], pillarData: [], fastingData: [], correlationData: [], averageIMX: 0, maleCount: 0, femaleCount: 0, calibrationAlerts: { tooManyOptimal: false, pillarMWarnings: false } };
+        if (!data.length) return { categoryData: [], pillarData: [], fastingData: [], correlationData: [], averageIMR: 0, maleCount: 0, femaleCount: 0, calibrationAlerts: { tooManyOptimal: false, pillarMWarnings: false } };
 
-        let sumIMX = 0;
+        let sumIMR = 0;
         let counts = { highRisk: 0, deterioration: 0, recovery: 0, optimal: 0 };
         // Si no existen componentes de capa pre-calculados, no podremos promediarlos exactamente,
         // pero asumiremos que el Dashboard en versiones futuras guardará tb m_score, etc.
@@ -156,14 +156,14 @@ const AnaliticaIMX = () => {
         const scatter: any[] = [];
 
         data.forEach((u: syntheticUser) => {
-            const imx = u.imx_score || 0;
-            sumIMX += imx;
+            const imr = u.imr_score || 0;
+            sumIMR += imr;
 
             if (u.gender === 'male') males++; else females++;
 
-            if (imx <= 30) counts.highRisk++;
-            else if (imx <= 50) counts.deterioration++;
-            else if (imx <= 65) counts.recovery++;
+            if (imr <= 30) counts.highRisk++;
+            else if (imr <= 50) counts.deterioration++;
+            else if (imr <= 65) counts.recovery++;
             else counts.optimal++;
 
             if (u.b_score !== undefined && u.m_score !== undefined && u.h_score !== undefined) {
@@ -177,11 +177,11 @@ const AnaliticaIMX = () => {
             fastingCounts[fh] = (fastingCounts[fh] || 0) + 1;
 
             const whtr = u.waist / u.height;
-            scatter.push({ whtr: Number(whtr.toFixed(2)), imx });
+            scatter.push({ whtr: Number(whtr.toFixed(2)), imr });
         });
 
         return {
-            averageIMX: Math.round(sumIMX / data.length),
+            averageIMR: Math.round(sumIMR / data.length),
             maleCount: males,
             femaleCount: females,
             calibrationAlerts: {
@@ -206,7 +206,7 @@ const AnaliticaIMX = () => {
         };
     }, [data]);
 
-    const { categoryData, pillarData, fastingData, correlationData, averageIMX, maleCount, femaleCount, calibrationAlerts } = processedData;
+    const { categoryData, pillarData, fastingData, correlationData, averageIMR, maleCount, femaleCount, calibrationAlerts } = processedData;
 
     return (
         <div className="space-y-8 pb-20">
@@ -216,7 +216,7 @@ const AnaliticaIMX = () => {
                     <span className="text-amber-500 text-2xl">⚠️</span>
                     <div>
                         <h4 className="text-amber-500 font-bold uppercase tracking-wider text-sm">Alerta de Calibración: Riesgo de Falso Positivo</h4>
-                        <p className="text-amber-400/80 text-xs">Más del 80% de la población sintética está catalogada como óptima. Revisa los pesos de la Capa H y Capa M en `calculateIMX`.</p>
+                        <p className="text-amber-400/80 text-xs">Más del 80% de la población sintética está catalogada como óptima. Revisa los pesos de la Capa H y Capa M en `calculateIMR`.</p>
                     </div>
                 </div>
             )}
@@ -240,14 +240,14 @@ const AnaliticaIMX = () => {
                 <div className="bg-[#0A0A0A] border border-gray-800 p-6 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden group">
                     {/* Fondo difuminado condicional dependiendo del average */}
                     <div className={`absolute inset-0 opacity-20 transition-all duration-500 group-hover:opacity-40
-                        ${averageIMX > 65 ? 'bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-teal-400 to-transparent' :
-                            averageIMX > 50 ? 'bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-400 to-transparent' :
-                                averageIMX > 30 ? 'bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-400 to-transparent' :
+                        ${averageIMR > 65 ? 'bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-teal-400 to-transparent' :
+                            averageIMR > 50 ? 'bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-400 to-transparent' :
+                                averageIMR > 30 ? 'bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-400 to-transparent' :
                                     'bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-500 to-transparent'}`}
                     ></div>
-                    <p className="text-gray-500 text-xs font-bold tracking-widest uppercase mb-1 relative z-10">Promedio IMX Población</p>
+                    <p className="text-gray-500 text-xs font-bold tracking-widest uppercase mb-1 relative z-10">Promedio IMR Población</p>
                     <div className="flex items-baseline gap-1 relative z-10">
-                        <span className="text-5xl font-mono font-black text-white drop-shadow-lg">{averageIMX}</span>
+                        <span className="text-5xl font-mono font-black text-white drop-shadow-lg">{averageIMR}</span>
                         <span className="text-gray-500 font-bold">/100</span>
                     </div>
                 </div>
@@ -258,7 +258,7 @@ const AnaliticaIMX = () => {
 
                 {/* Chart 1: Distribución */}
                 <div className="bg-[#0A0A0A] border border-gray-800 p-6 rounded-2xl flex flex-col items-center justify-center min-h-[400px]">
-                    <h3 className="text-sm font-bold tracking-widest uppercase text-gray-400 mb-6 self-start">Distribución Metabólica (IMX)</h3>
+                    <h3 className="text-sm font-bold tracking-widest uppercase text-gray-400 mb-6 self-start">Distribución Metabólica (IMR)</h3>
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
                             <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={70} outerRadius={100} stroke="none">
@@ -309,15 +309,15 @@ const AnaliticaIMX = () => {
                     </ResponsiveContainer>
                 </div>
 
-                {/* Chart 4: Correlación Cintura/IMX */}
+                {/* Chart 4: Correlación Cintura/IMR */}
                 <div className="bg-[#0A0A0A] border border-gray-800 p-6 rounded-2xl flex flex-col items-center justify-center min-h-[400px]">
-                    <h3 className="text-sm font-bold tracking-widest uppercase text-gray-400 self-start">Correlación Cintura vs IMX</h3>
-                    <p className="text-xs text-gray-600 self-start mb-6">Dispersión de WHtR vs el Puntaje Global IMX.</p>
+                    <h3 className="text-sm font-bold tracking-widest uppercase text-gray-400 self-start">Correlación Cintura vs IMR</h3>
+                    <p className="text-xs text-gray-600 self-start mb-6">Dispersión de WHtR vs el Puntaje Global IMR.</p>
                     <ResponsiveContainer width="100%" height={300}>
                         <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#333" />
                             <XAxis type="number" dataKey="whtr" name="WHtR" unit="" domain={['auto', 'auto']} stroke="#666" tick={{ fill: '#9ca3af' }} />
-                            <YAxis type="number" dataKey="imx" name="IMX Score" unit="" domain={[0, 100]} stroke="#666" tick={{ fill: '#9ca3af' }} />
+                            <YAxis type="number" dataKey="imr" name="IMR Score" unit="" domain={[0, 100]} stroke="#666" tick={{ fill: '#9ca3af' }} />
                             <RechartsTooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ backgroundColor: '#0A0A0A', borderColor: '#333' }} />
                             <Scatter name="Usuarios" data={correlationData} fill={COLORS.danger} opacity={0.6} />
                         </ScatterChart>
@@ -334,7 +334,7 @@ const AnaliticaIMX = () => {
                             <th className="px-4 py-3">ID</th>
                             <th className="px-4 py-3">Género</th>
                             <th className="px-4 py-3">Edad</th>
-                            <th className="px-4 py-3">IMX</th>
+                            <th className="px-4 py-3">IMR</th>
                             <th className="px-4 py-3 text-right">Acciones</th>
                         </tr>
                     </thead>
@@ -344,7 +344,7 @@ const AnaliticaIMX = () => {
                                 <td className="px-4 py-3 font-mono text-xs">{u.id.slice(0, 8)}</td>
                                 <td className="px-4 py-3 capitalize">{u.gender === 'male' ? 'M' : 'F'}</td>
                                 <td className="px-4 py-3">{u.age}</td>
-                                <td className="px-4 py-3 font-mono text-[#00C49A]">{u.imx_score || '--'}</td>
+                                <td className="px-4 py-3 font-mono text-[#00C49A]">{u.imr_score || '--'}</td>
                                 <td className="px-4 py-3 text-right">
                                     <button className="text-[#007BFF] hover:text-white transition-colors text-xs uppercase tracking-wider font-bold">Ver</button>
                                 </td>
@@ -357,4 +357,4 @@ const AnaliticaIMX = () => {
     );
 };
 
-export default AnaliticaIMX;
+export default AnaliticaIMR;

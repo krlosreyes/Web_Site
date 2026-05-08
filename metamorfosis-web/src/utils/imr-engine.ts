@@ -1,88 +1,95 @@
 /**
- * IMR ENGINE - Autoridad Técnica Metamorfosis Real
- * Implementación de lógica metabólica basada en ICA (WHtR) vs IMC.
- * Boris Style: Directo, técnico y basado en evidencia.
+ * IMR ENGINE - SPEC-70.5 (ALTA AUTORIDAD)
+ * Implementación de la fórmula maestra de Metamorfosis Real.
  */
 
-export interface IMRInput {
-    heightCm: number;
-    currentWeightKg: number;
-    waistCircumferenceCm: number;
-    neckCircumferenceCm: number;
-    pathologies: string[];
-    age: number;
+export interface SPEC705Input {
     gender: 'male' | 'female';
+    age: number;
+    weight: number;
+    height: number; // en cm
+    waist: number;  // en cm
+    bodyFat: number; // en %
+    fastingHours: number;
+    dinnerHour: number; // 19.5 para 19:30
+    exerciseMinutes: number;
+    sleepQuality: number; // 0-1
+    hydrationLitros: number;
+    hydrationGoal: number;
+    lastMealHour: number; // para Circadiano
 }
 
-export interface IMRResult {
-    imc: number;
-    ica: number;
-    tmb: number;
-    imrScore: number;
-    label: 'Eficiente' | 'Inflamado' | 'Riesgo';
-    metabolicAge: number;
-    recommendations: {
-        science: string;
-        advice: string;
-    };
-}
+export function calculateSPEC705(input: SPEC705Input) {
+    const { 
+        gender, age, weight, height, waist, bodyFat, 
+        fastingHours, dinnerHour, exerciseMinutes, 
+        sleepQuality, hydrationLitros, hydrationGoal, lastMealHour 
+    } = input;
 
-export function calculateIMR(data: IMRInput): IMRResult {
-    const { heightCm, currentWeightKg, waistCircumferenceCm, pathologies, age, gender } = data;
+    const heightM = height / 100;
+
+    // --- BLOQUE E: ESTRUCTURA (50%) ---
+    // s1: WHtR (Cintura/Estatura)
+    const whtr = waist / height;
+    const s1 = Math.max(0, Math.min(1, (0.60 - whtr) / 0.15));
+
+    // s2: FFMI (Masa Magra)
+    const ffmi = (weight * (1 - bodyFat / 100)) / (heightM * heightM);
     
-    // Normalización de altura
-    const heightM = heightCm / 100;
-
-    // 1. IMC (Índice de Masa Corporal) - Referencial
-    const imc = currentWeightKg / (heightM * heightM);
-
-    // 2. ICA (Índice Cintura-Altura / WHtR) - El predictor REAL
-    const ica = waistCircumferenceCm / heightCm;
-
-    // 3. TMB (Tasa Metabólica Basal - Mifflin-St Jeor)
-    let tmb = (10 * currentWeightKg) + (6.25 * heightCm) - (5 * age);
-    tmb += (gender === 'male' ? 5 : -161);
-
-    // 4. Algoritmo IMR Score (0-100)
-    // Reglas: Prioridad ICA. Si ICA < 0.5, salud metabólica base es alta (80%).
-    let score = ica < 0.5 ? 80 : 50;
-    
-    // Penalización por inflamación (ICA > 0.5)
-    if (ica >= 0.5) {
-        const excess = ica - 0.5;
-        score -= (excess * 200); // Penalización agresiva por grasa visceral
+    // Bases FFMI por edad/género
+    let baseFFMI = 17.0;
+    if (gender === 'male') {
+        if (age < 50) baseFFMI = 17.0;
+        else if (age < 60) baseFFMI = 16.5;
+        else if (age < 70) baseFFMI = 16.0;
+        else baseFFMI = 15.5;
     } else {
-        const efficiency = 0.5 - ica;
-        score += (efficiency * 100); // Bono por bajo riesgo visceral
+        if (age < 50) baseFFMI = 14.5;
+        else if (age < 60) baseFFMI = 14.0;
+        else if (age < 70) baseFFMI = 13.5;
+        else baseFFMI = 13.0;
     }
+    const range = gender === 'male' ? 6.0 : 5.0;
+    const s2 = Math.max(0, Math.min(1, (ffmi - baseFFMI) / range));
 
-    // Penalización por patologías metabólicas (-10 pts cada una)
-    score -= (pathologies.length * 10);
+    const E = 0.65 * s1 + 0.35 * s2;
+
+    // --- BLOQUE M: METABOLISMO (25%) ---
+    // s4: Sigmoid Ayuno (centro 14h, ancho 1.5)
+    const s4 = 1 / (1 + Math.exp(-(fastingHours - 14) / 1.5));
     
-    const finalScore = Math.max(0, Math.min(100, Math.round(score)));
+    // eTRF: Bonus Cena Temprana (centro 17h, max +15%)
+    const etrf = 1.0 + 0.15 * (1 - (1 / (1 + Math.exp(-(dinnerHour - 17) / 1.0))));
+    
+    // Asumiendo QS_w (Quality Score) como una mezcla de nutrición y consistencia (default 0.7 para diagnostic)
+    const qsw = 0.7; 
+    const M = (0.70 * s4 + 0.30 * qsw) * etrf;
 
-    // 5. Etiquetado (Categorización Técnica)
-    let label: 'Eficiente' | 'Inflamado' | 'Riesgo' = 'Eficiente';
-    if (finalScore < 70) label = 'Inflamado';
-    if (finalScore < 40 || ica > 0.55) label = 'Riesgo';
+    // --- BLOQUE C: CONDUCTA (25%) ---
+    // Circadiano (38%): penaliza si cena >= 21:30 (1290 min / 60 = 21.5h)
+    const circ = lastMealHour >= 21.5 ? 0.5 : 1.0;
+    const sue = Math.min(1.0, sleepQuality); // Ya viene normalizado
+    const ej = Math.min(1.2, exerciseMinutes / 60);
+    const nut = 0.8; // Constante para diagnóstico inicial
+    const hid = Math.min(1.0, hydrationLitros / hydrationGoal);
 
-    // 6. Estimación Edad Metabólica
-    // Calculada por desviación del ICA ideal (0.5)
-    const ageCorrection = (ica - 0.5) * 40; 
-    const metabolicAge = Math.round(age + (ageCorrection > 0 ? ageCorrection : ageCorrection / 2));
+    const C = 0.38 * circ + 0.20 * sue + 0.20 * ej + 0.12 * nut + 0.10 * hid;
+
+    // --- IMR FINAL ---
+    const imrRaw = (0.50 * E + 0.25 * M + 0.25 * C) * 100;
+    const imr = Math.round(Math.max(0, Math.min(100, imrRaw)));
+
+    let zona = 'DETERIORADO';
+    if (imr >= 90) zona = 'OPTIMIZADO';
+    else if (imr >= 75) zona = 'EFICIENTE';
+    else if (imr >= 60) zona = 'FUNCIONAL';
+    else if (imr >= 40) zona = 'INESTABLE';
 
     return {
-        imc: parseFloat(imc.toFixed(2)),
-        ica: parseFloat(ica.toFixed(4)),
-        tmb: Math.round(tmb),
-        imrScore: finalScore,
-        label,
-        metabolicAge,
-        recommendations: {
-            science: "El ICA (Índice Cintura-Altura) es un predictor de salud 3 veces más potente que el IMC. Mientras el IMC no distingue entre músculo y grasa, el ICA mide directamente la expansión de la grasa visceral, el principal motor de la inflamación sistémica.",
-            advice: (finalScore < 60 || pathologies.includes('insulin_resistance')) 
-                ? "Protocolo sugerido: Implementar Ayuno intermitente 16:8. Esta ventana de alimentación reduce la secreción pulsátil de insulina y promueve la Autofagia, esencial para revertir la inflamación celular."
-                : "Estado óptimo. Mantener flexibilidad metabólica alternando periodos de carga nutricional con micro-ayunos preventivos de 12-14 horas."
-        }
+        imr,
+        zona,
+        blocks: { E: E.toFixed(2), M: M.toFixed(2), C: C.toFixed(2) },
+        ffmi: ffmi.toFixed(2),
+        whtr: whtr.toFixed(3)
     };
 }

@@ -1,72 +1,42 @@
 ---
-// 1. CONFIGURACIÓN SSR
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { db } from "../../lib/firebaseAdmin";
+import ArticleQuiz from "../../components/ArticleQuiz";
+import { Clock, Calendar, BookOpen, Link as LinkIcon } from "lucide-astro";
+import { marked } from "marked";
+
 export const prerender = false;
 
-import "../../styles/global.css";
-import Navbar from "../../components/Navbar.astro";
-import Quiz from "../../components/Quiz.astro";
-import Footer from "../../components/Footer.astro";
-import StyleSafelist from "../../components/StyleSafelist.astro";
-import ArticleQuiz from "../../components/blog/ArticleQuiz";
-import DiscussionForum from "../../components/blog/DiscussionForum";
-import ComparisonTable from "../../components/editorial/ComparisonTable.astro";
-import ProtocolStepper from "../../components/editorial/ProtocolStepper.astro";
-import { db } from "../../lib/firebaseAdmin";
-import { marked } from "marked";
-import { BookOpen, Clock, Calendar, Link } from "lucide-astro";
-import type { PostData } from "../../lib/types/post";
-
 const { slug } = Astro.params;
-let post: PostData | null = null;
+let article: any = null;
 
 try {
-    const postsRef = db.collection("post");
-    const snapshot = await postsRef.get();
+    const postsRef = db.collection("metamorfosis_posts");
+    const snapshot = await postsRef.where("slug", "==", slug).limit(1).get();
 
     if (!snapshot.empty) {
-        // Find matching slug across both schemas
-        const matchedDoc = snapshot.docs.find(doc => {
-            const data = doc.data();
-            const docSlug = data.metadata?.slug || data.slug || doc.id;
-            const status = data.metadata?.status || data.status;
-            return docSlug === slug && status === 'published';
-        });
-
-        if (matchedDoc) {
-             const data = matchedDoc.data();
-             const normalizedMetadata = data.metadata || {
-                seoTitle: data.title || matchedDoc.id,
-                slug: data.slug || matchedDoc.id,
-                status: data.status || 'published',
-                category: data.category || 'Guía',
-                seoDescription: typeof data.content === 'string' ? data.content.substring(0, 150) : ''
-            };
-
-            post = { 
-                id: matchedDoc.id, 
-                ...data, 
-                metadata: normalizedMetadata,
-                content: typeof data.content === 'string' ? { body: data.content } : data.content
-            } as unknown as PostData;
-        }
+        article = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
     }
 } catch (error) {
-    console.error("Error en SSR Firestore Admin:", error);
+    console.error("Error fetching article:", error);
 }
 
-// Validación de existencia
-if (!post) {
+if (!article) {
     return Astro.redirect("/404");
 }
 
-// Procesamiento de contenido (Marked puede devolver Promise o string, forzamos string)
-const rawBody = post.content?.body || (typeof post.content === 'string' ? post.content : "<p>No content available</p>");
-const content = typeof marked.parse(rawBody) === 'string' 
-    ? marked.parse(rawBody) 
-    : await marked.parse(rawBody);
+// Limpiar prefijos dinámicamente
+const cleanText = (text: string, prefix: string) => {
+    return text.replace(new RegExp(`^${prefix}:?\\s*`, "i"), "").trim();
+};
+
+const processedTitle = cleanText(article.title || "", "TÍTULO");
+const processedContent = marked.parse(
+    cleanText(article.content || "", "CONTENIDO"),
+);
 
 const formatDate = (dateString?: string) => {
-    if (!dateString) return "Fecha no disponible";
+    if (!dateString) return "7 de mayo de 2026"; // Fallback elegante
     return new Date(dateString).toLocaleDateString("es-ES", {
         year: "numeric",
         month: "long",
@@ -75,182 +45,421 @@ const formatDate = (dateString?: string) => {
 };
 ---
 
-<!DOCTYPE html>
-<html lang="es">
-    <head>
-        <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <meta name="viewport" content="width=device-width" />
-        <meta name="generator" content={Astro.generator} />
-        <meta
-            name="description"
-            content={post.metadata?.seoDescription || "Artículo sobre salud metabólica"}
-        />
-        <title>{post.metadata?.seoTitle || "Post"} - Metamorfosis Real</title>
+<BaseLayout
+    title={processedTitle}
+    description={article.content?.substring(0, 160)}
+>
+    <article class="min-h-screen relative bg-[#020617] overflow-hidden">
+        <!-- Cuadrícula Técnica de Fondo (Sutil) -->
+        <div
+            class="absolute inset-0 z-0 pointer-events-none opacity-[0.03]"
+            style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 40px 40px;"
+        >
+        </div>
+        <div
+            class="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-transparent via-[#020617]/50 to-[#020617]"
+        >
+        </div>
 
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    </head>
-    <body class="bg-gradient-to-br from-gray-50 via-white to-gray-50 font-sans text-gray-900 antialiased">
-        <Navbar />
-
-        <div class="min-h-screen">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-                <a href="/" class="inline-flex items-center gap-2 text-gray-600 hover:text-emerald-600 font-medium transition-colors duration-200 group">
-                    <svg class="w-5 h-5 flex-shrink-0 transition-transform group-hover:-translate-x-1" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                    </svg>
-                    Volver al inicio
-                </a>
+        <!-- Hero Header Dinámico -->
+        <div
+            class={`relative ${article.images && article.images[0] ? "h-[60vh] min-h-[500px]" : "pt-40 pb-12"} w-full flex items-end overflow-hidden`}
+        >
+            {
+                article.images && article.images[0] ? (
+                    <div class="absolute inset-0">
+                        <img
+                            src={article.images[0]}
+                            alt={processedTitle}
+                            class="w-full h-full object-cover z-0 scale-105 hover:scale-100 transition-transform duration-1000"
+                        />
+                        <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+                    </div>
+                ) : (
+                    <div class="absolute inset-0 bg-gradient-to-br from-[#0c1422] to-[#020617] z-0" />
+                )
+            }
+            <div
+                class="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/20 to-transparent z-10"
+            >
             </div>
 
-            <div class="bg-gradient-to-r from-emerald-500 to-blue-600 text-white py-16 md:py-24 mt-8">
-                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {post.metadata?.category && (
-                        <div class="mb-6">
-                            <span class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold border border-white/30">
-                                <BookOpen className="w-4 h-4" />
-                                {post.metadata.category}
-                            </span>
-                        </div>
-                    )}
-                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                        {post.metadata?.seoTitle || "Título del Post"}
-                    </h1>
-                    <div class="flex flex-wrap items-center gap-4 text-white/90">
-                        {post.metadata?.readingTime && (
-                            <div class="flex items-center gap-2">
-                                <Clock className="w-5 h-5" />
-                                <span class="font-medium">{post.metadata.readingTime} min de lectura</span>
-                            </div>
-                        )}
-                        {post.metadata?.publishedAt && (
-                            <div class="flex items-center gap-2">
-                                <Calendar className="w-5 h-5" />
-                                <span class="font-medium">{formatDate(post.metadata.publishedAt)}</span>
-                            </div>
-                        )}
+            <div class="container mx-auto px-6 relative z-20 max-w-4xl pb-16">
+                <div class="flex items-center gap-2 mb-6">
+                    <span
+                        class="px-3 py-1 bg-gradient-to-r from-blue-600 to-[#00C49A] text-white text-[9px] font-black uppercase tracking-[0.3em] rounded shadow-lg shadow-blue-500/20"
+                    >
+                        Protocolo de Autoridad IMR
+                    </span>
+                </div>
+                <h1
+                    class="text-4xl md:text-7xl font-heading font-black leading-[1.05] mb-8 tracking-tighter drop-shadow-2xl italic uppercase bg-gradient-to-br from-white via-white to-[#00C49A] bg-clip-text text-transparent"
+                >
+                    {processedTitle}
+                </h1>
+                <div
+                    class="flex flex-wrap items-center gap-8 text-[10px] text-gray-500 font-bold uppercase tracking-widest border-t border-white/5 pt-8"
+                >
+                    <div class="flex items-center gap-2">
+                        <Calendar size={12} class="text-[#00C49A]" />
+                        <span>{formatDate(article.createdAt)}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <Clock size={12} class="text-[#00C49A]" />
+                        <span>Estudio de 8 min</span>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                {/* Video Original Incrustado (Si fue generado por IA desde YouTube) */}
-                {post.sourceVideoId && (
-                    <div class="mb-12 rounded-2xl overflow-hidden shadow-2xl border border-gray-200">
-                        <div class="aspect-w-16 aspect-h-9 relative" style="padding-bottom: 56.25%;">
-                            <iframe 
-                                src={`https://www.youtube.com/embed/${post.sourceVideoId}?autoplay=0&rel=0`}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                allowfullscreen
-                                class="absolute top-0 left-0 w-full h-full"
-                            ></iframe>
-                        </div>
-                    </div>
-                )}
-
-                <article
-                    class="prose prose-lg max-w-none prose-headings:font-bold prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6 prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4 prose-p:text-gray-700 prose-p:leading-relaxed prose-a:text-emerald-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-ul:my-6 prose-li:my-2 prose-blockquote:border-l-4 prose-blockquote:border-emerald-500 prose-blockquote:bg-emerald-50 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-img:rounded-xl prose-img:shadow-xl prose-img:object-cover prose-img:mx-auto prose-figure:my-10 prose-figcaption:text-center prose-figcaption:text-sm prose-figcaption:italic prose-figcaption:text-gray-500"
-                    set:html={content}
-                />
-
-                {/* --- Dynamic Editorial Engine --- */}
-                {post.steps && post.steps.length > 0 && (
-                    <div class="mt-8 mb-12">
-                        <ProtocolStepper steps={post.steps} />
-                    </div>
-                )}
-                
-                {post.comparisons && post.comparisons.length > 0 && (
-                    <div class="mt-8 mb-12">
-                        <ComparisonTable comparisons={post.comparisons} />
-                    </div>
-                )}
-                {/* ------------------------------- */}
-
-                {/* Fallback Legacy Quiz Astro (Si existe) */}
-                {post.quiz && post.quiz.length > 0 && !post.sourceVideoId && (
-                    <div class="mt-16">
-                        <Quiz questions={post.quiz} />
-                    </div>
-                )}
-
-                {/* Nuevo Quiz Interactivo React (IA Auto-generado) */}
-                {post.quiz && post.quiz.length > 0 && post.sourceVideoId && (
-                    <ArticleQuiz client:only="react" quizData={post.quiz} />
-                )}
-
-                {/* Foro de Discusión React */}
-                <DiscussionForum client:only="react" postId={post.id} />
-
-                {Array.isArray(post.references) && post.references.length > 0 && (
-                    <div class="mt-16 bg-gray-50 border-t border-gray-200 pt-10 pb-12 px-8 rounded-2xl shadow-sm">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="p-2 bg-emerald-100 text-emerald-600 rounded-lg shadow-sm">
-                                <Link className="w-5 h-5" />
-                            </div>
-                            <h3 class="text-2xl font-bold text-gray-900">Fuentes y Referencias Científicas</h3>
-                        </div>
-                        <ul class="space-y-4">
-                            {post.references.map((ref, index) => (
-                                <li class="flex items-start gap-4 p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-100 transition-all">
-                                    <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-500 font-bold text-sm border border-gray-100">
-                                        {index + 1}
-                                    </span>
-                                    <div class="flex-1 min-w-0 pt-0.5">
-                                        <p class="text-gray-900 font-semibold leading-snug mb-1.5 line-clamp-2">
-                                            {ref.title}
-                                        </p>
-                                        <a 
-                                            href={ref.url} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            class="inline-flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-700 font-medium truncate max-w-full transition-colors"
-                                        >
-                                            Ver documento original
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                            </svg>
-                                        </a>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-
-                {post.app_integration?.callToAction && (
-                    <div class="mt-12 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-2xl p-8 md:p-12 text-center shadow-xl">
-                        <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">🦋 Pasa a la acción</h3>
-                        <p class="text-white/90 text-lg mb-6 max-w-2xl mx-auto">{post.app_integration.callToAction}</p>
-                        <a href={post.app_integration.deepLink || "#"} class="inline-flex items-center gap-2 bg-white text-emerald-600 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-50 transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105">
-                            Regístrate en ElenaApp para llevar tu registro →
-                        </a>
-                    </div>
-                )}
+        <!-- Content Body -->
+        <div class="container mx-auto px-6 pt-12 pb-0 flex justify-center">
+            <div class="prose prose-invert max-w-[70ch] w-full">
+                <div set:html={processedContent} />
             </div>
         </div>
 
-        <Footer />
-        <div style="display: none;"><StyleSafelist /></div>
-        
-        <style is:global>
-            article.prose ol { counter-reset: my-counter; list-style: none; padding-left: 0; }
-            article.prose ol > li { position: relative; counter-increment: my-counter; padding-left: 4rem; margin-bottom: 2rem; }
-            article.prose ol > li::before { content: counter(my-counter); position: absolute; left: 0; top: 0; width: 2.5rem; height: 2.5rem; background-color: #007bff; color: white; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-            article.prose h2, article.prose h3 { position: relative; padding: 1rem 0 1rem 1.5rem; margin-top: 3.5rem; background: linear-gradient(to right, rgba(0, 196, 154, 0.1), transparent); border-left: 4px solid #00c49a; border-radius: 0 8px 8px 0; }
-            
-            /* Enhanced Article Visuals for AI generated imagery */
-            article.prose img { 
-                border-radius: 1rem; 
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); 
-                transition: transform 0.3s ease;
-                border: 1px solid rgba(0,0,0,0.05);
+        <!-- Footer Sections Container (Quiz, References, CTA) -->
+        <div class="container mx-auto px-6 pb-24 max-w-3xl">
+            {/* Interactive Quiz */}
+            {
+                article.quiz && article.quiz.length > 0 && (
+                    <div id="quiz-section">
+                        <ArticleQuiz
+                            client:visible
+                            questions={article.quiz}
+                            articleId={slug}
+                        />
+                    </div>
+                )
             }
-            article.prose img:hover {
-                transform: scale(1.02);
+
+            {/* Scientific References */}
+            {
+                article.references && article.references.length > 0 && (
+                    <div class="mt-16 p-8 bg-white/[0.02] border border-white/5 rounded-2xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-8 opacity-5">
+                            <LinkIcon size={100} />
+                        </div>
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="p-2.5 bg-blue-600/20 rounded-xl">
+                                <LinkIcon size={20} class="text-blue-500" />
+                            </div>
+                            <h3 class="text-xl font-black text-white uppercase tracking-tighter italic">
+                                Evidencia Científica
+                            </h3>
+                        </div>
+                        <ul class="space-y-4 m-0 p-0 list-none">
+                            {article.references.map(
+                                (ref: string, idx: number) => (
+                                    <li class="flex items-start gap-4 text-sm text-gray-400 group m-0">
+                                        <span class="text-blue-500 font-mono font-bold text-xs pt-1">
+                                            {(idx + 1)
+                                                .toString()
+                                                .padStart(2, "0")}
+                                        </span>
+                                        <span class="leading-relaxed group-hover:text-gray-200 transition-colors">
+                                            {ref}
+                                        </span>
+                                    </li>
+                                ),
+                            )}
+                        </ul>
+                    </div>
+                )
             }
-        </style>
-    </body>
-</html>
+
+            {/* CTA Final (Sleek Destination) */}
+            <div
+                class="mt-16 p-10 md:p-14 bg-[#050a1f] border border-white/10 rounded-2xl text-center relative overflow-hidden group shadow-2xl"
+            >
+                <!-- Efectos de Fondo -->
+                <div
+                    class="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(0,196,154,0.1),transparent)]"
+                >
+                </div>
+
+                <div class="relative z-10">
+                    <div
+                        class="inline-flex items-center gap-3 px-4 py-2 bg-[#00C49A]/10 border border-[#00C49A]/20 rounded-full text-[10px] font-black text-[#00C49A] uppercase tracking-[0.3em] mb-10"
+                    >
+                        <BookOpen size={14} />
+                        Siguiente Nivel Alcanzado
+                    </div>
+
+                    <h3
+                        class="text-3xl md:text-4xl font-black text-white mb-4 tracking-tighter uppercase italic leading-none"
+                    >
+                        Lleva esto a <span class="text-[#00C49A]"
+                            >la práctica</span
+                        >
+                    </h3>
+
+                    <p
+                        class="text-gray-400 mb-10 max-w-sm mx-auto text-base leading-relaxed font-serif italic"
+                    >
+                        "El conocimiento sin aplicación es solo información. La
+                        maestría biológica nace de la acción."
+                    </p>
+
+                    <a href="/quiz" class="group/btn relative inline-block">
+                        <div
+                            class="absolute -inset-1 bg-gradient-to-r from-[#00C49A] to-blue-600 rounded-xl blur opacity-20 group-hover/btn:opacity-100 transition duration-1000"
+                        >
+                        </div>
+                        <div
+                            class="relative px-10 py-4 bg-black border border-white/20 rounded-xl flex items-center gap-4 text-white font-black text-xs uppercase tracking-[0.3em] transition-all hover:border-white/40"
+                        >
+                            Iniciar Protocolo IMR
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="3"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                ><path d="M5 12h14m-7-7 7 7-7 7"></path></svg
+                            >
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {/* Sección de Comunidad / Foro Persuasiva */}
+            <div
+                class="mt-24 p-12 rounded-[3rem] bg-gradient-to-br from-blue-900/40 to-[#00C49A]/10 border border-white/10 relative overflow-hidden group"
+            >
+                <div
+                    class="absolute -top-24 -right-24 w-64 h-64 bg-blue-600/20 blur-[100px] rounded-full group-hover:bg-blue-600/30 transition-all"
+                >
+                </div>
+
+                <div class="relative z-10 text-center">
+                    <span
+                        class="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-4 block"
+                        >El Nexo de Biohacking</span
+                    >
+                    <h3
+                        class="text-3xl md:text-4xl font-black text-white italic uppercase tracking-tighter mb-6"
+                    >
+                        ¿Cómo te ha transformado este <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]"
+                            >Protocolo</span
+                        >?
+                    </h3>
+                    <p
+                        class="text-gray-400 max-w-xl mx-auto mb-10 text-lg leading-relaxed"
+                    >
+                        Únete a la discusión con otros 1,240 biohackers.
+                        Comparte tus biomarcadores, dudas y victorias sobre este
+                        tema en nuestra comunidad privada.
+                    </p>
+                    <a
+                        href="/comunidad"
+                        class="inline-block bg-white text-blue-600 px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:scale-[1.05] active:scale-95 transition-all shadow-2xl"
+                    >
+                        Participar en el Foro
+                    </a>
+                </div>
+            </div>
+
+            <div class="flex justify-center mt-16">
+                <a
+                    href="/biblioteca"
+                    class="text-xs font-black text-gray-600 hover:text-white uppercase tracking-widest transition-all"
+                    >← Volver a la Biblioteca</a
+                >
+            </div>
+            {/* Sección de Comunidad / Foro Persuasiva */}
+            <div
+                id="community-cta"
+                class="mt-24 p-12 rounded-[3rem] bg-gradient-to-br from-blue-900/40 to-[#00C49A]/10 border border-white/10 relative overflow-hidden group"
+            >
+                <div
+                    class="absolute -top-24 -right-24 w-64 h-64 bg-blue-600/20 blur-[100px] rounded-full group-hover:bg-blue-600/30 transition-all"
+                >
+                </div>
+
+                <div class="relative z-10 text-center">
+                    <span
+                        class="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-4 block"
+                        >El Nexo de Biohacking</span
+                    >
+                    <h3
+                        class="text-3xl md:text-4xl font-black text-white italic uppercase tracking-tighter mb-6"
+                    >
+                        ¿Cómo te ha transformado este <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]"
+                            >Protocolo</span
+                        >?
+                    </h3>
+                    <p
+                        class="text-gray-400 max-w-xl mx-auto mb-10 text-lg leading-relaxed"
+                    >
+                        Únete a la discusión con otros 1,240 biohackers.
+                        Comparte tus biomarcadores, dudas y victorias sobre este
+                        tema en nuestra comunidad privada.
+                    </p>
+                    <a
+                        href="/comunidad"
+                        class="inline-block bg-white text-blue-600 px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:scale-[1.05] active:scale-95 transition-all shadow-2xl"
+                    >
+                        Participar en el Foro
+                    </a>
+                </div>
+            </div>
+
+            <script>
+                // Track reading progress
+                const trackReading = () => {
+                    const hasRead = localStorage.getItem("imr_article_read");
+                    if (hasRead) return;
+
+                    // Simple logic: if user scrolls 70% of the article, mark as read
+                    window.addEventListener("scroll", () => {
+                        const scrollPercent =
+                            (window.scrollY + window.innerHeight) /
+                            document.documentElement.scrollHeight;
+                        if (scrollPercent > 0.7) {
+                            localStorage.setItem("imr_article_read", "true");
+                            console.log(
+                                "Articulo marcado como leído para acceso a comunidad",
+                            );
+                        }
+                    });
+                };
+                trackReading();
+            </script>
+
+            <div class="flex justify-center mt-16">
+                <a
+                    href="/biblioteca"
+                    class="text-xs font-black text-gray-600 hover:text-white uppercase tracking-widest transition-all"
+                    >← Volver a la Biblioteca</a
+                >
+            </div>
+        </div>
+    </article>
+</BaseLayout>
+
+<style is:global>
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap");
+    @reference "../../styles/global.css";
+
+    .prose {
+        color: #cbd5e1 !important;
+        font-family: "Inter", sans-serif;
+    }
+
+    /* Tipografía de Párrafos */
+    .prose p {
+        @apply text-lg leading-[1.8] mb-10 text-gray-300 font-serif;
+        font-family: "Playfair Display", serif;
+    }
+
+    /* Títulos con Protagonismo de Protocolo (Estilo Quiz) */
+    .prose h2,
+    .prose h3 {
+        @apply flex items-center gap-5 font-black tracking-tighter uppercase italic text-white mt-24 mb-10 !not-italic;
+        font-family: "Inter", sans-serif !important;
+        font-style: italic !important;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+
+    /* Simulación de Icono de Quiz automático */
+    .prose h2::before,
+    .prose h3::before {
+        content: "✦";
+        @apply flex-shrink-0 flex items-center justify-center w-12 h-12 bg-blue-600/20 text-blue-400 rounded-xl border border-blue-500/30 text-2xl not-italic shadow-[0_0_15px_rgba(59,130,246,0.2)];
+    }
+
+    .prose h2 {
+        @apply text-3xl md:text-4xl;
+    }
+    .prose h3 {
+        @apply text-2xl md:text-3xl;
+    }
+
+    /* Bloques de Énfasis (Insight) */
+    .prose blockquote {
+        @apply bg-white/[0.03] backdrop-blur-xl border border-white/10 p-10 rounded-2xl text-center not-italic my-20 relative shadow-2xl;
+        border-left: none !important;
+    }
+    .prose blockquote p {
+        @apply !text-xl md:!text-2xl !font-black !text-white !leading-tight !m-0 !uppercase !italic !font-sans;
+        background: linear-gradient(to right, #fff, #00c49a);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-family: "Inter", sans-serif !important;
+    }
+    .prose blockquote::before {
+        content: "CLAVE DEL PROTOCOLO";
+        @apply absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#00C49A] text-black text-[8px] font-black tracking-[0.4em] rounded-full shadow-lg;
+    }
+
+    /* Listas de Beneficios (Grid Automático) */
+    .prose ul:has(li:nth-child(2)) {
+        @apply grid grid-cols-1 md:grid-cols-2 gap-4 list-none p-0 my-16;
+    }
+    .prose ul li {
+        @apply bg-white/[0.02] border border-white/5 p-6 rounded-xl m-0 flex items-center gap-4 transition-all duration-300 hover:bg-white/[0.05] hover:border-[#00C49A]/30;
+    }
+    .prose ul li::before {
+        content: "✦";
+        @apply text-[#00C49A] text-xl flex-shrink-0;
+    }
+    .prose ul li {
+        @apply !font-bold !text-sm !text-gray-200 !leading-tight !font-sans;
+    }
+
+    /* Listas de Pasos (Roadmap) */
+    .prose ol {
+        @apply bg-white/[0.02] border border-white/5 p-8 md:p-12 rounded-2xl my-20 shadow-inner list-none relative overflow-hidden;
+        counter-reset: steps-counter;
+    }
+    .prose ol li {
+        @apply flex gap-6 items-center m-0 py-6 border-b border-white/5 last:border-0 relative font-sans font-bold text-gray-200;
+        counter-increment: steps-counter;
+    }
+    .prose ol li::before {
+        content: counter(steps-counter);
+        @apply flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-[#00C49A] text-white flex items-center justify-center font-black text-base shadow-lg shadow-blue-600/20;
+    }
+
+    /* Imágenes y Media */
+    .prose img {
+        @apply rounded-2xl shadow-2xl border border-white/10 my-12 w-full object-cover max-h-[500px];
+    }
+
+    /* Divisores de Gradiente */
+    .prose hr {
+        @apply h-px border-0 my-12 opacity-30;
+        background: linear-gradient(
+            to right,
+            transparent,
+            #00c49a,
+            transparent
+        ) !important;
+    }
+
+    /* Enlaces y Énfasis */
+    .prose strong {
+        @apply text-white font-black;
+    }
+    .prose a {
+        @apply text-blue-400 no-underline border-b border-blue-400/30 hover:border-blue-400 transition-all;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>

@@ -57,7 +57,7 @@ const StatsGrid = () => {
             {/* Stat 2: Conversion Rate */}
             <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group hover:border-purple-500/30 transition-colors">
                 <div className="absolute -right-6 -top-6 w-24 h-24 bg-purple-500/5 rounded-full blur-2xl group-hover:bg-purple-500/10 transition-colors"></div>
-                <h3 className="text-gray-500 font-bold uppercase tracking-widest text-xs mb-2">Conversión Test IMX</h3>
+                <h3 className="text-gray-500 font-bold uppercase tracking-widest text-xs mb-2">Conversión Test IMR</h3>
                 <div className="flex items-baseline gap-2 text-white">
                     <span className="text-4xl font-black">{conversionRate}%</span>
                     <span className="text-purple-400 text-sm font-bold flex items-center">

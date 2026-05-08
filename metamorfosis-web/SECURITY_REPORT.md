@@ -259,7 +259,7 @@ nK7+xZq8Pv/W2Q9dRmL1sT5uYjA3bCdE=
 ### Archivos Existentes (ya protegidos)
 - `src/pages/admin/login.astro` - Requiere ADMIN_PASSWORD
 - `src/pages/admin/dashboard.astro` - Requiere autenticación
-- `src/pages/admin/analitica-imx.astro` - Requiere autenticación
+- `src/pages/admin/analitica-imx.astro` - Requiere autenticación (página de análisis IMR)
 
 ---
 

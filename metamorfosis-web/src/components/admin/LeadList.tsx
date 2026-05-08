@@ -4,7 +4,7 @@ interface Lead {
     id: string;
     name: string;
     email: string;
-    imx_score: string | number;
+    imr_score: string | number;
     quiz_type: string;
     dateCompleted: string;
 }
@@ -42,14 +42,14 @@ const LeadList = () => {
 
     const exportCsv = () => {
         if (leads.length === 0) return;
-        const headers = ['Nombre', 'Email', 'IMX Score', 'Tipo', 'Fecha_Registro'];
+        const headers = ['Nombre', 'Email', 'IMR Score', 'Tipo', 'Fecha_Registro'];
         const csvRows = [headers.join(',')];
 
         for (const lead of leads) {
             csvRows.push([
                 `"${lead.name || 'N/A'}"`,
                 lead.email,
-                lead.imx_score,
+                lead.imr_score,
                 lead.quiz_type,
                 lead.dateCompleted
             ].join(','));
@@ -98,7 +98,7 @@ const LeadList = () => {
                         <tr>
                             <th className="px-4 py-3 rounded-tl-lg">Nombre</th>
                             <th className="px-4 py-3">Email</th>
-                            <th className="px-4 py-3">IMX Score</th>
+                            <th className="px-4 py-3">IMR Score</th>
                             <th className="px-4 py-3">Tipo Lead</th>
                             <th className="px-4 py-3 text-right rounded-tr-lg">Fecha Captura</th>
                         </tr>
@@ -115,7 +115,7 @@ const LeadList = () => {
                                 <tr key={lead.id} className="hover:bg-white/[0.02] transition-colors group">
                                     <td className="px-4 py-4 font-medium text-gray-200">{lead.name}</td>
                                     <td className="px-4 py-4">{lead.email}</td>
-                                    <td className="px-4 py-4 font-mono text-blue-400">{lead.imx_score}</td>
+                                    <td className="px-4 py-4 font-mono text-blue-400">{lead.imr_score}</td>
                                     <td className="px-4 py-4 font-mono text-[#00C49A] text-xs uppercase">{lead.quiz_type}</td>
                                     <td className="px-4 py-4 text-right text-xs">
                                         {lead.dateCompleted}

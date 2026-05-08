@@ -7,7 +7,10 @@ export const prerender = false;
 
 // We still check if they have the legacy pass or the new firebase_auth token to skip the login page entirely
 const sessionCookie = Astro.cookies.get("admin_session");
-const ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD;
+let ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD || '';
+if (ADMIN_PASSWORD.startsWith('"') && ADMIN_PASSWORD.endsWith('"')) {
+    ADMIN_PASSWORD = ADMIN_PASSWORD.slice(1, -1);
+}
 
 if (import.meta.env.MODE === 'production' && !ADMIN_PASSWORD) {
   throw new Error('ADMIN_PASSWORD must be set in production');
@@ -15,8 +18,7 @@ if (import.meta.env.MODE === 'production' && !ADMIN_PASSWORD) {
 
 if (
   sessionCookie &&
-  (sessionCookie.value === "firebase_auth" ||
-    sessionCookie.value === ADMIN_PASSWORD)
+  sessionCookie.value === ADMIN_PASSWORD
 ) {
   return Astro.redirect("/admin/dashboard");
 }

@@ -1,0 +1,53 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ForumEngine from '../components/community/ForumEngine';
+import { Users } from 'lucide-astro';
+---
+
+<Layout title="Comunidad Metamorfosis | El Nexo de Biohackers">
+  <main class="min-h-screen bg-[#050810] pt-24 pb-20 overflow-hidden relative">
+    {/* Fondos Ambientales */}
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[150px] -z-10 animate-pulse"></div>
+    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#00C49A]/5 blur-[150px] -z-10"></div>
+
+    <div class="container mx-auto max-w-7xl px-6">
+      {/* Cabecera Estática Premium */}
+      <div class="mb-12">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="px-3 py-1 bg-blue-600/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-full border border-blue-500/20">
+            Comunidad Activa
+          </span>
+          <div class="flex -space-x-2">
+            {[1,2,3,4].map(i => (
+              <div class="w-6 h-6 rounded-full border-2 border-[#050810] bg-gray-800 flex items-center justify-center overflow-hidden">
+                <img src={`https://i.pravatar.cc/100?u=${i}`} alt="User" />
+              </div>
+            ))}
+            <div class="w-6 h-6 rounded-full border-2 border-[#050810] bg-blue-600 flex items-center justify-center text-[8px] font-bold text-white">
+              +1k
+            </div>
+          </div>
+        </div>
+        <h1 class="text-5xl font-black text-white italic uppercase tracking-tighter leading-none mb-2">
+          El Nexo de <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">Metamorfosis</span>
+        </h1>
+        <p class="text-gray-400 text-lg">Comparte, debate y evoluciona con la comunidad de biohacking más avanzada.</p>
+      </div>
+
+      {/* EL MOTOR INTERACTIVO (REACT) */}
+      <ForumEngine client:load />
+
+      {/* Call to Action Final */}
+      <div class="p-10 rounded-[2rem] bg-gradient-to-br from-blue-600 to-[#00C49A] text-center mt-20 relative overflow-hidden shadow-2xl">
+        <div class="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
+        <div class="relative z-10">
+          <h2 class="text-3xl font-black text-white italic uppercase tracking-tighter mb-4">¿Tienes una duda biológica?</h2>
+          <p class="text-white/80 mb-8 max-w-lg mx-auto font-medium">Nuestra comunidad y Elena están listos para ayudarte a optimizar tu protocolo. No camines solo en tu metamorfosis.</p>
+          <button class="bg-white text-blue-600 px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl">
+            Unirme a la Conversación
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>

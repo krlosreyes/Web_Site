@@ -1,0 +1,13 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import IMRQuiz from "../components/IMRQuiz";
+
+const title = "Diagnóstico IMR | Metamorfosis Real";
+const description = "Calcula tu Índice de Metamorfosis Real (IMR) y descubre tu estado metabólico actual en menos de 2 minutos.";
+---
+
+<BaseLayout title={title} description={description}>
+    <main class="min-h-[80vh] flex items-center justify-center py-20 px-6">
+        <IMRQuiz client:load />
+    </main>
+</BaseLayout>

@@ -1,0 +1,107 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { db } from "../lib/firebaseAdmin";
+import { BookOpen, Award, Zap, ChevronRight } from "lucide-astro";
+
+export const prerender = false;
+
+const postsRef = db.collection('metamorfosis_posts');
+const snapshot = await postsRef.orderBy('createdAt', 'desc').get();
+const articles = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+}));
+
+const title = "Biblioteca de Metamorfosis | Metamorfosis Real";
+const description = "El conocimiento científico para dominar tu biología y transformar tu vida.";
+---
+
+<BaseLayout title={title} description={description}>
+    <div class="relative min-h-screen pt-32 pb-24 bg-[#050a12]">
+        <!-- Orbes de luz con clases fijas para evitar fallos de compilación -->
+        <div class="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-blue-600/10 to-transparent pointer-events-none"></div>
+        
+        <div class="container mx-auto px-6 relative z-10">
+            <!-- Header -->
+            <div class="max-w-4xl mx-auto text-center mb-20 opacity-0 animate-[fadeIn_0.8s_ease-out_forwards]">
+                <div class="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-8">
+                    <Award size={14} />
+                    Centro de Autoridad IMR
+                </div>
+                <h1 class="text-5xl md:text-7xl font-bold text-white leading-tight mb-8 tracking-tighter">
+                    Biblioteca de <span class="text-blue-500">Metamorfosis</span>
+                </h1>
+                <p class="text-gray-400 text-xl max-w-2xl mx-auto">
+                    El conocimiento científico que necesitas para dominar tu biología y transformar tu vida.
+                </p>
+            </div>
+
+            <!-- Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+                {articles.map((art: any) => (
+                    <article class="group relative flex flex-col h-full">
+                        <div class="relative flex flex-col h-full bg-[#0c1422] border border-white/5 rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:border-blue-500/30 hover:-translate-y-2">
+                            <div class="relative aspect-video overflow-hidden">
+                                {art.images && art.images[0] ? (
+                                    <img src={art.images[0]} alt={art.title} class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                ) : (
+                                    <div class="w-full h-full bg-gray-900 flex items-center justify-center text-white/10">
+                                        <BookOpen size={40} />
+                                    </div>
+                                )}
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#0c1422] to-transparent"></div>
+                                
+                                <div class="absolute top-6 left-6 flex gap-2">
+                                    <span class="px-3 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-[9px] font-bold text-white uppercase tracking-widest">Protocolo</span>
+                                    {art.quiz && art.quiz.length > 0 && (
+                                        <div class="flex items-center gap-1.5 px-3 py-1 bg-blue-500/20 backdrop-blur-md border border-blue-500/30 rounded-full text-[9px] font-bold text-blue-400 uppercase tracking-widest">
+                                            <Zap size={10} fill="currentColor" /> Certificación
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div class="p-8 flex flex-col flex-1">
+                                <h3 class="text-2xl font-bold text-white mb-4 line-clamp-2 group-hover:text-blue-400 transition-colors">
+                                    {art.title}
+                                </h3>
+                                <p class="text-gray-400 text-sm leading-relaxed line-clamp-3 mb-8 flex-1">
+                                    {art.content ? art.content.substring(0, 160) + "..." : "Explora los mecanismos biológicos profundos."}
+                                </p>
+                                
+                                <div class="flex items-center justify-between pt-6 border-t border-white/5">
+                                    <a href={`/posts/${art.slug}`} class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/40 group-hover:text-blue-400 transition-all">
+                                        Iniciar Lectura <ChevronRight size={14} />
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                ))}
+            </div>
+
+            {/* CTA con SVG Pattern Inline para evitar el 404 */}
+            <div class="mt-32 text-center p-16 rounded-[4rem] bg-blue-500/5 border border-blue-500/10 relative overflow-hidden group">
+                <div class="absolute inset-0 opacity-[0.03] pointer-events-none">
+                    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                        <pattern id="grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="1"/>
+                        </pattern>
+                        <rect width="100%" height="100%" fill="url(#grid-pattern)" />
+                    </svg>
+                </div>
+                <h2 class="text-3xl font-bold text-white mb-6">¿Buscas un protocolo específico?</h2>
+                <a href="/quiz" class="inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-12 rounded-full transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">
+                    Iniciar Diagnóstico IMR
+                </a>
+            </div>
+        </div>
+    </div>
+</BaseLayout>
+
+<style is:global>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>

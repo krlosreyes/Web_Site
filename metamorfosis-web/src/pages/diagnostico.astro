@@ -41,7 +41,7 @@ import Layout from "../layouts/Layout.astro";
                     >
                     <span
                         class="text-sm text-gray-400 uppercase tracking-widest mt-1"
-                        >Puntos IMX</span
+                        >Puntos IMR</span
                     >
                 </div>
             </div>
@@ -141,10 +141,11 @@ import Layout from "../layouts/Layout.astro";
     document.addEventListener("DOMContentLoaded", () => {
         // Simulator delay for realistic analysis feel
         setTimeout(() => {
-            const scoreStr = sessionStorage.getItem("imx_score");
-            const ffmiStr = sessionStorage.getItem("imx_ffmi") || "0";
-            const interpretation = sessionStorage.getItem("imx_interpretation") || "Analizando tu estado metabólico...";
-            const userName = sessionStorage.getItem("imx_userName") || "Sujeto";
+            const scoreStr = sessionStorage.getItem("imr_score");
+            const ffmiStr = sessionStorage.getItem("imr_ffmi") || "0";
+            const ffmi = parseInt(ffmiStr);
+            const interpretation = sessionStorage.getItem("imr_interpretation") || "Analizando tu estado metabólico...";
+            const userName = sessionStorage.getItem("imr_userName") || "Sujeto";
 
             if (!scoreStr) {
                 window.location.href = "/";
@@ -205,12 +206,34 @@ import Layout from "../layouts/Layout.astro";
                 levelAnalysis.innerHTML = `
                     <div class="space-y-4">
                         <p class="text-xl font-bold text-[#00C49A]">Interpretación: ${interpretation}</p>
-                        <div class="bg-black/40 p-4 rounded-xl border border-white/5">
-                            <span class="text-xs text-gray-400 uppercase tracking-widest">Músculo (FFMI) Detectado</span>
-                            <div class="text-2xl font-black text-white">${ffmiStr} pts</div>
+                        <div class="bg-black/40 p-6 rounded-2xl border border-white/10 shadow-inner">
+                            <div class="flex justify-between items-end mb-2">
+                                <div>
+                                    <span class="text-xs text-gray-400 uppercase tracking-widest font-bold">Motor Metabólico (FFMI)</span>
+                                    <div class="text-3xl font-black text-white" id="ffmi-display">${ffmiStr} <span class="text-sm font-normal text-gray-400">pts</span></div>
+                                </div>
+                                <div id="ffmi-label" class="text-xs font-bold px-3 py-1 rounded-full border mb-1 border-white/20 bg-white/5">
+                                    ${ffmi < 18 ? "Funcional" : ffmi < 21 ? "Atlético" : "Elite"}
+                                </div>
+                            </div>
+                            
+                            <!-- Clinical Range Bar -->
+                            <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden flex mb-2">
+                                <div id="ffmi-bar" class="h-full transition-all duration-1000 ease-out bg-gradient-to-r from-red-500 via-[#00C49A] to-blue-500" style="width: ${Math.min(ffmi * 4, 100)}%"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] text-gray-500 font-mono uppercase">
+                                <span>Crítico</span>
+                                <span>Funcional</span>
+                                <span>Atlético</span>
+                                <span>Elite</span>
+                            </div>
+                        </div>
+                        
+                        <div id="ffmi-insight" class="text-sm text-gray-400 italic bg-white/5 p-3 rounded-lg border-l-2 border-[#00C49A]">
+                            Tu nivel actual sugiere una respuesta adaptativa de tipo ${ffmi < 19 ? "básica" : "avanzada"}.
                         </div>
                         <p class="text-gray-300 leading-relaxed">
-                            Tu Índice Metamorfosis (IMX) ha sido validado por el motor central. 
+                            Tu Índice Metamorfosis Real (IMR) ha sido validado por el motor central. 
                             La relación entre tu cuello, cintura y FFMI indica que necesitas una reparación estructural.
                         </p>
                     </div>

@@ -7,9 +7,8 @@ import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
-  // Cambiado a 'static' para permitir build local sin adaptador server.
-  // El proyecto originalmente usaba salida server-side; al desplegar, configura el adaptador apropiado.
-  output: 'static',
+  // Cambiado a 'server' para despliegue en Vercel con SSR
+  output: 'server',
   vite: {
     plugins: [tailwindcss()],
     server: {

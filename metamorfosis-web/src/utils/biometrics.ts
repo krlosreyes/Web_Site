@@ -1,11 +1,11 @@
 // === INTERFACES & TYPES ===
-export interface IMXVariables {
+export interface IMRVariables {
     peso: number;
     altura: number;
     grasa: number;
 }
 
-export interface IMXResult {
+export interface IMRResult {
     score: number;
     ffmi?: number;
     bodyFat?: number;
@@ -15,11 +15,11 @@ export interface IMXResult {
 }
 
 /**
- * Función de Autoridad Técnica: calculateIMX
- * Conecta con la Cloud Function central para el cálculo de FFMI e IMX.
+ * Función de Autoridad Técnica: calculateIMR
+ * Conecta con la Cloud Function central para el cálculo de FFMI e IMR.
  * Boris Style.
  */
-export async function calculateIMX(variables: IMXVariables): Promise<any> {
+export async function calculateIMR(variables: IMRVariables): Promise<any> {
     const URL = import.meta.env.PUBLIC_CLOUD_FUNCTION_URL;
     
     try {
