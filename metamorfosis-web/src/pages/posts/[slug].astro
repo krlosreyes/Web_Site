@@ -31,19 +31,25 @@ const cleanText = (text: string, prefix: string) => {
     return text.replace(new RegExp(`^${prefix}:?\\s*`, "i"), "").trim();
 };
 
+const cleanedContent = cleanText(article.content || "", "CONTENIDO");
 const processedTitle = cleanText(article.title || "", "TÍTULO");
-const processedContent = marked.parse(
-    cleanText(article.content || "", "CONTENIDO"),
-);
+const processedContent = marked.parse(cleanedContent);
 
-const formatDate = (dateString?: string) => {
-    if (!dateString) return "7 de mayo de 2026"; // Fallback elegante
+const formatDate = (dateString?: string): string | null => {
+    if (!dateString) return null;
     return new Date(dateString).toLocaleDateString("es-ES", {
         year: "numeric",
         month: "long",
         day: "numeric",
     });
 };
+
+// Tiempo de lectura estimado: ~200 palabras por minuto (lectura promedio).
+// Usamos el contenido limpio (sin prefijos) para no contar la palabra "CONTENIDO".
+const wordCount = cleanedContent.trim().split(/\s+/).filter(Boolean).length;
+const readingMinutes = Math.max(1, Math.round(wordCount / 200));
+
+const formattedDate = formatDate(article.createdAt);
 ---
 
 <BaseLayout
@@ -101,13 +107,17 @@ const formatDate = (dateString?: string) => {
                 <div
                     class="flex flex-wrap items-center gap-8 text-[10px] text-gray-500 font-bold uppercase tracking-widest border-t border-white/5 pt-8"
                 >
-                    <div class="flex items-center gap-2">
-                        <Calendar size={12} class="text-[#00C49A]" />
-                        <span>{formatDate(article.createdAt)}</span>
-                    </div>
+                    {
+                        formattedDate && (
+                            <div class="flex items-center gap-2">
+                                <Calendar size={12} class="text-[#00C49A]" />
+                                <span>{formattedDate}</span>
+                            </div>
+                        )
+                    }
                     <div class="flex items-center gap-2">
                         <Clock size={12} class="text-[#00C49A]" />
-                        <span>Estudio de 8 min</span>
+                        <span>Estudio de {readingMinutes} min</span>
                     </div>
                 </div>
             </div>
@@ -230,51 +240,6 @@ const formatDate = (dateString?: string) => {
             </div>
             {/* Sección de Comunidad / Foro Persuasiva */}
             <div
-                class="mt-24 p-12 rounded-[3rem] bg-gradient-to-br from-blue-900/40 to-[#00C49A]/10 border border-white/10 relative overflow-hidden group"
-            >
-                <div
-                    class="absolute -top-24 -right-24 w-64 h-64 bg-blue-600/20 blur-[100px] rounded-full group-hover:bg-blue-600/30 transition-all"
-                >
-                </div>
-
-                <div class="relative z-10 text-center">
-                    <span
-                        class="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-4 block"
-                        >El Nexo de Biohacking</span
-                    >
-                    <h3
-                        class="text-3xl md:text-4xl font-black text-white italic uppercase tracking-tighter mb-6"
-                    >
-                        ¿Cómo te ha transformado este <span
-                            class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]"
-                            >Protocolo</span
-                        >?
-                    </h3>
-                    <p
-                        class="text-gray-400 max-w-xl mx-auto mb-10 text-lg leading-relaxed"
-                    >
-                        Únete a la discusión con otros 1,240 biohackers.
-                        Comparte tus biomarcadores, dudas y victorias sobre este
-                        tema en nuestra comunidad privada.
-                    </p>
-                    <a
-                        href="/comunidad"
-                        class="inline-block bg-white text-blue-600 px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:scale-[1.05] active:scale-95 transition-all shadow-2xl"
-                    >
-                        Participar en el Foro
-                    </a>
-                </div>
-            </div>
-
-            <div class="flex justify-center mt-16">
-                <a
-                    href="/biblioteca"
-                    class="text-xs font-black text-gray-600 hover:text-white uppercase tracking-widest transition-all"
-                    >← Volver a la Biblioteca</a
-                >
-            </div>
-            {/* Sección de Comunidad / Foro Persuasiva */}
-            <div
                 id="community-cta"
                 class="mt-24 p-12 rounded-[3rem] bg-gradient-to-br from-blue-900/40 to-[#00C49A]/10 border border-white/10 relative overflow-hidden group"
             >
@@ -299,9 +264,9 @@ const formatDate = (dateString?: string) => {
                     <p
                         class="text-gray-400 max-w-xl mx-auto mb-10 text-lg leading-relaxed"
                     >
-                        Únete a la discusión con otros 1,240 biohackers.
-                        Comparte tus biomarcadores, dudas y victorias sobre este
-                        tema en nuestra comunidad privada.
+                        Únete a la discusión con otros biohackers. Comparte tus
+                        biomarcadores, dudas y victorias sobre este tema en
+                        nuestra comunidad privada.
                     </p>
                     <a
                         href="/comunidad"
@@ -312,28 +277,6 @@ const formatDate = (dateString?: string) => {
                 </div>
             </div>
 
-            <script>
-                // Track reading progress
-                const trackReading = () => {
-                    const hasRead = localStorage.getItem("imr_article_read");
-                    if (hasRead) return;
-
-                    // Simple logic: if user scrolls 70% of the article, mark as read
-                    window.addEventListener("scroll", () => {
-                        const scrollPercent =
-                            (window.scrollY + window.innerHeight) /
-                            document.documentElement.scrollHeight;
-                        if (scrollPercent > 0.7) {
-                            localStorage.setItem("imr_article_read", "true");
-                            console.log(
-                                "Articulo marcado como leído para acceso a comunidad",
-                            );
-                        }
-                    });
-                };
-                trackReading();
-            </script>
-
             <div class="flex justify-center mt-16">
                 <a
                     href="/biblioteca"
@@ -343,6 +286,25 @@ const formatDate = (dateString?: string) => {
             </div>
         </div>
     </article>
+
+    <script>
+        // Track reading progress: si el user scrollea más del 70% del artículo,
+        // se marca como leído (gating para registrarse en /login → comunidad).
+        const trackReading = () => {
+            if (localStorage.getItem("imr_article_read") === "true") return;
+            const onScroll = () => {
+                const scrollPercent =
+                    (window.scrollY + window.innerHeight) /
+                    document.documentElement.scrollHeight;
+                if (scrollPercent > 0.7) {
+                    localStorage.setItem("imr_article_read", "true");
+                    window.removeEventListener("scroll", onScroll);
+                }
+            };
+            window.addEventListener("scroll", onScroll, { passive: true });
+        };
+        trackReading();
+    </script>
 </BaseLayout>
 
 <style is:global>

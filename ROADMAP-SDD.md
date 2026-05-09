@@ -45,7 +45,7 @@ Atacamos los **CRÍTICOS** en orden, después los **ALTOS**, después el resto. 
 | # | Spec | Estado | Problema | Archivo |
 |---|---|---|---|---|
 | 011 | Footer real (redes + link 404) | ✅ Cerrada (2026-05-09) | Redes apuntaban a homepages genéricas, `/posts` era 404, ícono TikTok placeholder | [SPEC-011](specs/SPEC-011-footer-navbar-real.md) |
-| 012 | Limpiar duplicados en `posts/[slug]` | 📝 Pendiente | Comunidad CTA + back-link aparecen 2 veces, "1,240 biohackers" hardcoded | — |
+| 012 | Limpiar duplicados en `posts/[slug]` | ✅ Cerrada (2026-05-09) | Comunidad CTA + back-link aparecen 2 veces, "1,240 biohackers" hardcoded | [SPEC-012](specs/SPEC-012-posts-slug-cleanup.md) |
 | 013 | Layouts unificados (Layout claro vs BaseLayout oscuro) | 📝 Pendiente | El sitio cambia bruscamente de tema al navegar; `style p { max-width: 65ch }` global | — |
 | 014 | Calidad de código y tipos en scripts | 📝 Pendiente | `console.log` en 17 archivos prod, tipos null-safe, README template default | — |
 | 015 | Endpoint PDF real o disabled explicit | 📝 Pendiente | `generate-pdf-report.ts` es mockup con CDN play | — |
