@@ -4,7 +4,15 @@ import ControlPanel from './ControlPanel';
 import MorphingSilhouette from './MorphingSilhouette';
 import { IMRDisplay } from './IMRDisplay';
 
-import type { IMRResult } from '../../utils/imr-engine';
+// TODO(SPEC-004): tipar `IMRResult` con la respuesta real del endpoint refactorizado.
+// Hoy el endpoint /api/calculate-imr está stubbeado a 503; los campos que usa este
+// componente (imrScore, label, ica) son los esperados después de SPEC-004.
+type IMRResult = {
+    imrScore: number;
+    label: string;
+    ica: number;
+    [key: string]: unknown;
+};
 
 const MetamorfosisCalculator = () => {
     // 1. Estados Biométricos & IMR
