@@ -1,9 +1,10 @@
 # SPEC-010 — Rotar ADMIN_PASSWORD
 
-**Estado:** 📝 Spec
+**Estado:** ✅ Cerrada
 **Fase:** 2
 **Severidad:** ALTO
 **Fecha de creación:** 2026-05-09
+**Cerrada:** 2026-05-09
 **Autor:** Carlos Reyes
 **Depende de:** SPEC-001 (deploy), SPEC-003 (auth admin), SPEC-009 (auditoría — define si la rotación es urgente)
 
@@ -124,4 +125,26 @@ Cierra specs/SPEC-010-rotate-admin-password.md
 
 ## Resultado
 
-*(Pendiente de rotación.)*
+Rotación ejecutada manualmente por Carlos el 2026-05-09. Sin cambios de código.
+
+**Acciones tomadas:**
+
+- Nuevo `ADMIN_PASSWORD` generado con `openssl rand -base64 32 | tr -d '+/=' | head -c 32`.
+- Variable actualizada en hPanel → Node.js App → variables de entorno.
+- Reimplementación disparada para que el proceso Node tome el nuevo valor.
+- `.env` local actualizado.
+- Nuevo password guardado en gestor de credenciales personal.
+- Memoria de Claude actualizada (`project_metamorfosis_real_stack.md`) para invalidar referencias al valor anterior `Metamorfosis2026*`.
+
+**Verificación:**
+
+- Login con password viejo (`Metamorfosis2026*`) → 401 Unauthorized ✅
+- Login con password nuevo → 200 OK + cookie ✅
+
+**Aprendizajes:**
+
+- **Rotaciones de credenciales son pequeñas operaciones manuales** que se reducen a 5 pasos cuando el sistema ya tiene un canal limpio (env vars en hPanel + restart). Sin esa base, rotar es mucho más doloroso.
+- **No registrar passwords literales en specs**. Esta lección quedó en SPEC-009 — futuras specs deben usar placeholders (`<ADMIN_PASSWORD>`, `***`).
+- **Single-factor admin sigue siendo single-factor.** La rotación protege contra el password viejo expuesto, no contra phishing futuro. Si en algún momento se quiere 2FA real (TOTP), eso es otra spec.
+
+**Pendientes:** ninguno. Spec cerrada. Fase 2 completa.

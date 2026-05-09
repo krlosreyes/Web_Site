@@ -32,15 +32,24 @@ Atacamos los **CRÍTICOS** en orden, después los **ALTOS**, después el resto. 
 | # | Spec | Estado | Problema | Archivo |
 |---|---|---|---|---|
 | 007 | Esconder UI admin a visitantes anónimos | 📝 Spec | Navbar/Footer exponen `/admin` a todos los visitantes | [SPEC-007](specs/SPEC-007-hide-admin-ui.md) |
-| 008 | Reglas de seguridad de Firestore | 📝 Spec | Sin rules explícitas, lectura/escritura libre desde el cliente | [SPEC-008](specs/SPEC-008-firestore-rules.md) |
+| 008 | Reglas de seguridad de Firestore | ✅ Cerrada (2026-05-09) | Sin rules explícitas, lectura/escritura libre desde el cliente | [SPEC-008](specs/SPEC-008-firestore-rules.md) |
 | 009 | Auditar git history por credenciales filtradas | ✅ Cerrada (2026-05-09) | `.env` y service account JSON pudieron commitearse en WIP | [SPEC-009](specs/SPEC-009-git-history-audit.md) |
-| 010 | Rotar `ADMIN_PASSWORD` | 🔨 En curso (manual) | Password aparece en docs commiteados — confirmado por SPEC-009 | [SPEC-010](specs/SPEC-010-rotate-admin-password.md) |
+| 010 | Rotar `ADMIN_PASSWORD` | ✅ Cerrada (2026-05-09) | Password aparece en docs commiteados — confirmado por SPEC-009 | [SPEC-010](specs/SPEC-010-rotate-admin-password.md) |
+
+> **🎯 Fase 2 cerrada: 4/4 specs ✅** (2026-05-09). El sitio tiene UI admin oculta a anónimos, reglas de Firestore explícitas, historial git auditado, y password admin rotado. Próxima fase: 3 (UX, layouts, calidad de código).
 
 **Orden recomendado por riesgo creciente:** 007 (cero, UX) → 009 (research, no escribe) → 008 (medio, requiere testing) → 010 (medio, riesgo de bloqueo si algo va mal en hPanel).
 
 ### Fase 3 — MEDIOS (UX, consistencia, calidad)
 
-Layouts unificados, footer único, duplicados en `posts/[slug]`, redes sociales reales, links rotos, `target="_blank"` con rel, tipos en scripts, console.log en producción, `vite.server.fs.allow`, `generate-pdf-report` real, README, etc.
+| # | Spec | Estado | Problema | Archivo |
+|---|---|---|---|---|
+| 011 | Footer real (redes + link 404) | ✅ Cerrada (2026-05-09) | Redes apuntaban a homepages genéricas, `/posts` era 404, ícono TikTok placeholder | [SPEC-011](specs/SPEC-011-footer-navbar-real.md) |
+| 012 | Limpiar duplicados en `posts/[slug]` | 📝 Pendiente | Comunidad CTA + back-link aparecen 2 veces, "1,240 biohackers" hardcoded | — |
+| 013 | Layouts unificados (Layout claro vs BaseLayout oscuro) | 📝 Pendiente | El sitio cambia bruscamente de tema al navegar; `style p { max-width: 65ch }` global | — |
+| 014 | Calidad de código y tipos en scripts | 📝 Pendiente | `console.log` en 17 archivos prod, tipos null-safe, README template default | — |
+| 015 | Endpoint PDF real o disabled explicit | 📝 Pendiente | `generate-pdf-report.ts` es mockup con CDN play | — |
+| 016 | Limpieza archivos obsoletos | 📝 Pendiente | `last-update.txt`, `propuesta-*.html` en raíz, `.quarantine_modules/` | — |
 
 ### Fase 4 — BAJOS (limpieza)
 
