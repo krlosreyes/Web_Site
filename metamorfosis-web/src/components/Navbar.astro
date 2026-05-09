@@ -1,72 +1,193 @@
 ---
 // Navbar.astro
+//
+// Detecta la sesión admin server-side (cookie HttpOnly) y renderiza UI distinta
+// para que cuando estés logueado en /admin/* no veas "Ingresar"/"Abrir App"
+// como si fueras visitante anónimo.
+//
+// La sesión de USUARIO regular (Firebase Auth + sessionStorage del IMR quiz)
+// se sigue resolviendo en el cliente con onAuthStateChanged, igual que antes.
+import { isValidSessionValue } from "../lib/auth";
+
+const sessionCookie = Astro.cookies.get("admin_session");
+const isAdmin = isValidSessionValue(sessionCookie?.value);
 ---
 
-<nav class="fixed top-0 left-0 w-full z-[100] transition-all duration-500 border-b border-white/5 backdrop-blur-md bg-black/20" id="navbar">
+<nav
+    class="fixed top-0 left-0 w-full z-[100] transition-all duration-500 border-b border-white/5 backdrop-blur-md bg-black/20"
+    id="navbar"
+>
     <div class="container mx-auto px-6 h-20 flex items-center justify-between">
         {/* Logo */}
         <a href="/" class="flex items-center gap-2 group">
-            <img src="/logoSite.png" alt="Logo" class="h-10 w-auto group-hover:scale-110 transition-transform duration-500" />
-            <span class="text-white font-black italic uppercase tracking-tighter text-xl group-hover:text-blue-400 transition-colors">Metamorfosis <span class="text-blue-500">Real</span></span>
+            <img
+                src="/logoSite.png"
+                alt="Logo"
+                class="h-10 w-auto group-hover:scale-110 transition-transform duration-500"
+            />
+            <span
+                class="text-white font-black italic uppercase tracking-tighter text-xl group-hover:text-blue-400 transition-colors"
+                >Metamorfosis <span class="text-blue-500">Real</span></span
+            >
         </a>
 
         {/* Desktop Menu */}
         <div class="hidden md:flex items-center gap-10">
-            <a href="/biblioteca" class="text-[10px] font-black text-gray-400 hover:text-white uppercase tracking-[0.2em] transition-colors">Biblioteca</a>
-            <a href="/comunidad" class="text-[10px] font-black text-gray-400 hover:text-white uppercase tracking-[0.2em] transition-colors">La Tribu</a>
-            <a href="/admin" class="text-[10px] font-black text-gray-400 hover:text-white uppercase tracking-[0.2em] transition-colors opacity-30 hover:opacity-100">Admin</a>
-            
+            <a
+                href="/biblioteca"
+                class="text-[10px] font-black text-gray-400 hover:text-white uppercase tracking-[0.2em] transition-colors"
+                >Biblioteca</a
+            >
+            <a
+                href="/comunidad"
+                class="text-[10px] font-black text-gray-400 hover:text-white uppercase tracking-[0.2em] transition-colors"
+                >La Tribu</a
+            >
+            {
+                isAdmin ? (
+                    <a
+                        href="/admin/dashboard"
+                        class="text-[10px] font-black text-[#00C49A] hover:text-white uppercase tracking-[0.2em] transition-colors"
+                    >
+                        Admin
+                    </a>
+                ) : (
+                    <a
+                        href="/admin"
+                        class="text-[10px] font-black text-gray-400 hover:text-white uppercase tracking-[0.2em] transition-colors opacity-30 hover:opacity-100"
+                    >
+                        Admin
+                    </a>
+                )
+            }
+
             {/* Dynamic Auth Button */}
-            <div id="auth-container" class="flex items-center gap-6 pl-6 border-l border-white/10">
-                <a href="/login" id="login-btn" class="text-[10px] font-black text-white hover:text-blue-400 uppercase tracking-[0.2em] transition-all">Ingresar</a>
-                <button id="logout-btn" class="hidden text-[10px] font-black text-red-400 hover:text-red-300 uppercase tracking-[0.2em] transition-all">Cerrar Sesión</button>
-                <a href="https://elena-app.vercel.app/" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-blue-600/20 active:scale-95">Abrir App</a>
+            <div
+                id="auth-container"
+                class="flex items-center gap-6 pl-6 border-l border-white/10"
+            >
+                {
+                    isAdmin ? (
+                        <>
+                            <span class="flex items-center gap-2 text-[10px] font-black text-[#00C49A] uppercase tracking-[0.2em]">
+                                <span class="w-2 h-2 rounded-full bg-[#00C49A] animate-pulse" />
+                                Modo Admin
+                            </span>
+                            <button
+                                id="admin-logout-btn"
+                                class="text-[10px] font-black text-red-400 hover:text-red-300 uppercase tracking-[0.2em] transition-all"
+                            >
+                                Cerrar Sesión
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <a
+                                href="/login"
+                                id="login-btn"
+                                class="text-[10px] font-black text-white hover:text-blue-400 uppercase tracking-[0.2em] transition-all"
+                            >
+                                Ingresar
+                            </a>
+                            <button
+                                id="logout-btn"
+                                class="hidden text-[10px] font-black text-red-400 hover:text-red-300 uppercase tracking-[0.2em] transition-all"
+                            >
+                                Cerrar Sesión
+                            </button>
+                            <a
+                                href="https://elena-app.vercel.app/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+                            >
+                                Abrir App
+                            </a>
+                        </>
+                    )
+                }
             </div>
         </div>
 
         {/* Mobile Toggle */}
         <button class="md:hidden text-white" id="menu-toggle">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                ><line x1="3" y1="12" x2="21" y2="12"></line><line
+                    x1="3"
+                    y1="6"
+                    x2="21"
+                    y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
         </button>
     </div>
 </nav>
 
 <script>
-    import { auth } from '../lib/firebase';
-    import { onAuthStateChanged, signOut } from 'firebase/auth';
-
-    const loginBtn = document.getElementById('login-btn');
-    const logoutBtn = document.getElementById('logout-btn');
-
-    // Escuchar el estado de autenticación real
-    onAuthStateChanged(auth, (user) => {
-        const hasSession = user || sessionStorage.getItem('imr_userName');
-        
-        if (hasSession) {
-            loginBtn.classList.add('hidden');
-            logoutBtn.classList.remove('hidden');
-        } else {
-            loginBtn.classList.remove('hidden');
-            logoutBtn.classList.add('hidden');
+    // Logout admin: llama al endpoint para borrar la cookie HttpOnly y redirige.
+    const adminLogoutBtn = document.getElementById("admin-logout-btn");
+    adminLogoutBtn?.addEventListener("click", async () => {
+        try {
+            await fetch("/api/admin/logout", {
+                method: "POST",
+                credentials: "include",
+            });
+        } catch (error) {
+            console.error("Error al cerrar sesión admin:", error);
         }
+        window.location.href = "/";
     });
 
-    logoutBtn.addEventListener('click', async () => {
-        await signOut(auth);
-        sessionStorage.clear();
-        localStorage.removeItem('imr_article_read'); // Opcional, pero limpia todo
-        window.location.href = '/';
-    });
+    // Auth de USUARIO regular (Firebase) — solo si los botones existen, es decir
+    // cuando NO hay sesión admin (modo visitante).
+    const loginBtn = document.getElementById("login-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+
+    if (loginBtn && logoutBtn) {
+        import("../lib/firebase").then(({ auth }) => {
+            import("firebase/auth").then(
+                ({ onAuthStateChanged, signOut }) => {
+                    onAuthStateChanged(auth, (user) => {
+                        const hasSession =
+                            user || sessionStorage.getItem("imr_userName");
+                        if (hasSession) {
+                            loginBtn.classList.add("hidden");
+                            logoutBtn.classList.remove("hidden");
+                        } else {
+                            loginBtn.classList.remove("hidden");
+                            logoutBtn.classList.add("hidden");
+                        }
+                    });
+
+                    logoutBtn.addEventListener("click", async () => {
+                        await signOut(auth);
+                        sessionStorage.clear();
+                        localStorage.removeItem("imr_article_read");
+                        window.location.href = "/";
+                    });
+                }
+            );
+        });
+    }
 
     // Scroll Effect
-    window.addEventListener('scroll', () => {
-        const nav = document.getElementById('navbar');
+    window.addEventListener("scroll", () => {
+        const nav = document.getElementById("navbar");
+        if (!nav) return;
         if (window.scrollY > 50) {
-            nav.classList.add('bg-black/80', 'h-16');
-            nav.classList.remove('bg-black/20', 'h-20');
+            nav.classList.add("bg-black/80", "h-16");
+            nav.classList.remove("bg-black/20", "h-20");
         } else {
-            nav.classList.add('bg-black/20', 'h-20');
-            nav.classList.remove('bg-black/80', 'h-16');
+            nav.classList.add("bg-black/20", "h-20");
+            nav.classList.remove("bg-black/80", "h-16");
         }
     });
 </script>
