@@ -91,16 +91,21 @@ if (!isValidSessionValue(sessionCookie?.value)) {
         </header>
 
         <script>
+            // Content-Type: application/json obligatorio para evitar el check
+            // de CSRF de Astro 6 que rechaza POSTs sin JSON con 403.
             const logoutBtn = document.getElementById("logout-btn");
             logoutBtn?.addEventListener("click", async () => {
                 try {
                     await fetch("/api/admin/logout", {
                         method: "POST",
                         credentials: "include",
+                        headers: { "Content-Type": "application/json" },
                     });
                 } catch (error) {
                     console.error("Error al cerrar sesión:", error);
                 }
+                // Fallback server-side por si el POST falla — borra cookie via
+                // Astro.cookies.delete con flags correctos.
                 window.location.href = "/admin/dashboard?logout=true";
             });
         </script>

@@ -133,13 +133,26 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
 
 <script>
     // Logout admin: llama al endpoint para borrar la cookie HttpOnly y redirige.
+    // IMPORTANTE: el header `Content-Type: application/json` es obligatorio.
+    // Sin él, Astro 6 trata el POST como form submission cross-site y lo
+    // rechaza con 403 antes de llegar al handler — la cookie nunca se borra
+    // y `fetch` no lanza excepción con un 403 (solo con errores de red), así
+    // que el `catch` no se entera. Mismo gotcha que con /api/admin/cleanup.
     const adminLogoutBtn = document.getElementById("admin-logout-btn");
     adminLogoutBtn?.addEventListener("click", async () => {
         try {
-            await fetch("/api/admin/logout", {
+            const res = await fetch("/api/admin/logout", {
                 method: "POST",
                 credentials: "include",
+                headers: { "Content-Type": "application/json" },
             });
+            if (!res.ok) {
+                console.error(
+                    "Logout admin no pudo borrar la cookie:",
+                    res.status,
+                    await res.text()
+                );
+            }
         } catch (error) {
             console.error("Error al cerrar sesión admin:", error);
         }

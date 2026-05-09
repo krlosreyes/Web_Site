@@ -87,17 +87,22 @@ if (!isValidSessionValue(sessionCookie?.value)) {
         </header>
 
         <script>
+            // IMPORTANTE: Content-Type: application/json obligatorio. Sin él
+            // Astro 6 rechaza el POST como form submission cross-site (403).
             const logoutBtn = document.getElementById("logout-btn");
             logoutBtn?.addEventListener("click", async () => {
                 try {
                     await fetch("/api/admin/logout", {
                         method: "POST",
                         credentials: "include",
+                        headers: { "Content-Type": "application/json" },
                     });
                 } catch (error) {
                     console.error("Error al cerrar sesión:", error);
                 }
-                // Fallback al endpoint server-side por si el POST no borró la cookie
+                // Fallback al endpoint server-side: ?logout=true borra cookie via
+                // Astro.cookies.delete con todos los flags correctos, así que
+                // funciona aunque el POST de arriba haya fallado.
                 window.location.href = "/admin/dashboard?logout=true";
             });
         </script>
