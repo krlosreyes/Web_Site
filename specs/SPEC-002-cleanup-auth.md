@@ -199,7 +199,7 @@ GET  /api/admin/cleanup
 - [x] GET → status no-200 (Astro devuelve 404 en lugar del 405 esperado, behavior aceptable).
 - [x] Errores no exponen `error.message`.
 - [x] Endpoint protegido con `isAuthenticatedFromCookie`.
-- [ ] POST con cookie admin válida → 200 con `deletedCount` ⏳ pendiente verificación post SPEC-003 (el flow de login admin actual emite cookie `firebase_auth` que no acepta `isAuthenticatedFromCookie`; SPEC-003 lo unifica).
+- [x] POST con cookie admin válida → 200 con `deletedCount`. **Verificado en producción 2026-05-09 tras cierre de SPEC-003**: con cookie capturada del login flow, `POST /api/admin/cleanup` devuelve `200 {"success":true,"deletedCount":0}`.
 
 **Desviaciones del plan original:**
 

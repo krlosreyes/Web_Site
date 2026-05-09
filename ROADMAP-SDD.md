@@ -16,7 +16,7 @@ Atacamos los **CRÍTICOS** en orden, después los **ALTOS**, después el resto. 
 |---|---|---|---|---|
 | 001 | Resolver SSR + deploy en Hostinger Node.js Apps | ✅ Cerrada (2026-05-09) | `output: 'server'` sin adaptador; reusar Hostinger Business (Node.js Apps disponible en plan actual) | [SPEC-001](specs/SPEC-001-ssr-deploy-strategy.md) |
 | 002 | Auth en `/api/admin/cleanup` | ✅ Cerrada (2026-05-09) | Endpoint admin sin autenticación | [SPEC-002](specs/SPEC-002-cleanup-auth.md) |
-| 003 | Unificar contrato de auth admin | 📝 Spec | 3 formas distintas de validar la cookie `admin_session` | [SPEC-003](specs/SPEC-003-admin-auth-contract.md) |
+| 003 | Unificar contrato de auth admin | ✅ Cerrada (2026-05-09) | 3 formas distintas de validar la cookie `admin_session` | [SPEC-003](specs/SPEC-003-admin-auth-contract.md) |
 | 004 | Cerrar write arbitrario en `/api/calculate-imr` | 📝 Spec | `recordId` permite escribir a posts sin auth | [SPEC-004](specs/SPEC-004-calculate-imr-write.md) |
 | 005 | Unificar colecciones Firestore | 📝 Spec | `'post'` vs `'metamorfosis_posts'` y `profiles` vs `users` | [SPEC-005](specs/SPEC-005-firestore-collections.md) |
 

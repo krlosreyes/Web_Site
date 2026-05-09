@@ -1,9 +1,10 @@
 # SPEC-003 — Unificar contrato de autenticación admin
 
-**Estado:** 📝 Spec
+**Estado:** ✅ Cerrada
 **Fase:** 1
 **Severidad:** CRÍTICO
 **Fecha de creación:** 2026-05-08
+**Cerrada:** 2026-05-09
 **Autor:** Carlos Reyes
 **Depende de:** SPEC-001 (deploy), SPEC-002 (cleanup) — recomendado tenerlas cerradas para verificar end-to-end
 
@@ -229,4 +230,82 @@ Cierra specs/SPEC-003-admin-auth-contract.md
 
 ## Resultado
 
-*(Pendiente de implementación.)*
+Implementada y verificada en producción contra `https://metamorfosisvital.com.co` el 2026-05-09.
+
+**Cambios mergeados** (commit `5e28643`):
+
+- `src/lib/auth.ts`:
+  - Agregada constante `SESSION_VALUE = 'firebase_auth'` exportada como fuente única de verdad.
+  - Agregado helper `isValidSessionValue(value: string | undefined | null)` para uso desde `.astro` files que ya tienen el valor crudo de la cookie (`Astro.cookies.get(...)?.value`).
+  - `isAuthenticatedFromCookie` ahora compara contra `SESSION_VALUE` (no contra `ADMIN_PASSWORD`). Esto cierra el bug raíz: la cookie emitida por `/api/admin/login.ts` ahora la acepta el resto del sistema.
+  - `verifyAdminPassword` (que sí valida el password en login) sin cambios.
+- `src/pages/admin/login.astro`:
+  - Usa `isValidSessionValue(sessionCookie?.value)` y `enforceProductionSecurity()` centralizado en `auth.ts`.
+  - Eliminada la normalización inline de `ADMIN_PASSWORD` (las comillas envolventes ya no aplican porque la página no compara contra el password).
+- `src/pages/admin/dashboard.astro`:
+  - Mismo patrón. Logout reordenado para que el handler `?logout=true` corra **antes** del check de sesión (si no, la cookie ya estaría borrada cuando se chequea).
+  - El script del botón "Salir" ahora llama a `POST /api/admin/logout` y al server-side redirect; eliminado `signOut(auth)` de Firebase.
+- `src/pages/admin/analitica-imr.astro`:
+  - Mismo refactor que `dashboard.astro`. Estaba en la mira porque tenía el patrón viejo (no estaba en la spec original; se descubrió con `grep` final).
+- `src/components/Footer.astro`:
+  - Pasa a `isValidSessionValue`. Eliminado el `throw new Error('ADMIN_PASSWORD must be set in production')`: el footer se renderiza en TODAS las páginas, así que si rompía el render del sitio entero por env var faltante. La validación de env vars vive ahora solo en `enforceProductionSecurity()` que se llama desde páginas/APIs que sí necesitan el password.
+- `src/components/admin/AdminLogin.tsx`:
+  - Reescrito como single-factor (solo `ADMIN_PASSWORD`). Llama a `POST /api/admin/login` con `credentials: 'include'`; el servidor emite la cookie segura.
+  - Eliminado `signInWithEmailAndPassword` y los inputs de email/password Firebase.
+  - Eliminado `document.cookie = ...` del cliente — el flow ahora pasa por el endpoint con HttpOnly+Secure+SameSite=Strict.
+  - Manejo de errores explícito por status code (401, 429, 400, otros).
+
+**Verificación end-to-end:**
+
+```
+POST /api/admin/cleanup  (sin cookie)
+→ 401 {"error":"Unauthorized"}
+
+POST /api/admin/login    (password incorrecto)
+→ 401 {"error":"Invalid credentials"}
+
+POST /api/admin/login    (password correcto)
+→ 200 {"success":true,"redirect":"/admin/dashboard"}
+   Set-Cookie: admin_session=firebase_auth; Path=/; Secure; HttpOnly; SameSite=Strict; Expires=...
+
+POST /api/admin/cleanup  (con cookie capturada)
+→ 200 {"success":true,"deletedCount":0}
+```
+
+El último escalón valida también el criterio pendiente de SPEC-002 (happy path con cookie admin válida).
+
+**Criterios de aceptación cumplidos:**
+
+- [x] Solo `auth.ts` y `api/admin/login.ts` mencionan el literal `'firebase_auth'` (verificado con `grep`; los demás archivos importan `SESSION_VALUE` o usan `isValidSessionValue`).
+- [x] Ningún `.astro` ni `.tsx` compara `sessionCookie.value === ADMIN_PASSWORD` directamente.
+- [x] `AdminLogin.tsx` ya no llama a `signInWithEmailAndPassword` ni setea `document.cookie`.
+- [x] Login flujo completo (5 pasos del checklist) funciona en producción.
+- [x] Login con password incorrecto → 401, no setea cookie.
+- [x] Cookie es `HttpOnly` + `Secure` + `SameSite=Strict` (verificado en headers `Set-Cookie`).
+- [x] Logout: el handler `?logout=true` borra cookie y redirige.
+- [ ] Rate limit: más de 5 intentos en un minuto → 429. **No verificado en producción** (saltarse por respeto al sistema de Hostinger). El código está y el rate limit es 5/60s en memoria por instancia.
+
+**Desviaciones del plan original:**
+
+1. **Cuarto archivo agregado al scope.** El plan listaba 4 archivos a modificar (auth.ts, login.astro, dashboard.astro, Footer.astro, AdminLogin.tsx). Al hacer `grep` final apareció `pages/admin/analitica-imr.astro` con el mismo patrón viejo (`sessionCookie.value === "firebase_auth" || sessionCookie.value === ADMIN_PASSWORD`). Se incluyó en la misma spec porque era literalmente el mismo refactor; mantenerlo afuera dejaba un endpoint inconsistente.
+
+2. **Helper `isValidSessionValue` agregado.** No estaba previsto. Surgió porque los `.astro` files trabajan con `Astro.cookies.get(...)?.value` (string), no con un `Record<string, string>` — armar el record solo para llamar `isAuthenticatedFromCookie` era código de pegamento innecesario. La helper recibe el valor crudo y delega al mismo `constantTimeCompare`.
+
+3. **Footer.astro: eliminado el throw de production.** Antes el componente tiraba `Error` si no había `ADMIN_PASSWORD` en env vars de producción. Como el footer aparece en TODAS las páginas, una env var faltante volaba el render completo del sitio. La validación se centralizó en `enforceProductionSecurity()` y solo se invoca desde páginas/APIs que usan el password (login, dashboard, analitica-imr, las APIs admin). El footer ahora solo lee la cookie y muestra/oculta UI condicional sin imponer restricciones globales.
+
+4. **Reordenamiento del logout en dashboard.astro y analitica-imr.astro.** En el código original el handler de `?logout=true` corría DESPUÉS del check de sesión, lo cual era inocuo pero raro: la cookie todavía estaba presente al momento del check. Lo movimos antes del check para que el flujo sea coherente: borrás cookie → redirigís → no se evalúa sesión.
+
+5. **Smoke test inicial falló por deploy stale.** El primer test del happy path (curl 3d) volvió 401 porque corrió ~1 minuto después del push, antes de que Hostinger terminara el redeploy. Reintento dos minutos después dio 200. Aprendizaje: dejar 90-120s entre `git push` y verificación productiva.
+
+**Aprendizajes:**
+
+- **Una "fuente única de verdad" para el contrato de auth (la constante `SESSION_VALUE`)** evita que aparezcan comparaciones inconsistentes esparcidas por el código. Si en el futuro queremos rotar a JWT firmado, solo cambia esa constante y la lógica de `createSecureSessionCookie` + `isValidSessionValue`.
+- **`grep` final post-implementación es esencial.** Sin él no se descubre el archivo extra (`analitica-imr.astro`) que necesitaba el mismo refactor.
+- **Validar/throw en componentes globales es peligroso.** El footer está en todas las páginas; un throw ahí ataja el render del sitio entero. Centralizar checks en `enforceProductionSecurity` y llamarlo solo desde páginas/APIs que usan el password.
+- **Hostinger Node.js Apps necesita ~90-120s post-push** para que el deploy se aplique. Tener cuenta en futuras specs.
+
+**Pendientes que se mueven a otras specs:**
+
+- Verificación de rate limit en producción → backlog Fase 3.
+- Si en algún momento querés más de un admin (tu equipo crece), abrir nueva spec para reintroducir Firebase Auth con roles + el password actual como segundo factor real.
+- Rotar `ADMIN_PASSWORD` (estuvo en repo durante WIP histórico) → Fase 2.
