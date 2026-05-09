@@ -31,8 +31,10 @@ interface syntheticUser {
     h_score?: number;
 }
 
-// Helper: Traer cálculo IMR localmente si los datos en BD no lo tienen pre-calculado
-import { calculateIMR, type IMRVariables } from '../../utils/biometrics';
+// Fallback de cálculo IMR para registros de pruebas que no traen score pre-calculado.
+// Usamos el motor canónico local (SPEC-004); antes esto apuntaba a una Cloud Function
+// `calculateIMRv2` que estaba marcada como disabled, así que el fallback era cosmético.
+import { computeImr } from '../../lib/imr/engine';
 
 const COLORS = {
     optimal: '#2DD4BF', // Cian
@@ -91,21 +93,27 @@ const AnaliticaIMR = () => {
                         h_score: quiz.lifestyleScore_H ? Math.round(quiz.lifestyleScore_H * 100) : 0,
                     };
 
-                    // Fallback calculation in case IMR relies on synthetic missing data
+                    // Fallback de cálculo cuando el registro no trae imr_score pre-calculado.
+                    // Usa el motor local (SPEC-004) en sincronía — sin red, sin promesas.
                     if (!userRecord.imr_score || userRecord.imr_score === 0) {
-                        const payload: IMRVariables = {
-                            peso: userRecord.initial_weight,
-                            altura: userRecord.height,
-                            grasa: userRecord.body_fat || 20
-                        };
-                        // Note: In a production sync, we might want to await this or use a batch process.
-                        // For the dashboard view, we'll trigger the authority fetch.
-                        calculateIMR(payload).then((res: any) => {
-                            if (res) {
-                                // Update local state if needed or just log
-                                console.log(`Authority sync for user ${userRecord.id}: ${res.score}`);
-                            }
-                        });
+                        try {
+                            const fallback = computeImr({
+                                heightCm: userRecord.height,
+                                weightKg: userRecord.initial_weight,
+                                waistCm: userRecord.waist,
+                                neckCm: userRecord.neck,
+                                hipCm: userRecord.hip,
+                                age: userRecord.age,
+                                gender: userRecord.gender === 'female' ? 'female' : 'male',
+                                bodyFatPct: userRecord.body_fat,
+                            });
+                            userRecord.imr_score = fallback.imrScore;
+                            userRecord.b_score = Math.round(fallback.blocks.E * 100);
+                            userRecord.m_score = Math.round(fallback.blocks.M * 100);
+                            userRecord.h_score = Math.round(fallback.blocks.C * 100);
+                        } catch (e) {
+                            console.warn(`Fallback IMR no calculable para ${userRecord.id}:`, e);
+                        }
                     }
 
                     users.push(userRecord);
@@ -216,7 +224,7 @@ const AnaliticaIMR = () => {
                     <span className="text-amber-500 text-2xl">⚠️</span>
                     <div>
                         <h4 className="text-amber-500 font-bold uppercase tracking-wider text-sm">Alerta de Calibración: Riesgo de Falso Positivo</h4>
-                        <p className="text-amber-400/80 text-xs">Más del 80% de la población sintética está catalogada como óptima. Revisa los pesos de la Capa H y Capa M en `calculateIMR`.</p>
+                        <p className="text-amber-400/80 text-xs">Más del 80% de la población sintética está catalogada como óptima. Revisa los pesos de los bloques M y C en `lib/imr/engine.ts` (`calculateSPEC705`).</p>
                     </div>
                 </div>
             )}

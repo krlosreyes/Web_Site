@@ -4,15 +4,7 @@ import ControlPanel from './ControlPanel';
 import MorphingSilhouette from './MorphingSilhouette';
 import { IMRDisplay } from './IMRDisplay';
 
-// TODO(SPEC-004): tipar `IMRResult` con la respuesta real del endpoint refactorizado.
-// Hoy el endpoint /api/calculate-imr está stubbeado a 503; los campos que usa este
-// componente (imrScore, label, ica) son los esperados después de SPEC-004.
-type IMRResult = {
-    imrScore: number;
-    label: string;
-    ica: number;
-    [key: string]: unknown;
-};
+import type { ImrResult } from '../../lib/types/user';
 
 const MetamorfosisCalculator = () => {
     // 1. Estados Biométricos & IMR
@@ -33,7 +25,7 @@ const MetamorfosisCalculator = () => {
     const [sleepHours, setSleepHours] = useState<number>(6);
 
     // 3. Estado de Resultados (IMR Engine)
-    const [result, setResult] = useState<IMRResult | null>(null);
+    const [result, setResult] = useState<ImrResult | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
