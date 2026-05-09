@@ -91,9 +91,14 @@ const ArticleQuiz: React.FC<Props> = ({ questions: rawQuestions, articleId }) =>
 
         if (currentUser) {
             try {
-                // TODO(SPEC-005.4): cambiar a uid una vez completada la migración
-                // El doc por email queda como fallback hasta que la migración consolide users/{uid}.
-                const profileRef = doc(db, COLLECTIONS.USERS, currentUser.email.toLowerCase());
+                // SPEC-005.4: doc keyado por uid (Firebase Auth), no por email.
+                // Las Firestore rules de SPEC-008 requieren request.auth.uid == uid;
+                // si seguimos usando email, las rules nos bloquean.
+                // El array `completedQuizzes` se mantiene en el doc raíz (no en
+                // subcolección) por simplicidad — la rule de update sobre
+                // users/{uid} permite cambios excepto en app.*, así que este
+                // campo arbitrario está habilitado.
+                const profileRef = doc(db, COLLECTIONS.USERS, currentUser.uid);
                 await setDoc(profileRef, {
                     completedQuizzes: arrayUnion({
                         articleId,

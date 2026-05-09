@@ -1,0 +1,82 @@
+rules_version = '2';
+
+// Reglas de seguridad de Firestore — Metamorfosis Real
+//
+// Modelo: cada user tiene su propio doc en users/{uid} (uid de Firebase Auth).
+// Lectura/escritura desde el cliente (Web SDK) están restringidas al dueño.
+// El backend con Admin SDK (firebaseAdmin.ts) bypasa estas rules y puede
+// hacer escrituras administrativas sobre cualquier doc.
+//
+// Despliegue:
+//   - firebase deploy --only firestore:rules
+//   - o pegar este archivo en Firebase Console → Firestore → Rules → Publish.
+//
+// Ver specs/SPEC-008-firestore-rules.md
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== users/{uid} =====
+    // Solo el dueño puede leer/escribir su propio doc.
+    // El bloque `app.*` está reservado para ElenaApp; web no debe tocarlo
+    // desde el cliente (la app móvil sí, autenticada como el mismo uid).
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow update: if request.auth != null
+                    && request.auth.uid == uid
+                    && (
+                      // Si la request no toca el campo `app`, OK
+                      !('app' in request.resource.data.keys())
+                      // Si lo toca, debe quedar idéntico al actual (no edita app.*)
+                      || request.resource.data.app == resource.data.app
+                    );
+      allow delete: if false; // nunca desde cliente
+
+      // Subcolección daily_logs: planeada para ElenaApp (registro diario de
+      // ayuno, comidas, ejercicio, sueño). Solo el dueño accede.
+      match /daily_logs/{date} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      // Subcolección article_quizzes: respuestas a quizzes de artículos.
+      // Hoy ArticleQuiz.tsx guarda en users/{uid}.completedQuizzes (array
+      // del doc raíz), pero dejamos esta subcolección habilitada por si
+      // migramos a estructura por slug en el futuro.
+      match /article_quizzes/{slug} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // ===== metamorfosis_posts =====
+    // Lectura pública (artículos del blog) — biblioteca y posts/[slug] los
+    // sirven SSR con Admin SDK, pero también el cliente podría leerlos
+    // (ej. quiz de artículo carga preguntas). Escritura solo desde Admin SDK
+    // (panel admin) que bypasa rules.
+    match /metamorfosis_posts/{post} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ===== waitlist_leads =====
+    // Anónimos pueden crear leads pre-auth (form de captura). Se valida
+    // mínimo email no vacío. Lectura/modificación solo desde Admin SDK.
+    match /waitlist_leads/{lead} {
+      allow create: if request.resource.data.email is string
+                    && request.resource.data.email.size() > 0;
+      allow read, update, delete: if false;
+    }
+
+    // ===== pruebas =====
+    // Datos analíticos / test internos. Solo Admin SDK accede.
+    match /pruebas/{doc} {
+      allow read, write: if false;
+    }
+
+    // ===== Default deny =====
+    // Cualquier path no enumerado arriba queda bloqueado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
