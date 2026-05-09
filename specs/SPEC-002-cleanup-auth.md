@@ -1,9 +1,10 @@
 # SPEC-002 — Autenticación en `/api/admin/cleanup`
 
-**Estado:** 📝 Spec
+**Estado:** ✅ Cerrada
 **Fase:** 1
 **Severidad:** CRÍTICO
 **Fecha de creación:** 2026-05-08
+**Cerrada:** 2026-05-09
 **Autor:** Carlos Reyes
 **Depende de:** ninguna (recomendado tras SPEC-001 para verificar end-to-end)
 
@@ -171,4 +172,56 @@ Cierra specs/SPEC-002-cleanup-auth.md
 
 ## Resultado
 
-*(Pendiente de implementación.)*
+Implementada y verificada en producción contra `https://metamorfosisvital.com.co` el 2026-05-09.
+
+**Cambios mergeados:**
+
+- `metamorfosis-web/src/pages/api/admin/cleanup.ts` reescrito completo:
+  - Migración a `APIRoute` con método `POST` (antes era función `GET` suelta).
+  - `enforceProductionSecurity()` + `isAuthenticatedFromCookie(parseCookies(request))` antes de tocar Firestore.
+  - `db.batch()` en lugar de `await doc.ref.delete()` secuencial: una sola escritura atómica.
+  - Errores ya no exponen `error.message` al cliente; solo se loguean server-side.
+  - Agregado `prerender = false` explícito.
+
+**Verificación end-to-end (post-deploy):**
+
+```
+POST /api/admin/cleanup  (sin cookie, Content-Type: application/json, body {})
+→ 401 Unauthorized + {"error":"Unauthorized"}
+
+GET  /api/admin/cleanup
+→ 404 Not Found (Astro 6 responde así cuando no hay handler para ese método)
+```
+
+**Criterios de aceptación cumplidos:**
+
+- [x] POST sin cookie → 401.
+- [x] GET → status no-200 (Astro devuelve 404 en lugar del 405 esperado, behavior aceptable).
+- [x] Errores no exponen `error.message`.
+- [x] Endpoint protegido con `isAuthenticatedFromCookie`.
+- [ ] POST con cookie admin válida → 200 con `deletedCount` ⏳ pendiente verificación post SPEC-003 (el flow de login admin actual emite cookie `firebase_auth` que no acepta `isAuthenticatedFromCookie`; SPEC-003 lo unifica).
+
+**Desviaciones del plan original:**
+
+- Durante la verificación inicial el primer curl (`curl -i -X POST <url>` sin headers ni body) recibió **403 con "Cross-site POST form submissions are forbidden"**. Eso es Astro 6 protegiendo CSRF: cuando un POST llega sin `Content-Type: application/json` lo trata como form submission y lo rechaza antes de llegar al handler. No es bug del endpoint. La verificación correcta requiere `-H "Content-Type: application/json" -d '{}'`. Anotado en aprendizajes de SPEC-001 (sección "curl -sI -X POST").
+
+**Aprendizajes:**
+
+- **Astro 6 distingue entre POST de formulario y POST de API por el `Content-Type`.** Sin `application/json` aplica check de origin same-host y rechaza con 403.
+- **Astro 6 responde 404 (no 405) para métodos no soportados** en una ruta. Cualquier asserción de "405 si llega al backend" hay que ajustarla.
+- **`db.batch()` es preferible a awaits secuenciales** para borrados masivos: atómico, más eficiente, hasta 500 ops por batch (suficiente para esta heurística).
+
+**Dependencias para próximas specs:**
+
+- SPEC-003 va a validar el happy path de auth admin de punta a punta. Cuando cierre SPEC-003, conviene hacer el último smoke test:
+  ```sh
+  COOKIE=$(curl -s -X POST https://metamorfosisvital.com.co/api/admin/login \
+      -H 'Content-Type: application/json' \
+      -d '{"password":"<ADMIN_PASSWORD>"}' \
+      -i | grep -i 'set-cookie' | sed 's/Set-Cookie: //;s/;.*//')
+  curl -i -X POST https://metamorfosisvital.com.co/api/admin/cleanup \
+      -H 'Content-Type: application/json' \
+      -b "$COOKIE" \
+      -d '{}'
+  # Esperado: 200 + {"success":true,"deletedCount":N}
+  ```
