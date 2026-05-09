@@ -1,47 +1,45 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import AdminLogin from "../../components/admin/AdminLogin";
+import {
+    isValidSessionValue,
+    enforceProductionSecurity,
+} from "../../lib/auth";
 
-// Force SSR
+// Force SSR (cookies + redirects)
 export const prerender = false;
 
-// We still check if they have the legacy pass or the new firebase_auth token to skip the login page entirely
+enforceProductionSecurity();
+
+// Si ya hay sesión válida, saltamos el login
 const sessionCookie = Astro.cookies.get("admin_session");
-let ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD || '';
-if (ADMIN_PASSWORD.startsWith('"') && ADMIN_PASSWORD.endsWith('"')) {
-    ADMIN_PASSWORD = ADMIN_PASSWORD.slice(1, -1);
-}
-
-if (import.meta.env.MODE === 'production' && !ADMIN_PASSWORD) {
-  throw new Error('ADMIN_PASSWORD must be set in production');
-}
-
-if (
-  sessionCookie &&
-  sessionCookie.value === ADMIN_PASSWORD
-) {
-  return Astro.redirect("/admin/dashboard");
+if (isValidSessionValue(sessionCookie?.value)) {
+    return Astro.redirect("/admin/dashboard");
 }
 ---
 
 <Layout title="Acceso Restringido | Admin">
-  <div
-    class="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-4"
-  >
-    <!-- Back Button -->
-    <a
-      href="/"
-      class="absolute top-8 left-8 text-gray-500 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold uppercase tracking-widest"
+    <div
+        class="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-4"
     >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-        ><path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-      </svg>
-      Volver al Inicio
-    </a>
-    <AdminLogin client:only="react" />
-  </div>
+        <!-- Back Button -->
+        <a
+            href="/"
+            class="absolute top-8 left-8 text-gray-500 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold uppercase tracking-widest"
+        >
+            <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                ><path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Volver al Inicio
+        </a>
+        <AdminLogin client:only="react" />
+    </div>
 </Layout>

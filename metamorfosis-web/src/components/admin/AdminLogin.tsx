@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../lib/firebase';
 
-const AdminLogin = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+/**
+ * Form de acceso al panel admin.
+ *
+ * Single-factor: solo `ADMIN_PASSWORD`. El componente delega TODO al endpoint
+ * `POST /api/admin/login.ts`, que valida con constant-time, aplica rate limit
+ * y emite la cookie HttpOnly+Secure+SameSite=Strict. El cliente no setea
+ * cookies por su cuenta y no usa Firebase Auth.
+ *
+ * Antes este componente hacía Firebase signInWithEmailAndPassword + setear
+ * `document.cookie` directo con el código admin. Ese flow:
+ *   - bypassaba el rate limiting del servidor,
+ *   - producía cookies sin HttpOnly (lectura JS expuesta),
+ *   - pretendía "doble factor" pero la única validación server-side era el
+ *     código admin, así que el factor Firebase no aportaba seguridad real.
+ * Ver specs/SPEC-003-admin-auth-contract.md.
+ */
+const AdminLogin: React.FC = () => {
     const [adminCode, setAdminCode] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -15,21 +27,36 @@ const AdminLogin = () => {
         setIsLoading(true);
 
         try {
-            // 1. Verificar identidad con Firebase Auth
-            await signInWithEmailAndPassword(auth, email, password);
-            
-            // 2. El código de administrador se guarda en la cookie para que el servidor valide
-            document.cookie = `admin_session=${encodeURIComponent(adminCode)}; path=/; max-age=86400`;
-            window.location.href = '/admin/dashboard';
-        } catch (error: any) {
-            console.error('Login error:', error);
-            if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
-                setErrorMsg('Credenciales de Firebase inválidas.');
-            } else if (error.code === 'auth/user-not-found') {
-                setErrorMsg('Este correo no está registrado.');
-            } else {
-                setErrorMsg('Error de autenticación. Intenta de nuevo.');
+            const res = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ password: adminCode }),
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+                if (res.status === 429) {
+                    setErrorMsg(
+                        data.error ||
+                            'Demasiados intentos. Esperá un minuto y volvé a probar.'
+                    );
+                } else if (res.status === 401) {
+                    setErrorMsg('Código de acceso inválido.');
+                } else if (res.status === 400) {
+                    setErrorMsg(data.error || 'Solicitud inválida.');
+                } else {
+                    setErrorMsg(data.error || 'Error de autenticación.');
+                }
+                return;
             }
+
+            // El servidor ya seteó la cookie HttpOnly via Set-Cookie.
+            window.location.href = data.redirect || '/admin/dashboard';
+        } catch (err) {
+            console.error('Login error:', err);
+            setErrorMsg('Error de red. Intentá de nuevo.');
         } finally {
             setIsLoading(false);
         }
@@ -41,39 +68,33 @@ const AdminLogin = () => {
 
             <div className="flex flex-col items-center mb-8">
                 <span className="text-4xl mb-4">🛡️</span>
-                <h1 className="text-2xl font-black text-white uppercase tracking-widest text-center">Protocolo de<br /><span className="text-blue-500">Autorización</span></h1>
-                <p className="text-xs text-gray-500 font-mono mt-2 uppercase tracking-widest">Doble Factor Requerido</p>
+                <h1 className="text-2xl font-black text-white uppercase tracking-widest text-center">
+                    Acceso<br />
+                    <span className="text-blue-500">Admin</span>
+                </h1>
+                <p className="text-xs text-gray-500 font-mono mt-2 uppercase tracking-widest">
+                    Código de Acceso Requerido
+                </p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-5">
                 <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Correo de Administrador</label>
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        autoFocus
-                        placeholder="admin@metamorfosis.com"
-                        className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white font-mono text-center tracking-widest focus:outline-none focus:border-blue-500 transition-colors"
-                    />
-                </div>
-                <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Contraseña Firebase</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        placeholder="••••••••••••"
-                        className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white font-mono text-center tracking-widest focus:outline-none focus:border-blue-500 transition-colors"
-                    />
-                </div>
-                <div>
                     <label className="block text-xs font-bold text-[#00C49A] uppercase tracking-widest mb-2">
                         <span className="flex items-center gap-2">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                            Código de Acceso Admin
+                            <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="3"
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                />
+                            </svg>
+                            Código de Acceso
                         </span>
                     </label>
                     <input
@@ -81,19 +102,21 @@ const AdminLogin = () => {
                         value={adminCode}
                         onChange={(e) => setAdminCode(e.target.value)}
                         required
-                        placeholder="Código secreto"
+                        autoFocus
+                        placeholder="••••••••••••"
+                        minLength={8}
                         className="w-full bg-black border border-[#00C49A]/30 rounded-lg px-4 py-3 text-[#00C49A] font-mono text-center tracking-widest focus:outline-none focus:border-[#00C49A] transition-colors"
                     />
                 </div>
 
                 {errorMsg && (
-                    <p className="text-red-500 text-xs text-center animate-pulse">{errorMsg}</p>
+                    <p className="text-red-500 text-xs text-center">{errorMsg}</p>
                 )}
 
                 <button
                     type="submit"
-                    disabled={isLoading}
-                    className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white font-black uppercase tracking-widest rounded-lg shadow-[0_0_15px_rgba(37,99,235,0.2)] transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                    disabled={isLoading || adminCode.length < 8}
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-black uppercase tracking-widest rounded-lg shadow-[0_0_15px_rgba(37,99,235,0.2)] transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
                 >
                     {isLoading ? (
                         <>

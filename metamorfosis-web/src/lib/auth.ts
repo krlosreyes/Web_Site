@@ -67,25 +67,29 @@ export function verifyAdminPassword(inputPassword: string): boolean {
 }
 
 /**
+ * Opaque value emitted by /api/admin/login.ts and validated everywhere else.
+ * NEVER ponemos el ADMIN_PASSWORD raw en la cookie — el servidor emite un valor
+ * fijo que actúa solo como "tengo sesión válida". Si en el futuro queremos
+ * sesiones rotables, cambiamos el contrato acá (a un JWT firmado, por ejemplo).
+ */
+export const SESSION_VALUE = 'firebase_auth';
+
+/**
  * Check if request is authenticated via session cookie
  * @param cookies Cookie object from request
  * @returns true if session is valid, false otherwise
  */
 export function isAuthenticatedFromCookie(cookies: Record<string, string>): boolean {
-    const sessionCookie = cookies['admin_session'];
-    
-    if (!sessionCookie) {
-        return false;
-    }
-    
-    // Firebase legacy password cookie verification
-    let envPass = import.meta.env.ADMIN_PASSWORD || '';
-    if (envPass.startsWith('"') && envPass.endsWith('"')) {
-        envPass = envPass.slice(1, -1);
-    }
-    const isValid = constantTimeCompare(sessionCookie, envPass);
-    
-    return isValid;
+    return isValidSessionValue(cookies['admin_session']);
+}
+
+/**
+ * Sugar para callers que ya tienen el valor crudo de la cookie (típicamente
+ * desde `Astro.cookies.get("admin_session")?.value`).
+ */
+export function isValidSessionValue(value: string | undefined | null): boolean {
+    if (!value) return false;
+    return constantTimeCompare(value, SESSION_VALUE);
 }
 
 /**

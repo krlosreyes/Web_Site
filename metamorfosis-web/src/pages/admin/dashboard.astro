@@ -1,33 +1,25 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import AdminApp from "../../components/admin/AdminApp";
+import {
+    isValidSessionValue,
+    enforceProductionSecurity,
+} from "../../lib/auth";
 
-// Forzar SSR en Astro (Necesario para Cookies)
+// Force SSR (cookies + redirects)
 export const prerender = false;
 
-// Check matching password with .env or fallback
-let ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD || '';
-if (ADMIN_PASSWORD.startsWith('"') && ADMIN_PASSWORD.endsWith('"')) {
-    ADMIN_PASSWORD = ADMIN_PASSWORD.slice(1, -1);
-}
+enforceProductionSecurity();
 
-if (import.meta.env.MODE === 'production' && !ADMIN_PASSWORD) {
-    throw new Error('ADMIN_PASSWORD must be set in production');
-}
-
-// Check cookie on GET request
-const sessionCookie = Astro.cookies.get("admin_session");
-const isAuthenticated =
-    sessionCookie &&
-    sessionCookie.value === ADMIN_PASSWORD;
-
-if (!isAuthenticated) {
+// Logout antes del check de sesión: ?logout=true borra cookie y redirige
+if (Astro.url.searchParams.get("logout") === "true") {
+    Astro.cookies.delete("admin_session", { path: "/" });
     return Astro.redirect("/admin/login");
 }
 
-// Handling Logout
-if (Astro.url.searchParams.get("logout") === "true") {
-    Astro.cookies.delete("admin_session", { path: "/" });
+// Check cookie
+const sessionCookie = Astro.cookies.get("admin_session");
+if (!isValidSessionValue(sessionCookie?.value)) {
     return Astro.redirect("/admin/login");
 }
 ---
@@ -87,21 +79,18 @@ if (Astro.url.searchParams.get("logout") === "true") {
         </header>
 
         <script>
-            import { auth } from "../../lib/firebase";
-            import { signOut } from "firebase/auth";
-
-            const logoutBtn = document.getElementById('logout-btn');
-            logoutBtn?.addEventListener('click', async () => {
+            const logoutBtn = document.getElementById("logout-btn");
+            logoutBtn?.addEventListener("click", async () => {
                 try {
-                    // 1. Cerrar sesión en Firebase (Cliente)
-                    await signOut(auth);
-                    // 2. Redirigir a la ruta de logout para borrar la cookie (Servidor)
-                    window.location.href = "/admin/dashboard?logout=true";
+                    await fetch("/api/admin/logout", {
+                        method: "POST",
+                        credentials: "include",
+                    });
                 } catch (error) {
                     console.error("Error al cerrar sesión:", error);
-                    // Fallback: intentar borrar la cookie al menos
-                    window.location.href = "/admin/dashboard?logout=true";
                 }
+                // Fallback al endpoint server-side por si el POST no borró la cookie
+                window.location.href = "/admin/dashboard?logout=true";
             });
         </script>
 

@@ -1,31 +1,24 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import AnaliticaIMR from "../../components/admin/AnaliticaIMR";
+import {
+    isValidSessionValue,
+    enforceProductionSecurity,
+} from "../../lib/auth";
 
-// Forzar SSR en Astro (Necesario para Cookies)
+// Force SSR (cookies + redirects)
 export const prerender = false;
 
-// Check matching password with .env or fallback
-const ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD;
+enforceProductionSecurity();
 
-if (import.meta.env.MODE === 'production' && !ADMIN_PASSWORD) {
-    throw new Error('ADMIN_PASSWORD must be set in production');
-}
-
-// Check cookie on GET request
-const sessionCookie = Astro.cookies.get("admin_session");
-const isAuthenticated =
-    sessionCookie &&
-    (sessionCookie.value === "firebase_auth" ||
-        sessionCookie.value === ADMIN_PASSWORD);
-
-if (!isAuthenticated) {
+// Logout antes del check de sesión
+if (Astro.url.searchParams.get("logout") === "true") {
+    Astro.cookies.delete("admin_session", { path: "/" });
     return Astro.redirect("/admin/login");
 }
 
-// Handling Logout
-if (Astro.url.searchParams.get("logout") === "true") {
-    Astro.cookies.delete("admin_session", { path: "/" });
+const sessionCookie = Astro.cookies.get("admin_session");
+if (!isValidSessionValue(sessionCookie?.value)) {
     return Astro.redirect("/admin/login");
 }
 ---
@@ -91,18 +84,17 @@ if (Astro.url.searchParams.get("logout") === "true") {
         </header>
 
         <script>
-            import { auth } from "../../lib/firebase";
-            import { signOut } from "firebase/auth";
-
-            const logoutBtn = document.getElementById('logout-btn');
-            logoutBtn?.addEventListener('click', async () => {
+            const logoutBtn = document.getElementById("logout-btn");
+            logoutBtn?.addEventListener("click", async () => {
                 try {
-                    await signOut(auth);
-                    window.location.href = "/admin/dashboard?logout=true";
+                    await fetch("/api/admin/logout", {
+                        method: "POST",
+                        credentials: "include",
+                    });
                 } catch (error) {
                     console.error("Error al cerrar sesión:", error);
-                    window.location.href = "/admin/dashboard?logout=true";
                 }
+                window.location.href = "/admin/dashboard?logout=true";
             });
         </script>
 
