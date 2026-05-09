@@ -85,6 +85,11 @@ export function bodyFatNavy(input: {
 
 /**
  * Tasa metabólica basal — Mifflin-St Jeor (1990).
+ * Usa peso total (no distingue masa magra). Adecuada para reportes generales
+ * de TMB. Para edad metabólica preferimos Katch-McArdle (ver `tmbKatchMcArdle`)
+ * porque corrige por composición corporal real.
+ *
+ * Ref: Mifflin MD, St Jeor ST, et al. Am J Clin Nutr 1990;51(2):241-7.
  */
 export function tmbMifflin(input: {
     weightKg: number;
@@ -97,6 +102,94 @@ export function tmbMifflin(input: {
         return 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
     }
     return 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
+}
+
+/**
+ * TMB Katch-McArdle: depende de masa libre de grasa (LBM), no del peso total.
+ * Es la base correcta para edad metabólica porque dos personas con el mismo
+ * peso pero distinta composición corporal van a tener TMBs muy distintas.
+ *
+ * Fórmula: BMR = 370 + 21.6 * LBM(kg)
+ * Ref: Katch FI, McArdle WD. Nutrition, Weight Control, and Exercise (1983).
+ */
+export function tmbKatchMcArdle(input: {
+    weightKg: number;
+    bodyFatPct: number;
+}): number {
+    const { weightKg, bodyFatPct } = input;
+    const lbm = weightKg * (1 - bodyFatPct / 100);
+    return 370 + 21.6 * Math.max(0, lbm);
+}
+
+/**
+ * Rango de % grasa "saludable / fitness" según ACSM (American College of
+ * Sports Medicine), por edad y género. Usamos el centro del rango fitness
+ * como referencia para calcular la composición "ideal" del user.
+ *
+ * Ref: ACSM's Guidelines for Exercise Testing and Prescription, 11ª ed.
+ */
+function referenceBodyFatPct(age: number, gender: Gender): number {
+    if (gender === 'male') {
+        if (age < 30) return 14;
+        if (age < 40) return 17;
+        if (age < 50) return 20;
+        if (age < 60) return 22;
+        return 24;
+    }
+    if (age < 30) return 22;
+    if (age < 40) return 24;
+    if (age < 50) return 27;
+    if (age < 60) return 29;
+    return 31;
+}
+
+/**
+ * Edad metabólica — método estilo Tanita/Omron, fundamentado en BMR.
+ *
+ * Idea: si tu TMB (calculada con Katch-McArdle, que depende de LBM) es mayor
+ * que la TMB de referencia para alguien sano de tu misma edad/altura/género,
+ * tu cuerpo metabólicamente "se comporta" como uno más joven, y viceversa.
+ *
+ * Pasos:
+ *   1. Calcular BMR_real con Katch-McArdle usando LBM real del user.
+ *   2. Calcular BMR_ref para una persona "saludable" de su misma altura/género
+ *      con BMI=22 (peso considerado "normal") y % grasa óptimo según ACSM.
+ *   3. Convertir el delta de BMR a años usando la pendiente -5 kcal/año de
+ *      Mifflin-St Jeor (cada año de edad cronológica baja TMB en ~5 kcal/día
+ *      a peso constante; usamos esa misma pendiente para mapear delta → años).
+ *   4. Acotar el resultado entre [18, 80] para evitar valores absurdos en
+ *     extremos del input.
+ *
+ * Esta es la fuente única de verdad de "edad metabólica" en Metamorfosis Real.
+ * Si en el futuro queremos refinar (incluir VO2max, masa muscular medida con
+ * bioimpedancia, etc.), modificamos solo esta función.
+ */
+export function metabolicAge(input: {
+    age: number;
+    weightKg: number;
+    heightCm: number;
+    bodyFatPct: number;
+    gender: Gender;
+}): number {
+    const { age, weightKg, heightCm, bodyFatPct, gender } = input;
+
+    // BMR real del user
+    const bmrUser = tmbKatchMcArdle({ weightKg, bodyFatPct });
+
+    // BMR de referencia: persona saludable con BMI=22 y % grasa óptimo ACSM
+    const heightM = heightCm / 100;
+    const idealWeight = 22 * heightM * heightM;
+    const idealBfPct = referenceBodyFatPct(age, gender);
+    const bmrReference = tmbKatchMcArdle({
+        weightKg: idealWeight,
+        bodyFatPct: idealBfPct,
+    });
+
+    // Conversión delta_BMR → delta_años con pendiente Mifflin-St Jeor (-5 kcal/año).
+    const deltaKcal = bmrUser - bmrReference;
+    const yearOffset = deltaKcal / 5;
+
+    return Math.max(18, Math.min(80, Math.round(age - yearOffset)));
 }
 
 /**
@@ -143,12 +236,15 @@ export function computeImr(input: ComputeImrInput): ImrResult {
     const ica = waistCm / heightCm;
     const tmb = tmbMifflin({ weightKg, heightCm, age, gender });
 
-    // Edad metabólica: aproximación lineal en función de imrScore (0..100).
-    // imr=100 → edad biológica = age - 10 (mín 18). imr=0 → age + 20.
-    const metabolicAge = Math.max(
-        18,
-        Math.round(age + (1 - spec.imr / 100) * 20 - (spec.imr / 100) * 10)
-    );
+    // Edad metabólica fundamentada en TMB (Katch-McArdle) vs referencia ACSM.
+    // Ver `metabolicAge` arriba para la metodología completa.
+    const metAge = metabolicAge({
+        age,
+        weightKg,
+        heightCm,
+        bodyFatPct: bodyFat,
+        gender,
+    });
 
     return {
         imrScore: spec.imr,
@@ -161,7 +257,7 @@ export function computeImr(input: ComputeImrInput): ImrResult {
         ica: parseFloat(ica.toFixed(3)),
         imc: parseFloat(imc.toFixed(2)),
         tmb: Math.round(tmb),
-        metabolicAge,
+        metabolicAge: metAge,
         ffmi: parseFloat(spec.ffmi),
         whtr: parseFloat(spec.whtr),
     };
