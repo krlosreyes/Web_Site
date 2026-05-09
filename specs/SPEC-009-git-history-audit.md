@@ -1,11 +1,13 @@
 # SPEC-009 — Auditar git history por credenciales filtradas
 
-**Estado:** 📝 Spec
+**Estado:** ✅ Cerrada
 **Fase:** 2
 **Severidad:** ALTO (depende del hallazgo)
 **Fecha de creación:** 2026-05-09
+**Cerrada:** 2026-05-09
 **Autor:** Carlos Reyes
 **Depende de:** ninguna
+**Habilita:** SPEC-010 (rotación obligatoria por hallazgo)
 
 ---
 
@@ -179,4 +181,45 @@ Cierra specs/SPEC-009-git-history-audit.md
 
 ## Resultado
 
-*(Pendiente de auditoría.)*
+Auditoría ejecutada el 2026-05-09. Resultado: **escenario híbrido A+B**.
+
+**Archivos sensibles — LIMPIO ✅:**
+
+```
+(a) .env files alguna vez commiteados:           VACÍO
+(b) service account JSONs alguna vez commiteados: VACÍO
+```
+
+El `.gitignore` (que cubre `.env`, `.env.*`, `*-adminsdk-*.json` específicamente) protegió desde el principio. No hay credenciales reales de Firebase Admin en el historial. **No hay que rotar la service account ni regenerar la private key.**
+
+**Strings sensibles en docs commiteados — EXPUESTO 🚨:**
+
+```
+(c) "BEGIN PRIVATE KEY":
+    f76a19d feat(spec-007): ...        ← spec referencia conceptual, no key real
+    8bf9525 feat(spec-001): ...        ← spec referencia conceptual, no key real
+
+(d) "Metamorfosis2026":
+    f76a19d feat(spec-007): ...        ← SPEC-010 menciona el password de ejemplo
+    bd7686d docs: agregar revisión...  ← REVISION-CODIGO-2026-05-08.md cita el password
+    887de61 wip: snapshot previo...    ← WIP previo (probablemente CONFIG_REPORT.md o similar)
+```
+
+El password `ADMIN_PASSWORD = "Metamorfosis2026*"` aparece en commits de documentación que están en el repo público. El "BEGIN PRIVATE KEY" en (c) es solo la frase mencionada en specs como referencia conceptual — la key real nunca se commiteó.
+
+**Acción tomada:**
+
+- **No** se ejecuta `git filter-repo`. Justificación: el password se rota en SPEC-010 y queda inválido inmediatamente; limpiar el historial no agrega seguridad real una vez que el credencial es obsoleto. Filter-repo reescribe SHAs lo cual rompe forks y caches de GitHub, costo no justificado para un valor ya invalidado.
+- **SPEC-010 pasa de "alto" a OBLIGATORIA INMEDIATA.** Carlos rota el password en hPanel + actualiza `.env` local + guarda el nuevo en gestor de credenciales. El viejo deja de funcionar.
+- Memoria de Claude actualizada: `project_metamorfosis_real_stack.md` ahora indica que el password viejo está invalidado tras SPEC-010, para que futuras sesiones no asuman su valor.
+
+**Aprendizajes (registrados como nota para Fase 3+):**
+
+- **Nunca citar passwords literales en specs ni reportes de revisión.** Usar placeholders tipo `<ADMIN_PASSWORD>` o `***`. Próximas specs deben respetar esto.
+- **El `.gitignore` correcto desde el día uno** evita la mayor parte de los riesgos. Los archivos sensibles reales (`.env`, JSON) nunca cruzaron el firewall.
+- **`git log -S "<string>"`** es la herramienta correcta para auditoría retroactiva — corre rápido incluso en repos grandes.
+- **Si hubiera que limpiar el historial**, `git-filter-repo` es la herramienta moderna (BFG es legacy). Ver SPEC-009 secciones 3 y 4 para los comandos exactos. No aplicó esta vez.
+
+**No se crea `SECURITY.md` adicional:** la información de manejo de secretos vive en este Resultado + en la memoria del proyecto (`project_metamorfosis_real_stack.md`). Si en el futuro hay más colaboradores, vale la pena formalizarlo.
+
+**Pendientes:** ninguno. Spec cerrada. Lo único que sigue es ejecutar SPEC-010 (manual).

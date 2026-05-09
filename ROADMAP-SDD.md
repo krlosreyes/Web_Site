@@ -33,8 +33,8 @@ Atacamos los **CRÍTICOS** en orden, después los **ALTOS**, después el resto. 
 |---|---|---|---|---|
 | 007 | Esconder UI admin a visitantes anónimos | 📝 Spec | Navbar/Footer exponen `/admin` a todos los visitantes | [SPEC-007](specs/SPEC-007-hide-admin-ui.md) |
 | 008 | Reglas de seguridad de Firestore | 📝 Spec | Sin rules explícitas, lectura/escritura libre desde el cliente | [SPEC-008](specs/SPEC-008-firestore-rules.md) |
-| 009 | Auditar git history por credenciales filtradas | 📝 Spec | `.env` y service account JSON pudieron commitearse en WIP | [SPEC-009](specs/SPEC-009-git-history-audit.md) |
-| 010 | Rotar `ADMIN_PASSWORD` | 📝 Spec | Password actual considerado comprometido por exposición | [SPEC-010](specs/SPEC-010-rotate-admin-password.md) |
+| 009 | Auditar git history por credenciales filtradas | ✅ Cerrada (2026-05-09) | `.env` y service account JSON pudieron commitearse en WIP | [SPEC-009](specs/SPEC-009-git-history-audit.md) |
+| 010 | Rotar `ADMIN_PASSWORD` | 🔨 En curso (manual) | Password aparece en docs commiteados — confirmado por SPEC-009 | [SPEC-010](specs/SPEC-010-rotate-admin-password.md) |
 
 **Orden recomendado por riesgo creciente:** 007 (cero, UX) → 009 (research, no escribe) → 008 (medio, requiere testing) → 010 (medio, riesgo de bloqueo si algo va mal en hPanel).
 
