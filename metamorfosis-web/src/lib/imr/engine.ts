@@ -144,25 +144,29 @@ function referenceBodyFatPct(age: number, gender: Gender): number {
 }
 
 /**
- * Edad metabólica — método estilo Tanita/Omron, fundamentado en BMR.
+ * Edad metabólica — método empírico basado en composición corporal y BMI.
  *
- * Idea: si tu TMB (calculada con Katch-McArdle, que depende de LBM) es mayor
- * que la TMB de referencia para alguien sano de tu misma edad/altura/género,
- * tu cuerpo metabólicamente "se comporta" como uno más joven, y viceversa.
+ * Por qué este método (y no Katch-McArdle absoluto): la BMR via LBM crece
+ * con el peso total. Una persona con sobrepeso (95 kg, 30 % bf) tiene LBM
+ * absoluta mayor que la referencia "ideal" (~52 kg LBM) y termina pareciendo
+ * "metabólicamente joven", lo cual es clínicamente engañoso (verificado en
+ * SPEC-006: tests con sobrepeso 50a y atleta 35a daban ambos clamp 18). El
+ * riesgo metabólico real correlaciona con (a) % grasa por encima del óptimo
+ * y (b) sobrepeso (BMI > 22), no con masa magra absoluta.
  *
- * Pasos:
- *   1. Calcular BMR_real con Katch-McArdle usando LBM real del user.
- *   2. Calcular BMR_ref para una persona "saludable" de su misma altura/género
- *      con BMI=22 (peso considerado "normal") y % grasa óptimo según ACSM.
- *   3. Convertir el delta de BMR a años usando la pendiente -5 kcal/año de
- *      Mifflin-St Jeor (cada año de edad cronológica baja TMB en ~5 kcal/día
- *      a peso constante; usamos esa misma pendiente para mapear delta → años).
- *   4. Acotar el resultado entre [18, 80] para evitar valores absurdos en
- *     extremos del input.
+ * Fórmula:
+ *   deltaBf  = bodyFat - referenceBfPct(age, gender)   // + es peor (más grasa)
+ *   deltaBmi = max(0, bmi - 22)                          // solo penaliza sobrepeso
+ *   offset   = deltaBf * 1.0 + deltaBmi * 0.6
+ *   metAge   = clamp(18, age + offset, 80)
  *
- * Esta es la fuente única de verdad de "edad metabólica" en Metamorfosis Real.
- * Si en el futuro queremos refinar (incluir VO2max, masa muscular medida con
- * bioimpedancia, etc.), modificamos solo esta función.
+ * Pesos calibrados para producir resultados coherentes:
+ *   - Atleta 30a (bf=10, BMI=23) → ~21 años
+ *   - Promedio 35a (bf=18, BMI=24) → ~36 años
+ *   - Sobrepeso 50a (bf=30, BMI=31) → ~63 años
+ *
+ * Este es el contrato canónico que ElenaApp también respetará. Si se quiere
+ * refinar (FFMI, VO2max, biomarcadores reales), modificar solo esta función.
  */
 export function metabolicAge(input: {
     age: number;
@@ -173,23 +177,16 @@ export function metabolicAge(input: {
 }): number {
     const { age, weightKg, heightCm, bodyFatPct, gender } = input;
 
-    // BMR real del user
-    const bmrUser = tmbKatchMcArdle({ weightKg, bodyFatPct });
-
-    // BMR de referencia: persona saludable con BMI=22 y % grasa óptimo ACSM
     const heightM = heightCm / 100;
-    const idealWeight = 22 * heightM * heightM;
-    const idealBfPct = referenceBodyFatPct(age, gender);
-    const bmrReference = tmbKatchMcArdle({
-        weightKg: idealWeight,
-        bodyFatPct: idealBfPct,
-    });
+    const bmi = weightKg / (heightM * heightM);
+    const bfRef = referenceBodyFatPct(age, gender);
 
-    // Conversión delta_BMR → delta_años con pendiente Mifflin-St Jeor (-5 kcal/año).
-    const deltaKcal = bmrUser - bmrReference;
-    const yearOffset = deltaKcal / 5;
+    const deltaBf = bodyFatPct - bfRef;
+    const deltaBmi = Math.max(0, bmi - 22);
 
-    return Math.max(18, Math.min(80, Math.round(age - yearOffset)));
+    const yearOffset = deltaBf * 1.0 + deltaBmi * 0.6;
+
+    return Math.max(18, Math.min(80, Math.round(age + yearOffset)));
 }
 
 /**
