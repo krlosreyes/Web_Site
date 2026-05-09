@@ -1,273 +1,232 @@
-# SPEC-004 — Reescribir `/api/calculate-imr` (motor + cierre de write arbitrario)
+# SPEC-004 — Motor IMR unificado web ↔ ElenaApp
 
 **Estado:** 📝 Spec
 **Fase:** 1
 **Severidad:** CRÍTICO
 **Fecha de creación:** 2026-05-08
-**Última revisión:** 2026-05-09 (scope expandido tras descubrir que el endpoint llevaba tiempo roto)
+**Última revisión:** 2026-05-09 (rescoped: scope ampliado a unificación con ElenaApp)
 **Autor:** Carlos Reyes
-**Depende de:** SPEC-001 (build pasa con el stub temporal)
+**Depende de:** SPEC-001 (deploy), **SPEC-005** (schema canónico — define `ImrResult` y dónde se persiste el cálculo)
 
 ---
 
 ## Contexto
 
-Lo que se vio inicialmente en la revisión de código:
+El motor IMR (Índice de Metamorfosis Real) **debe ser idéntico** entre la web y ElenaApp. Si divergen, dos versiones del mismo user reciben diagnósticos distintos según qué producto consultaron, lo que destruye la propuesta de valor del funnel ("la web te diagnostica → ElenaApp ejecuta el protocolo basado en ese diagnóstico").
 
-- `metamorfosis-web/src/pages/api/calculate-imr.ts` aceptaba un campo `recordId` y, si venía, hacía `db.collection('metamorfosis_posts').doc(recordId).set(metadata, { merge: true })` sin autenticación. Permitía a cualquier visitante sobrescribir metadata de cualquier post real.
+Estado actual del cálculo en la web:
 
-Lo que se descubrió al implementar SPEC-001 (intento de build local):
+- `src/utils/imr-engine.ts` → exporta `calculateSPEC705({...})`. Lo usa `IMRQuiz.tsx` directo desde el cliente.
+- `src/utils/biometrics.ts` → exporta `calculateIMR({peso,altura,grasa})` que es un **fetch a una Cloud Function externa** (`PUBLIC_CLOUD_FUNCTION_URL` apunta a `https://us-central1-elena-app-2026-v1.cloudfunctions.net/calculateIMRv2`). El `.env` la marca como "Antigravity Engine (disabled)". Lo usa `AnaliticaIMR.tsx` (admin).
+- `src/components/calculator/MetamorfosisCalculator.tsx` → función local `calculateIMR()` que es solo el handler que hace `fetch('/api/calculate-imr', ...)`.
+- `src/pages/api/calculate-imr.ts` → **stub temporal 503** (puesto en SPEC-001 para desbloquear el build, porque importaba un símbolo inexistente).
 
-- El endpoint **importaba `calculateIMR` desde `src/utils/imr-engine.ts`**, pero ese símbolo no existe ahí. El engine actual exporta solo `calculateSPEC705`, con firma e input completamente distintos.
-- Hay **tres "calculateIMR" distintos en el repo** que no se hablan entre sí:
-  - `src/utils/imr-engine.ts` → `calculateSPEC705({ gender, age, weight, height, waist, bodyFat, fastingHours, dinnerHour, exerciseMinutes, sleepQuality, hydrationLitros, hydrationGoal, lastMealHour })` → devuelve `{ imr, zona, blocks, ffmi, whtr }`. Lo usa `IMRQuiz.tsx` directo del cliente.
-  - `src/utils/biometrics.ts` → `calculateIMR({ peso, altura, grasa })` → es una función async que hace fetch a `PUBLIC_CLOUD_FUNCTION_URL` (Cloud Function externa marcada como "disabled" en `.env`). Lo usa `AnaliticaIMR.tsx` (admin).
-  - `src/components/calculator/MetamorfosisCalculator.tsx` → función local `calculateIMR()` que es solo el handler que hace `fetch('/api/calculate-imr', ...)`. Lo usa la calculadora "PRO".
-- `MetamorfosisCalculator.tsx` además importaba `IMRResult` desde `imr-engine.ts` — un tipo que no se exporta. Y los campos que el componente lee del response (`imrScore`, `label`, `ica`) no coinciden con ninguno de los outputs reales del engine.
-- Conclusión: la **calculadora PRO no funcionaba en producción desde el rename del engine**. No se notaba porque el sitio se publicaba como estático y la API nunca corría.
+Tres motores conviviendo, ninguno se habla con los otros. Y no sabemos qué fórmula usa ElenaApp hoy.
 
-Para desbloquear el build de SPEC-001, el endpoint quedó como stub que devuelve 503. Esta spec lo reescribe correctamente.
+Decisión inicial pendiente (resuelta en sub-spec 4.0):
+
+| Opción | Trade-off |
+|---|---|
+| **A — Cloud Function única** (calculateIMRv2 en GCP). Web la consume vía `/api/calculate-imr` proxy. ElenaApp la consume directo. | Una sola fuente de verdad. Cambios de fórmula se propagan instantáneo. Latencia por hop (~200ms). Web depende de CF arriba. |
+| **B — Librería compartida** (TypeScript package privado). Web y ElenaApp lo importan. | Cálculo local sin latencia, offline-friendly. Drift posible si no actualizan ambos productos a tiempo. Requiere artifact registry o monorepo. |
 
 ## Problema
 
-Tres problemas mezclados en el mismo archivo y sus dependencias:
-
-1. **El endpoint no funciona** (import de función inexistente). La calculadora PRO está rota.
-2. **El endpoint, cuando funcionaba, permitía writes arbitrarios** a `metamorfosis_posts` sin auth, vía `recordId`.
-3. **Los tipos están inconsistentes** entre el motor real (`calculateSPEC705`), el componente (`MetamorfosisCalculator`), el legacy (`biometrics.ts → calculateIMR` que hace fetch a Cloud Function deshabilitada) y los tipos que cada uno asume.
+Hay tres motores divergentes en la web, ninguno alineado con ElenaApp, y el endpoint `/api/calculate-imr` está stubbeado a 503 desde SPEC-001. La calculadora PRO no funciona y no hay garantía de que el resultado sea el mismo que ElenaApp dará al mismo user con los mismos inputs.
 
 ## Solución propuesta
 
-Reescribir `/api/calculate-imr` como **endpoint puro de cálculo** (sin Firestore writes), montado sobre `calculateSPEC705`. Mapear el payload que envía `MetamorfosisCalculator.tsx` a la firma de `calculateSPEC705`. Tipar la respuesta para que `IMRResult` sea fuente única de verdad. Decidir el destino del `biometrics.ts` legacy.
+### Sub-spec 4.0 — Investigación + decisión (gate antes de implementar)
 
-**Decisiones clave:**
+Antes de tocar código, Carlos verifica:
 
-- **Motor único:** `calculateSPEC705` es el motor real y validado. Se usa en `IMRQuiz.tsx` y va a usarse también desde el endpoint. `biometrics.ts` con su Cloud Function deshabilitada queda obsoleto: si `AnaliticaIMR.tsx` lo necesita, migrarlo al mismo `calculateSPEC705`.
-- **Mapeo de inputs:** la calculadora PRO envía campos que `calculateSPEC705` no usa (`neckCircumferenceCm`, `pathologies`) y omite otros que sí pide (`fastingHours`, `dinnerHour`, `exerciseMinutes`, `sleepQuality`, `hydrationLitros`, `lastMealHour`, `bodyFat`). Hay que decidir defaults y/o agregar inputs nuevos en el componente. Propuesta: defaults razonables en el endpoint para los campos faltantes y `bodyFat` calculado a partir de los perímetros (Navy method) si no viene explícito. Alternativa: añadir esos campos al UI de la calculadora PRO en otra spec.
-- **Salida:** la respuesta queda con la forma que el componente ya consume — `{ imrScore, label, ica, ... }` — mapeando del output de `calculateSPEC705` (`{ imr, zona, blocks, ffmi, whtr }`). Se exporta el tipo `IMRResult` desde `imr-engine.ts` para que sea fuente única.
-- **Sin escritura a Firestore.** Si más adelante se quiere logging anónimo de cálculos, se abre una spec dedicada con colección `imr_calculations` y rate limiting.
+1. **¿`calculateIMRv2` en GCP está desplegada y viva?**
+   ```sh
+   curl -s -o /dev/null -w "%{http_code}\\n" \
+     https://us-central1-elena-app-2026-v1.cloudfunctions.net/calculateIMRv2
+   # Esperado: 405 (Method Not Allowed para GET) si está viva, 404 si no existe.
 
-## Plan de implementación
-
-1. **Decidir mapeo de inputs.** Para esta spec uso defaults razonables; documentado en código:
-   - `neckCircumferenceCm` → ignorado (no lo usa SPEC-70.5).
-   - `pathologies` → ignorado (no lo usa SPEC-70.5).
-   - `bodyFat` → si no viene, calcular con fórmula Navy (Hodgdon-Beckett) desde `waistCircumferenceCm`, `neckCircumferenceCm`, `heightCm` (y `hipCircumferenceCm` para mujeres). El motor lo usa para FFMI.
-   - `fastingHours` → 12 (default neutro).
-   - `dinnerHour` → 19 (default).
-   - `exerciseMinutes` → 30.
-   - `sleepQuality` → 0.7.
-   - `hydrationLitros` → 2; `hydrationGoal` → 3.
-   - `lastMealHour` → 19.
-
-2. **Exportar `IMRResult` desde `src/utils/imr-engine.ts`:**
-   ```ts
-   export type IMRResult = {
-       imrScore: number;       // 0-100
-       label: string;          // "OPTIMIZADO" | "EFICIENTE" | "FUNCIONAL" | "INESTABLE" | "DETERIORADO"
-       ica: number;            // ICA = waist / height ratio
-       imc: number;            // BMI
-       tmb: number;            // Tasa metabólica basal (Mifflin-St Jeor)
-       metabolicAge: number;   // Estimación
-       blocks: { E: number; M: number; C: number };
-       ffmi: number;
-       whtr: number;
-   };
+   gcloud functions describe calculateIMRv2 --region=us-central1 --gen2
+   # O Cloud Console → Functions → ver versión, runtime, último deploy.
    ```
 
-3. **Reescribir `src/pages/api/calculate-imr.ts`** completo (reemplazando el stub):
-   ```ts
-   import type { APIRoute } from 'astro';
-   import { calculateSPEC705 } from '../../utils/imr-engine';
-   import type { IMRResult } from '../../utils/imr-engine';
+2. **¿Qué fórmula contiene?** Si Carlos puede ver el source en GCP, comparar con `calculateSPEC705` de `imr-engine.ts`. Si son la misma → tomar la CF como canon. Si difieren → hay que decidir cuál es el motor real.
 
-   export const prerender = false;
+3. **¿Qué fórmula tiene ElenaApp en su repo?** Carlos lo verifica en el repo de ElenaApp.
 
-   function calculateBodyFatNavy(input: {
-       waistCm: number;
-       neckCm: number;
-       heightCm: number;
-       hipCm?: number;
-       gender: 'male' | 'female';
-   }): number {
-       const { waistCm, neckCm, heightCm, hipCm, gender } = input;
-       if (gender === 'male') {
-           return 86.010 * Math.log10(waistCm - neckCm) - 70.041 * Math.log10(heightCm) + 36.76;
-       } else {
-           const hip = hipCm ?? waistCm * 1.05;
-           return 163.205 * Math.log10(waistCm + hip - neckCm) - 97.684 * Math.log10(heightCm) - 78.387;
-       }
-   }
+**Resultado de la investigación determina la opción A o B.** Si la CF está viva y ElenaApp la usa → Opción A. Si la CF está abandonada y ElenaApp tiene su propia copia local → Opción B (extraer a librería).
 
-   export const POST: APIRoute = async ({ request }) => {
-       try {
-           const data = await request.json();
+### Sub-spec 4.1 — Implementación
 
-           // Validación de inputs requeridos
-           const required = ['heightCm', 'currentWeightKg', 'waistCircumferenceCm', 'neckCircumferenceCm'];
-           for (const k of required) {
-               if (typeof data[k] !== 'number' || !Number.isFinite(data[k])) {
-                   return new Response(JSON.stringify({ error: `Campo inválido: ${k}` }), {
-                       status: 400,
-                       headers: { 'Content-Type': 'application/json' },
-                   });
-               }
-           }
+Ambas opciones (A y B) escriben el endpoint `/api/calculate-imr` así:
 
-           const heightCm: number = data.heightCm;
-           const weightKg: number = data.currentWeightKg;
-           const waistCm: number = data.waistCircumferenceCm;
-           const neckCm: number = data.neckCircumferenceCm;
-           const hipCm: number | undefined = typeof data.hipCircumferenceCm === 'number' ? data.hipCircumferenceCm : undefined;
-           const age: number = typeof data.age === 'number' ? data.age : 40;
-           const gender: 'male' | 'female' = data.gender === 'female' ? 'female' : 'male';
+```ts
+import type { APIRoute } from 'astro';
+import { db } from '../../lib/firebaseAdmin';
+import { COLLECTIONS } from '../../lib/constants/firestore';
+import type { ImrResult, UserDoc } from '../../lib/types/user';
+import { computeImr } from '../../lib/imr/engine'; // motor canónico (impl varía según opción)
 
-           const bodyFat = typeof data.bodyFat === 'number'
-               ? data.bodyFat
-               : calculateBodyFatNavy({ waistCm, neckCm, heightCm, hipCm, gender });
+export const prerender = false;
 
-           const spec = calculateSPEC705({
-               gender,
-               age,
-               weight: weightKg,
-               height: heightCm,
-               waist: waistCm,
-               bodyFat,
-               fastingHours: data.fastingHours ?? 12,
-               dinnerHour: data.dinnerHour ?? 19,
-               exerciseMinutes: data.exerciseMinutes ?? 30,
-               sleepQuality: data.sleepQuality ?? 0.7,
-               hydrationLitros: data.hydrationLitros ?? 2,
-               hydrationGoal: data.hydrationGoal ?? 3,
-               lastMealHour: data.lastMealHour ?? 19,
-           });
+export const POST: APIRoute = async ({ request }) => {
+  try {
+    const data = await request.json();
 
-           // Métricas derivadas que la UI espera
-           const heightM = heightCm / 100;
-           const imc = weightKg / (heightM * heightM);
-           const ica = waistCm / heightCm;
-           const tmb = gender === 'male'
-               ? 10 * weightKg + 6.25 * heightCm - 5 * age + 5
-               : 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
-           const metabolicAge = Math.max(18, Math.round(age + (1 - spec.imr / 100) * 20));
+    // Validación de inputs
+    const required = ['heightCm', 'currentWeightKg', 'waistCircumferenceCm', 'neckCircumferenceCm'];
+    for (const k of required) {
+      if (typeof data[k] !== 'number' || !Number.isFinite(data[k])) {
+        return jsonResponse(400, { error: `Campo inválido: ${k}` });
+      }
+    }
 
-           const result: IMRResult = {
-               imrScore: spec.imr,
-               label: spec.zona,
-               ica,
-               imc,
-               tmb,
-               metabolicAge,
-               blocks: {
-                   E: parseFloat(spec.blocks.E),
-                   M: parseFloat(spec.blocks.M),
-                   C: parseFloat(spec.blocks.C),
-               },
-               ffmi: parseFloat(spec.ffmi),
-               whtr: parseFloat(spec.whtr),
-           };
+    // Cálculo (proxy a CF si opción A; importado de librería si opción B)
+    const result: ImrResult = await computeImr({
+      heightCm: data.heightCm,
+      weightKg: data.currentWeightKg,
+      waistCm: data.waistCircumferenceCm,
+      neckCm: data.neckCircumferenceCm,
+      hipCm: data.hipCircumferenceCm,
+      age: data.age ?? 40,
+      gender: data.gender === 'female' ? 'female' : 'male',
+      bodyFatPct: data.bodyFat,
+      // Hábitos opcionales con defaults; web no captura todos en quiz inicial
+      fastingHours: data.fastingHours ?? 12,
+      dinnerHour: data.dinnerHour ?? 19,
+      exerciseMinutes: data.exerciseMinutes ?? 30,
+      sleepQuality: data.sleepQuality ?? 0.7,
+      hydrationLitres: data.hydrationLitres ?? 2,
+      lastMealHour: data.lastMealHour ?? 19,
+    });
 
-           return new Response(JSON.stringify({ success: true, result }), {
-               status: 200,
-               headers: {
-                   'Content-Type': 'application/json',
-                   'Cache-Control': 'no-cache',
-               },
-           });
-       } catch (error) {
-           console.error('IMR engine error:', error);
-           return new Response(JSON.stringify({ error: 'Error interno del motor IMR' }), {
-               status: 500,
-               headers: { 'Content-Type': 'application/json' },
-           });
-       }
-   };
-   ```
+    // Persistencia opcional: si el request viene autenticado (cookie de Firebase Auth),
+    // escribir en users/{uid} según el schema canónico SPEC-005. Si no, devolver
+    // el resultado y dejar que el cliente decida (anónimo).
+    const uid = await getUidFromRequest(request); // helper que valida Firebase ID token
+    if (uid) {
+      await persistImr(uid, { ...data, ...result });
+    }
 
-4. **Limpiar `MetamorfosisCalculator.tsx`:**
-   - Reemplazar el `type IMRResult` local (declarado durante SPEC-001 como stub) por `import type { IMRResult } from '../../utils/imr-engine'`.
-   - Eliminar el `// TODO(SPEC-004)` comment.
+    return jsonResponse(200, { success: true, result });
+  } catch (err) {
+    console.error('[calculate-imr] Error:', err);
+    return jsonResponse(500, { error: 'Error interno del motor IMR' });
+  }
+};
 
-5. **Decidir destino de `src/utils/biometrics.ts`:**
-   - Si `AnaliticaIMR.tsx` lo usa solo para simulaciones admin (poblar estadísticas con datos sintéticos), migrarlo a `calculateSPEC705` o eliminarlo.
-   - Decisión propuesta: eliminar `biometrics.ts` y migrar `AnaliticaIMR.tsx` al motor único. La Cloud Function externa está marcada disabled, así que no perdemos funcionalidad real.
-   - Si la migración de `AnaliticaIMR` es no trivial, partirla en SPEC-004b (commit separado).
+function jsonResponse(status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+```
 
-6. **Borrar el bloque `recordId`:** ya no aparece en la nueva versión (la solución original de la spec). Verificar con `grep`.
+**Diferencia A vs B implementación de `computeImr`:**
 
-7. **Borrar `PUBLIC_CLOUD_FUNCTION_URL` del `.env`** si ya no la usa nada después de migrar `biometrics.ts`. Anotar en commit.
+- **Opción A:** `src/lib/imr/engine.ts` hace `fetch(import.meta.env.PUBLIC_CLOUD_FUNCTION_URL, { method: 'POST', body, headers })` y mapea la respuesta al shape `ImrResult`.
+- **Opción B:** `src/lib/imr/engine.ts` contiene la implementación pura (copia de `calculateSPEC705` + Body Fat Navy + métricas derivadas) tipada al `ImrResult` del schema canónico.
+
+`persistImr(uid, data)` (helper común a ambas opciones):
+
+```ts
+async function persistImr(uid: string, payload: any) {
+  const userRef = db.collection(COLLECTIONS.USERS).doc(uid);
+  const now = new Date().toISOString();
+
+  await userRef.set({
+    bio: {
+      heightCm: payload.heightCm,
+      weightKg: payload.weightKg,
+      waistCm: payload.waistCm,
+      neckCm: payload.neckCm,
+      hipCm: payload.hipCm ?? null,
+      bodyFatPct: payload.bodyFat ?? payload.result.bodyFatPct ?? null,
+      leanMassPct: payload.bodyFat ? 100 - payload.bodyFat : null,
+      updatedAt: now,
+    },
+    imr: {
+      current: payload.result,
+    },
+    meta: {
+      schemaVersion: 1,
+      updatedAt: now,
+    },
+  }, { merge: true });
+
+  // history como array push
+  await userRef.update({
+    'imr.history': admin.firestore.FieldValue.arrayUnion({
+      ...payload.result,
+      computedAt: now,
+      engineVersion: 'spec-70.5-v1',
+    }),
+  });
+}
+```
+
+### Sub-spec 4.2 — Eliminar la rama `recordId` y `biometrics.ts` legacy
+
+- El bloque `if (data.recordId) { ... db.collection('metamorfosis_posts').doc(recordId).set(...) }` no aparece en la nueva versión.
+- `biometrics.ts` con su Cloud Function deshabilitada queda obsoleto: `AnaliticaIMR.tsx` migra al nuevo `computeImr` o usa `calculateSPEC705` local si solo necesita simulaciones admin sin red.
+
+### Sub-spec 4.3 — Limpiar `MetamorfosisCalculator.tsx`
+
+- Reemplazar el `type IMRResult` local (con `TODO(SPEC-004)`) por `import type { ImrResult } from '../../lib/types/user'` (definido en SPEC-005).
+- Mapear el body del fetch al nuevo shape de `/api/calculate-imr`.
 
 ## Criterios de aceptación
 
-- [ ] `npm run build` termina sin error.
-- [ ] `grep -n "calculateIMR" metamorfosis-web/src/pages/api/calculate-imr.ts` no devuelve nada (solo `calculateSPEC705`).
-- [ ] `grep -n "recordId" metamorfosis-web/src/pages/api/calculate-imr.ts` no devuelve nada.
-- [ ] `import type { IMRResult } from '../../utils/imr-engine'` funciona en `MetamorfosisCalculator.tsx`.
-- [ ] La calculadora PRO en `/calculadora` muestra resultados reales (no error 503) al variar inputs.
-- [ ] Cálculo coherente: para `{ heightCm:175, currentWeightKg:75, waistCircumferenceCm:85, neckCircumferenceCm:38, age:35, gender:'male' }` el endpoint devuelve `imrScore` razonable (entre 50 y 90).
-- [ ] Inputs faltantes devuelven 400 (no 500).
-- [ ] No queda código consumiendo `PUBLIC_CLOUD_FUNCTION_URL` (o se documenta por qué se mantiene).
+- [ ] Sub-spec 4.0: Carlos confirma estado de `calculateIMRv2` en GCP (viva/muerta) y elige opción A o B con razón documentada.
+- [ ] `src/lib/imr/engine.ts` existe y exporta `computeImr(input): Promise<ImrResult>`. Impl según opción.
+- [ ] `src/pages/api/calculate-imr.ts` reescrito: validación de inputs (400), cálculo, persistencia condicional si auth, devuelve `{success, result}`.
+- [ ] `grep -n "calculateIMR\b" src/pages/api/calculate-imr.ts` no devuelve nada (solo `computeImr`).
+- [ ] `grep -n "recordId" src/pages/api/calculate-imr.ts` no devuelve nada.
+- [ ] `MetamorfosisCalculator.tsx` importa `ImrResult` desde `lib/types/user`, sin tipo local con TODO.
+- [ ] `biometrics.ts` eliminado o re-exportando `computeImr` con shim de compatibilidad.
+- [ ] Si user autenticado hace `POST /api/calculate-imr`, el doc `users/{uid}` se actualiza con `bio`, `imr.current`, `imr.history` array_union.
+- [ ] La calculadora `/calculadora` muestra resultado real (no 503).
+- [ ] Cálculo coherente: para `{heightCm:175, weightKg:75, waistCm:85, neckCm:38, age:35, gender:'male'}` el `imrScore` está entre 50 y 90.
+- [ ] (Una vez ElenaApp implemente su consumo del mismo motor) cálculo idéntico cliente web vs cliente app para los mismos inputs.
 
 ## Pruebas
 
 ```sh
-cd metamorfosis-web
-npm run build
-PORT=4321 npm start &
-sleep 3
-
 # Cálculo válido
-curl -s -X POST http://localhost:4321/api/calculate-imr \
+curl -s -X POST https://metamorfosisvital.com.co/api/calculate-imr \
     -H 'Content-Type: application/json' \
     -d '{"heightCm":175,"currentWeightKg":75,"waistCircumferenceCm":85,"neckCircumferenceCm":38,"age":35,"gender":"male"}' \
     | python3 -m json.tool
-# Esperado: { success: true, result: { imrScore, label, ica, imc, tmb, metabolicAge, blocks, ffmi, whtr } }
+# Esperado: 200 {success:true, result:{imrScore, label, ica, imc, tmb, metabolicAge, blocks, ffmi, whtr}}
 
-# Inválido
-curl -s -X POST http://localhost:4321/api/calculate-imr \
+# Inválido (falta heightCm)
+curl -s -X POST https://metamorfosisvital.com.co/api/calculate-imr \
     -H 'Content-Type: application/json' \
     -d '{"currentWeightKg":75}' \
     -o /dev/null -w "%{http_code}\n"
 # Esperado: 400
 
-# recordId ya no escribe
-curl -s -X POST http://localhost:4321/api/calculate-imr \
-    -H 'Content-Type: application/json' \
-    -d '{"heightCm":175,"currentWeightKg":75,"waistCircumferenceCm":85,"neckCircumferenceCm":38,"recordId":"victim"}' \
-    | python3 -m json.tool
-# Esperado: 200; verificar que metamorfosis_posts/victim no fue tocado en Firestore.
-
-# UI manual
-# Abrir http://localhost:4321/calculadora
-# Cambiar peso/altura/cintura → ver que imrScore cambia con debounce
+# UI
+# Abrir https://metamorfosisvital.com.co/calculadora → cambiar inputs, ver imrScore actualizándose
 ```
 
 ## Riesgos / consideraciones
 
-- **El motor SPEC-70.5 espera campos de hábitos** (ayuno, cena, sueño, ejercicio, hidratación) que la calculadora PRO no captura hoy. Con defaults el resultado va a estar sesgado hacia un perfil "promedio". Si Carlos quiere un cálculo más fino, agregar inputs en otra spec o ofrecer un toggle "modo simple" / "modo extendido".
-- **`bodyFat` calculado por Navy** es una aproximación; no reemplaza una bioimpedancia. Documentar en la UI.
-- **Eliminar `biometrics.ts`** rompe `AnaliticaIMR.tsx` si aún lo importa. Verificar con grep antes y migrar en el mismo commit (o partir en sub-spec).
-- **Sin rate limit** todavía. Está en backlog (Fase 3). Aceptable para volumen actual.
-- **No hay logging anónimo** de cálculos. Si lo querés para analítica, abrí SPEC-006 con colección dedicada.
+- **Cloud Function fría (Opción A).** Primer hit puede tardar 2-3s. Considerar `min_instances=1` en GCP si el costo lo permite.
+- **Drift de motor (Opción B).** Si web y app implementan el cálculo independientemente, drift garantizado. Requiere disciplina de releases o monorepo.
+- **Persistencia anónima.** Si un visitante no logueado calcula su IMR, no persistimos. Si después se registra (en /login o /quiz), el quiz inicial debe re-disparar el cálculo. SPEC-006 (onboarding) cierra ese flujo.
+- **Versionado del motor.** `engineVersion` en `imr.history` permite saber qué fórmula calculó cada entry. Si cambia la fórmula, mantenemos compatibilidad histórica.
+- **Latencia del proxy SSR (Opción A).** Web → Hostinger Node → CF GCP es dos hops. Ver si vale meter cache o pasar la CF directo desde el cliente con CORS.
 
 ## Commit
 
-**Mensaje sugerido:**
-```
-fix(spec-004): reescribir /api/calculate-imr sobre calculateSPEC705
+**Mensajes sugeridos:**
 
-- Endpoint puro: recibe inputs, devuelve resultado, no toca Firestore
-- Motor unificado: usa calculateSPEC705 de imr-engine.ts (antes intentaba
-  importar una función inexistente, llevaba tiempo rota)
-- Body fat por método Navy si no se provee explícito
-- Tipo IMRResult exportado desde imr-engine.ts; MetamorfosisCalculator.tsx
-  pasa a usarlo en lugar del stub local
-- Validación de inputs numéricos requeridos: 400 si faltan
-- Eliminada la rama recordId que permitía writes anónimos a posts
-- (Pendiente decidir: borrar biometrics.ts si AnaliticaIMR puede migrar)
-
-Cierra specs/SPEC-004-calculate-imr-write.md
-```
+- `chore(spec-004a): registrar decisión de motor IMR (opción A/B)` (commit que añade un `docs/decisions/004-motor-imr.md` con el resultado de la investigación)
+- `feat(spec-004b): motor IMR canónico via lib/imr/engine`
+- `fix(spec-004c): /api/calculate-imr usa motor canónico, sin recordId`
+- `refactor(spec-004d): MetamorfosisCalculator usa ImrResult del schema, biometrics.ts eliminado`
 
 ---
 

@@ -1,251 +1,300 @@
-# SPEC-005 — Unificar colecciones Firestore
+# SPEC-005 — Schema canónico de `users/{uid}` compartido Web ↔ ElenaApp
 
 **Estado:** 📝 Spec
 **Fase:** 1
 **Severidad:** CRÍTICO
 **Fecha de creación:** 2026-05-08
+**Última revisión:** 2026-05-09 (rescoped: integración web ↔ ElenaApp)
 **Autor:** Carlos Reyes
-**Depende de:** SPEC-001 (deploy) — útil para verificar end-to-end con datos reales
+**Depende de:** SPEC-001 (deploy)
+**Bloquea:** SPEC-004 (motor IMR), SPEC-006 (onboarding unificado)
 
 ---
 
 ## Contexto
 
-Hay dos inconsistencias separadas pero relacionadas:
-
-### 5.1 — Bug en `stats.ts`
-
-`metamorfosis-web/src/pages/api/admin/stats.ts:21`:
-
-```ts
-const postsRef = db.collection('post');   // ← singular
-```
-
-Todo el resto del código usa `'metamorfosis_posts'`:
+Metamorfosis Real es un funnel de dos superficies que comparten Firebase:
 
 ```
-src/pages/biblioteca.astro:8:        const postsRef = db.collection('metamorfosis_posts');
-src/pages/posts/[slug].astro:14:     const postsRef = db.collection("metamorfosis_posts");
-src/pages/api/calculate-imr.ts:36:   const docRef = db.collection('metamorfosis_posts').doc(...)
-src/pages/api/admin/posts.ts:21,88,104,124:  db.collection('metamorfosis_posts')
-src/pages/api/admin/cleanup.ts:5:    const postsRef = db.collection('metamorfosis_posts');
+Web (descubrir + diagnóstico inicial + waitlist + foros + tests)
+   ↓ (mismo Firebase Auth, mismo user doc)
+ElenaApp (ejecución del protocolo personalizado + biomarcadores + daily logs)
 ```
 
-El admin dashboard muestra "Total Posts: 0" siempre porque `'post'` (singular) no existe.
+ElenaApp existe pero está en desarrollo, **sin users reales en producción**. Esa ventana se cierra en cuanto haya users reales escribiendo en Firestore con un schema cualquiera. Esta spec aprovecha el momento para definir el contrato canónico que ambos productos respetan.
 
-### 5.2 — Perfiles dispersos en dos colecciones
+Estado actual de Firestore visto desde la web:
 
-| Colección | Dónde se usa |
-|---|---|
-| `profiles` | `pages/login.astro:120,131`, `components/BioDashboard.tsx:29` |
-| `users` | `components/IMRQuiz.tsx:64,88`, `components/BioDashboard.tsx:37`, `components/ArticleQuiz.tsx:93` |
+- `metamorfosis_posts` — artículos editoriales del admin. **Conservar tal cual.**
+- `profiles/{email_lowercased}` — perfiles legacy creados por `pages/login.astro`. Forma: `{ userName, email, imr, interpretation, updatedAt }`.
+- `users/{email_lowercased}` — perfiles "modernos" creados por el IMR Quiz. Forma: `{ imr, zona, blocks, ffmi, whtr, updatedAt }`. **Bug clave**: usa `email` como ID, no `uid`. ElenaApp probablemente usa `uid`.
+- `waitlist_leads/{auto}` — leads anónimos del quiz pre-registro. Forma: `{ name, email, estimated_imr, quiz_type, proxy_scores, created_at }`.
+- `pruebas/{auto}` — analítica/pruebas del admin. Conservar.
+- `post` (singular) — bug en `stats.ts`, no existe.
 
-`BioDashboard.tsx` lee de **las dos** y mergea — workaround que evidencia el problema. Si un usuario se registró por `/login.astro`, su perfil está en `profiles`. Si se registró por el quiz, en `users`. El IMR puede vivir en una y el `userName` en la otra.
+Tres problemas concretos:
+
+1. **`stats.ts:21` consulta `'post'` (singular) cuando debería ser `'metamorfosis_posts'`.** `totalPosts` siempre devuelve 0. Trivial.
+2. **`users` y `profiles` coexisten** y `BioDashboard.tsx` lee de ambas y mergea. Workaround frágil.
+3. **El ID del user es `email.toLowerCase()` en lugar del `uid` de Firebase Auth.** Si un user cambia su email en Firebase Auth, su doc queda huérfano. Si ElenaApp espera `users/{uid}` (lo estándar en proyectos Firebase), web y app divergen.
 
 ## Problema
 
-`stats.ts` consulta una colección que no existe (bug fácil). Y los perfiles de usuario están duplicados o partidos entre dos colecciones, generando lógica de merge frágil.
+No hay un schema canónico de `users` compartido entre web y ElenaApp. Cualquier feature de continuidad ("regístrate en la web → entra a ElenaApp con tu diagnóstico ya cargado") es imposible sin esta base.
 
 ## Solución propuesta
 
-### 5.1 — Corregir `stats.ts`
+### 1. Schema canónico de `users/{uid}`
 
-Cambiar `'post'` → `'metamorfosis_posts'`. Trivial.
+ID: el `uid` de Firebase Auth (NO email). Versión: `schemaVersion: 1`.
 
-### 5.2 — Elegir `users` como colección canónica de perfil
+```ts
+// src/lib/types/user.ts (nuevo archivo)
+export interface UserDoc {
+  // === Identidad (auto desde Firebase Auth) ===
+  uid: string;
+  email: string;
+  emailLower: string; // para búsquedas case-insensitive
+  displayName: string | null;
+  photoURL: string | null;
 
-Razones:
-- `users` es más estándar en aplicaciones Firebase y es el nombre que ya usa la app móvil ElenaApp (asumiblemente — confirmar con Carlos).
-- Tres archivos usan `users` vs dos `profiles`.
-- El IMR del quiz (que es el dato más cargado de valor) ya vive en `users`.
+  // === Perfil del onboarding ===
+  profile: {
+    gender: 'male' | 'female' | null;
+    age: number | null;
+    goals: string[]; // ej. ["recomposicion", "longevidad"]; vacío al inicio
+    pathologies: string[]; // ej. ["resistencia_insulina"]; vacío al inicio
+  };
 
-**Migración de datos legacy en `profiles` → `users`:**
+  // === Biometría (web captura básica; app puede refinar) ===
+  bio: {
+    heightCm: number | null;
+    weightKg: number | null;
+    waistCm: number | null;
+    neckCm: number | null;
+    hipCm: number | null; // requerido para mujeres en Body Fat Navy
+    bodyFatPct: number | null; // si no viene, se calcula con Navy
+    leanMassPct: number | null; // derivado: 100 - bodyFatPct
+    updatedAt: string; // ISO
+  };
 
-Usuarios registrados antes de esta spec quedaron en `profiles/{email}` con `{ userName, email, imr, interpretation, updatedAt }`. Los movemos a `users/{email}`, fusionando con lo que ya esté ahí (no pisar `imr` reciente del quiz).
+  // === Hábitos auto-reportados (proxy v1 desde web; app reemplaza con tracking real) ===
+  habits: {
+    fastingHours: number | null;
+    dinnerHour: number | null; // 19.5 = 19:30
+    exerciseMinutesPerDay: number | null;
+    sleepQuality: number | null; // 0-1
+    hydrationLitresPerDay: number | null;
+    lastMealHour: number | null;
+    source: 'self_report' | 'tracked' | null; // web=self_report, app eventualmente=tracked
+    updatedAt: string;
+  };
 
-Estrategia de migración:
-1. Script único `metamorfosis-web/scripts/migrate-profiles-to-users.ts` que itera `profiles`, hace `users/{id}.set(data, { merge: true })` priorizando lo que ya hay en `users` para campos comunes, y al final borra los docs de `profiles`.
-2. Ejecutar una vez en local apuntando a Firestore prod (con service account de admin, fuera del repo).
-3. Después del run, verificar `profiles` está vacía. Eliminar referencias a `profiles` en código.
+  // === IMR último resultado + historial ===
+  imr: {
+    current: ImrResult | null;
+    history: Array<ImrResult & { computedAt: string; engineVersion: string }>;
+  };
 
-**Actualización de código (post-migración):**
+  // === Waitlist (reemplaza la colección waitlist_leads para users con auth) ===
+  waitlist: {
+    status: 'pending' | 'invited' | 'active' | null;
+    joinedAt: string | null;
+    invitedAt: string | null;
+    position: number | null;
+  };
 
-- `pages/login.astro` → `doc(db, 'users', email.toLowerCase())` (en lugar de `profiles`).
-- `components/BioDashboard.tsx` → leer solo de `users` (eliminar el merge de dos colecciones).
+  // === Reservado para ElenaApp (web no toca, app completa) ===
+  app: {
+    protocolId: string | null;
+    onboardingCompleted: boolean;
+    biomarkers: Record<string, unknown> | null;
+    // daily_logs vive en subcolección users/{uid}/daily_logs
+  };
+
+  // === Metadata ===
+  meta: {
+    schemaVersion: 1;
+    source: 'web' | 'app' | 'imported';
+    createdAt: string;
+    updatedAt: string;
+    lastLoginAt: string | null;
+  };
+}
+
+export interface ImrResult {
+  imrScore: number;       // 0-100
+  label: string;          // "OPTIMIZADO" | ... | "DETERIORADO"
+  blocks: { E: number; M: number; C: number };
+  ica: number;            // waist / height
+  imc: number;            // BMI
+  tmb: number;            // Mifflin-St Jeor
+  metabolicAge: number;
+  ffmi: number;
+  whtr: number;
+}
+```
+
+**Decisiones clave del schema:**
+- Todos los campos del onboarding son **nullable**. La web los completa parcialmente (lo mínimo para diagnóstico inicial). ElenaApp los refina/reemplaza con datos reales.
+- `imr.history` es array creciente, no solo último valor. Permite ver evolución sin colección aparte.
+- `app.*` queda intocado por la web. ElenaApp es libre de definir su forma interna ahí.
+- `daily_logs` y datos de alta cardinalidad van en **subcolección** `users/{uid}/daily_logs/{date}` para no inflar el doc raíz.
+- `meta.source` permite trackear qué producto creó/actualizó el doc.
+
+### 2. Reglas de seguridad de Firestore (`firestore.rules` actualizado)
+
+Lectura/escritura del propio doc por su dueño; admins (con custom claim) leen todo:
+
+```
+match /databases/{database}/documents {
+  match /users/{uid} {
+    allow read, update: if request.auth != null && request.auth.uid == uid;
+    allow create: if request.auth != null && request.auth.uid == uid;
+    allow delete: if false; // nunca desde cliente
+    match /daily_logs/{date} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+  match /metamorfosis_posts/{post} {
+    allow read: if true;
+    allow write: if false; // solo admin SDK
+  }
+  match /waitlist_leads/{lead} {
+    allow create: if true; // anónimo, lead pre-auth
+    allow read, update, delete: if false;
+  }
+  match /pruebas/{doc} {
+    allow read, write: if false; // solo admin SDK
+  }
+}
+```
+
+Estas rules las aplica Carlos desde Firebase Console o desde un repo `firebase-rules` aparte. La spec deja el snippet pero no las despliega automáticamente.
+
+### 3. Bug fix de `stats.ts`
+
+Cambiar `db.collection('post')` → `db.collection('metamorfosis_posts')`. Una línea. Va en el mismo commit como sub-fix.
+
+### 4. Migración de datos legacy
+
+Como ElenaApp no tiene users reales y la web está en producción reciente, lo más probable es que `profiles` y `users` (con email como key) tengan **0 a pocos registros** de pruebas. Estrategia:
+
+1. Script `metamorfosis-web/scripts/migrate-users-schema-v1.ts` que:
+   - Itera `profiles` y `users` legacy.
+   - Por cada doc, busca el `uid` en Firebase Auth por email (`auth.getUserByEmail`).
+   - Si encuentra `uid`, crea/mergea el nuevo doc en `users/{uid}` con la forma del schema v1, mapeando los campos viejos a la nueva estructura.
+   - Si NO encuentra `uid` (lead sin auth real), deja el doc legacy intacto y lo loguea para revisión manual.
+   - Al final, borra los docs legacy migrados.
+2. `waitlist_leads` queda como está (es para leads anónimos sin auth). Cuando un lead se registra en la web, se crea su `users/{uid}` con `waitlist.status: 'pending'` y se borra el lead anónimo si su email matchea (decisión: ¿borrar o mantener?).
+
+**Decisión recomendada:** mantener `waitlist_leads` como colección **solo de leads sin auth** (futuras campañas con email-only capture). Cuando un lead se registra (auth), se crea su user con `waitlist.status: 'pending'` y se borra su entry en `waitlist_leads`.
+
+### 5. Actualización del código de la web
+
+Una vez ejecutada la migración:
+
+- `pages/login.astro` → escribir/leer en `users/{uid}` (no `profiles/{email}`).
+- `components/IMRQuiz.tsx` → escribir el resultado del quiz en `users/{uid}.bio` + `users/{uid}.habits` + push a `users/{uid}.imr.history`.
+- `components/BioDashboard.tsx` → leer SOLO `users/{uid}` (eliminar el merge de `profiles` + `users`).
+- `components/ArticleQuiz.tsx` → si guarda progreso de tests por user, escribir en subcolección `users/{uid}/article_quizzes/{slug}`.
+- `pages/api/leads.ts` → solo escribe en `waitlist_leads` para visitantes anónimos sin sesión Firebase. Si hay sesión, escribir directo a `users/{uid}.waitlist`.
+- `pages/api/admin/stats.ts` → fix `'post'` → `'metamorfosis_posts'`.
 
 ## Plan de implementación
 
-### Sub-spec 5.1 (independiente, se puede commitear sola)
+### Sub-spec 5.1 — Tipos y constantes (commit 1)
 
-1. **Modificar `metamorfosis-web/src/pages/api/admin/stats.ts:21`**:
+1. Crear `metamorfosis-web/src/lib/types/user.ts` con la interfaz `UserDoc` y el tipo `ImrResult` (este último también lo va a usar SPEC-004).
+2. Crear `metamorfosis-web/src/lib/constants/firestore.ts`:
    ```ts
-   const postsRef = db.collection('metamorfosis_posts');
+   export const COLLECTIONS = {
+     USERS: 'users',
+     POSTS: 'metamorfosis_posts',
+     WAITLIST_LEADS: 'waitlist_leads',
+     PRUEBAS: 'pruebas',
+   } as const;
+
+   export const SCHEMA_VERSION = 1 as const;
    ```
+3. Reemplazar literales `'metamorfosis_posts'`, `'users'`, `'waitlist_leads'`, `'pruebas'` esparcidos por `COLLECTIONS.POSTS`, etc. en todo `src/`.
 
-2. **Verificar resto de `stats.ts`**: que la colección de leads esté correcta (`'waitlist_leads'` ✓).
+### Sub-spec 5.2 — Fix `stats.ts` (commit 2, mini)
 
-### Sub-spec 5.2 (requiere migración de datos)
+Una línea: `db.collection('post')` → `db.collection(COLLECTIONS.POSTS)`. Verificable con `curl https://metamorfosisvital.com.co/api/admin/stats` (con cookie admin) → `totalPosts > 0`.
 
-1. **Crear `metamorfosis-web/scripts/migrate-profiles-to-users.ts`**:
-   ```ts
-   import { db } from '../src/lib/firebaseAdmin';
+### Sub-spec 5.3 — Script de migración (commit 3)
 
-   async function migrate() {
-     const profilesSnap = await db.collection('profiles').get();
-     console.log(`Found ${profilesSnap.size} profiles to migrate.`);
+`metamorfosis-web/scripts/migrate-users-schema-v1.ts`. No se ejecuta automático; Carlos lo corre con `npx tsx scripts/migrate-users-schema-v1.ts` cuando esté listo. El script:
 
-     let migrated = 0;
-     for (const doc of profilesSnap.docs) {
-       const profileData = doc.data();
-       const userRef = db.collection('users').doc(doc.id);
-       const userSnap = await userRef.get();
+- Hace `gcloud firestore export ...` antes de tocar nada (backup automatizado).
+- Imprime un dry-run con conteos antes de escribir.
+- Pide confirmación interactiva (`Continue? y/N`).
+- Escribe los nuevos docs en `users/{uid}`.
+- Borra los docs legacy migrados.
+- Loguea los que no pudo migrar (por falta de `uid`) para revisión manual.
 
-       if (userSnap.exists) {
-         const userData = userSnap.data() || {};
-         // users gana en campos comunes; profiles aporta lo que falte
-         const merged = { ...profileData, ...userData };
-         await userRef.set(merged, { merge: false });
-       } else {
-         await userRef.set(profileData);
-       }
-       migrated++;
-     }
-     console.log(`Migrated ${migrated} profiles to users.`);
+### Sub-spec 5.4 — Refactor de los consumidores (commit 4)
 
-     // Borrado seguro de profiles
-     const batch = db.batch();
-     profilesSnap.docs.forEach(d => batch.delete(d.ref));
-     await batch.commit();
-     console.log(`Deleted ${profilesSnap.size} docs from profiles.`);
-   }
+`login.astro`, `IMRQuiz.tsx`, `BioDashboard.tsx`, `ArticleQuiz.tsx`, `api/leads.ts`. Usan `users/{uid}` y la forma del schema v1.
 
-   migrate().catch(err => { console.error(err); process.exit(1); });
-   ```
+### Sub-spec 5.5 — Reglas de Firestore (manual fuera del repo)
 
-2. **Ejecutar el script** en local con `.env` apuntando a prod:
-   ```sh
-   cd metamorfosis-web
-   npx tsx scripts/migrate-profiles-to-users.ts
-   ```
-   (Hay que tener `tsx` o usar `ts-node`; `package.json` ya incluye `ts-node`.)
-
-3. **Verificar en Firebase Console** que `profiles` está vacía y `users` contiene todo.
-
-4. **Modificar código para usar solo `users`**:
-
-   `pages/login.astro` líneas 120 y 131:
-   ```ts
-   const profileRef = doc(db, 'users', email.toLowerCase());
-   ```
-
-   `components/BioDashboard.tsx` líneas 23-49:
-   ```tsx
-   const fetchUserData = async (email: string, displayName: string | null) => {
-     try {
-       const userRef = doc(db, 'users', email.toLowerCase());
-       const userSnap = await getDoc(userRef);
-       if (userSnap.exists()) {
-         const data = userSnap.data();
-         setStats((prev: any) => ({
-           ...prev,
-           ...data,
-           userName: displayName || data.userName || 'Biohacker',
-           isLoading: false,
-         }));
-       } else {
-         setStats((prev: any) => ({
-           ...prev,
-           userName: displayName || 'Biohacker',
-           isLoading: false,
-         }));
-       }
-     } catch (e: any) {
-       console.error('[BioDashboard] fetch error:', e);
-       setStats((prev: any) => ({ ...prev, isLoading: false }));
-     }
-   };
-   ```
-
-5. **Grep final**:
-   ```sh
-   grep -rn "collection('profiles'\|doc(db, 'profiles'" metamorfosis-web/src
-   # No debe haber resultados.
-   ```
-
-6. **Borrar el script de migración** después de ejecutarlo (ya cumplió su propósito; queda en el historial git).
-
-### Decisión sobre commits
-
-Esta spec se puede partir en **dos commits separados**, porque los dos sub-cambios son independientes:
-
-- **Commit 1 (sub-spec 5.1):** `fix(spec-005a): stats.ts apunta a 'metamorfosis_posts'`
-- **Commit 2 (sub-spec 5.2):** `refactor(spec-005b): unificar perfiles en colección 'users'`
-
-Recomiendo commitear primero 5.1 (es trivial, una línea, gana inmediato) y después 5.2 (requiere ejecución de migración).
+Carlos pega el snippet en Firebase Console → Firestore → Rules. Verificación: lectura del propio user OK, lectura de otro user → permission denied.
 
 ## Criterios de aceptación
 
-### Sub-spec 5.1
-- [ ] `grep -n "collection('post')" metamorfosis-web/src` no devuelve nada (excepto sub-strings dentro de `'metamorfosis_posts'`).
-- [ ] El admin dashboard muestra `totalPosts > 0` (suponiendo que hay al menos un post en Firestore).
-
-### Sub-spec 5.2
-- [ ] La colección `profiles` en Firestore está vacía.
-- [ ] La colección `users` contiene los datos antes dispersos.
-- [ ] `grep -rn "collection('profiles'" metamorfosis-web/src` y `grep -rn "doc(db, 'profiles'" metamorfosis-web/src` no devuelven resultados.
-- [ ] `pages/login.astro` y `components/BioDashboard.tsx` solo leen/escriben en `users`.
-- [ ] Login con un email previamente registrado en `profiles` funciona (su perfil ahora está en `users`).
-- [ ] El dashboard muestra correctamente `userName`, `imr`, `zona`, `blocks` después del login.
+- [ ] `src/lib/types/user.ts` define `UserDoc` y `ImrResult`.
+- [ ] `src/lib/constants/firestore.ts` exporta `COLLECTIONS` y `SCHEMA_VERSION`.
+- [ ] `grep -rn "db.collection\\('" metamorfosis-web/src` no devuelve literales — solo referencias a `COLLECTIONS.X`.
+- [ ] `stats.ts` apunta a `COLLECTIONS.POSTS`. `GET /api/admin/stats` con cookie admin → `totalPosts > 0` (asumiendo que hay al menos un post en la colección).
+- [ ] Script de migración ejecuta dry-run + confirmación + backup. Es idempotente (correr dos veces no rompe).
+- [ ] Después de migración, `profiles` está vacía o solo contiene leads sin auth real.
+- [ ] `BioDashboard.tsx` lee SOLO `users/{uid}` (eliminado el merge de dos colecciones).
+- [ ] Login y registro en `/login` y `/quiz` escriben docs con la forma del schema v1.
+- [ ] Reglas de Firestore aplicadas (verificable con prueba manual desde Firebase Console).
 
 ## Pruebas
 
 ```sh
-# Sub-spec 5.1
-cd metamorfosis-web
-grep -n "collection('post')" src/pages/api/admin/stats.ts
-# Debe estar vacío.
+# Después del refactor, en producción:
 
-# Login como admin → /admin/dashboard → ver "Total Posts" con valor real.
+# 1. Stats admin reporta posts reales
+COOKIE=$(curl -s -i -X POST https://metamorfosisvital.com.co/api/admin/login \
+    -H 'Content-Type: application/json' \
+    -d '{"password":"<ADMIN_PASSWORD>"}' \
+    | grep -i 'set-cookie' | head -1 | sed 's/[Ss]et-[Cc]ookie: //;s/;.*//')
 
-# Sub-spec 5.2
-# 1. Backup de Firestore antes de migrar (gcloud firestore export ...).
-# 2. Ejecutar script.
-# 3. Verificar en Console.
-# 4. Login con un usuario que estuviera en 'profiles'.
-# 5. Verificar que dashboard.astro muestra todos sus datos.
+curl -s -H "Cookie: $COOKIE" https://metamorfosisvital.com.co/api/admin/stats | python3 -m json.tool
+# Esperado: { totalPosts: >=1, totalLeads: ... }
+
+# 2. Registrarse en /login con email nuevo, verificar que en Firestore aparece users/{uid}
+#    con la forma de UserDoc (no profiles/{email}).
+
+# 3. Hacer el IMR quiz autenticado, verificar que el resultado se escribe en
+#    users/{uid}.bio, .habits, .imr.history (push), .imr.current (set).
+
+# 4. Verificar permisos (Firebase Console > Rules Playground):
+#    - users/{my_uid} read con request.auth.uid = my_uid → ALLOW
+#    - users/{otro_uid} read con request.auth.uid = my_uid → DENY
 ```
 
 ## Riesgos / consideraciones
 
-- **Backup obligatorio antes de migrar.** `gcloud firestore export gs://elena-app-2026-v1.appspot.com/backups/$(date +%Y%m%d)`. Si la migración sale mal, se restaura.
-- **Datos en conflicto.** Si un usuario tenía perfil en `profiles` con `imr=80` (fecha vieja) y otro en `users` con `imr=85` (fecha reciente del quiz), la estrategia gana `users`. Eso es el comportamiento que se quiere.
-- **Rules de Firestore.** Si las security rules están definidas por colección (`match /profiles/{...}` y `match /users/{...}`), eliminar las de `profiles` después de migrar. Pero en general lo que importa es que `users` sí permita lo que necesita la UI (read del propio doc por el usuario logueado).
-- **App móvil ElenaApp.** Si la app móvil también lee/escribe perfiles, hay que coordinar. Asumimos que ya usa `users`. Confirmar antes de la migración.
+- **Backup obligatorio antes de migrar.** El script lo automatiza, pero verificar manualmente en GCS.
+- **`emailLower` indexado.** Si después de migrar querés buscar users por email (ej. invitaciones), Firestore necesita un índice compuesto (no automático para casos sensibles a mayúsculas). Anotarlo cuando se construya esa feature.
+- **Compatibilidad ElenaApp.** Como ElenaApp aún no tiene users reales, podemos dictar el schema. Pero hay que **comunicar el schema al equipo de ElenaApp** (en este caso, vos mismo) para que respete la forma. Idealmente publicar `src/lib/types/user.ts` como package npm privado o copiarlo al repo de ElenaApp como source of truth.
+- **`schemaVersion`.** Si en el futuro cambia el schema, el campo permite migrar selectivamente. Hoy todos los docs nacen con `schemaVersion: 1`.
+- **`waitlist_leads` legacy con email duplicado a un user real.** Después de la migración, si un user se registra y tenía un lead anónimo previo con su email, podemos optar por (a) borrar el lead, (b) mergearlo a `users/{uid}.waitlist`, (c) ignorarlo. Decisión recomendada: **(b)**, mergear para no perder el `estimated_imr` y `proxy_scores` que el quiz capturó.
 
 ## Commit
 
-**Mensajes sugeridos:**
+**Mensajes sugeridos** (cuatro commits, uno por sub-spec):
 
-Sub-spec 5.1:
-```
-fix(spec-005a): apuntar stats.ts a 'metamorfosis_posts'
-
-Antes consultaba 'post' (singular), una colección que no existe.
-totalPosts en el dashboard admin siempre devolvía 0.
-
-Cierra specs/SPEC-005-firestore-collections.md (parte 5.1)
-```
-
-Sub-spec 5.2:
-```
-refactor(spec-005b): unificar perfiles en colección 'users'
-
-- Migrar docs de 'profiles' a 'users' (script ejecutado, ver historial)
-- login.astro y BioDashboard.tsx pasan a usar solo 'users'
-- Eliminado merge de dos colecciones en BioDashboard
-
-Cierra specs/SPEC-005-firestore-collections.md (parte 5.2)
-```
+1. `feat(spec-005a): types y constants para schema canónico de users`
+2. `fix(spec-005b): stats.ts apunta a 'metamorfosis_posts'`
+3. `feat(spec-005c): script de migración a schema v1`
+4. `refactor(spec-005d): consumidores usan schema canónico de users`
 
 ---
 

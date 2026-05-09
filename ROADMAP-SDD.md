@@ -12,13 +12,18 @@ Atacamos los **CRÍTICOS** en orden, después los **ALTOS**, después el resto. 
 
 ### Fase 1 — CRÍTICOS (este roadmap)
 
+**Ajuste 2026-05-09:** Carlos comunicó que el sitio web es la puerta de entrada al ecosistema Metamorfosis Real (web → ElenaApp), y que los users de la web deben quedar listos para usar ElenaApp sin re-onboarding. SPEC-004 y SPEC-005 fueron rescoped con láser de integración. Se agregó SPEC-006. Como ElenaApp aún no tiene users reales en producción, esta es la ventana ideal para definir el contrato canónico de datos.
+
+**Orden de ejecución revisado:** SPEC-005 (schema) **antes** de SPEC-004 (motor), porque el motor escribe en el schema. SPEC-006 cierra el funnel.
+
 | # | Spec | Estado | Problema | Archivo |
 |---|---|---|---|---|
 | 001 | Resolver SSR + deploy en Hostinger Node.js Apps | ✅ Cerrada (2026-05-09) | `output: 'server'` sin adaptador; reusar Hostinger Business (Node.js Apps disponible en plan actual) | [SPEC-001](specs/SPEC-001-ssr-deploy-strategy.md) |
 | 002 | Auth en `/api/admin/cleanup` | ✅ Cerrada (2026-05-09) | Endpoint admin sin autenticación | [SPEC-002](specs/SPEC-002-cleanup-auth.md) |
 | 003 | Unificar contrato de auth admin | ✅ Cerrada (2026-05-09) | 3 formas distintas de validar la cookie `admin_session` | [SPEC-003](specs/SPEC-003-admin-auth-contract.md) |
-| 004 | Cerrar write arbitrario en `/api/calculate-imr` | 📝 Spec | `recordId` permite escribir a posts sin auth | [SPEC-004](specs/SPEC-004-calculate-imr-write.md) |
-| 005 | Unificar colecciones Firestore | 📝 Spec | `'post'` vs `'metamorfosis_posts'` y `profiles` vs `users` | [SPEC-005](specs/SPEC-005-firestore-collections.md) |
+| 005 | Schema canónico de `users/{uid}` compartido Web ↔ ElenaApp | 📝 Spec | `profiles` vs `users` por email, sin schema versionado, sin contrato con ElenaApp; `'post'` singular en stats.ts | [SPEC-005](specs/SPEC-005-firestore-collections.md) |
+| 004 | Motor IMR unificado web ↔ ElenaApp | 📝 Spec | 3 motores divergentes en la web; `calculateIMRv2` (CF GCP) sin estado claro; recordId habilita writes anónimos | [SPEC-004](specs/SPEC-004-calculate-imr-write.md) |
+| 006 | Onboarding web crea user listo para ElenaApp | 📝 Spec | Registrarse en web no produce user válido para app; re-onboarding garantizado | [SPEC-006](specs/SPEC-006-onboarding-web-app.md) |
 
 ### Fase 2 — ALTOS (próxima tanda, una vez cerrada la Fase 1)
 
@@ -55,12 +60,19 @@ Layouts unificados, footer único, duplicados en `posts/[slug]`, redes sociales 
 ## Dependencias entre specs de Fase 1
 
 ```
-SPEC-001 (deploy)
-    └── habilita → SPEC-002, SPEC-003, SPEC-004, SPEC-005
-                   (estas tienen sentido solo si las APIs SSR efectivamente
-                    se ejecutan en el servidor)
+SPEC-001 (deploy) ✅
+    └── habilita → SPEC-002 ✅, SPEC-003 ✅, SPEC-005, SPEC-004, SPEC-006
+
+SPEC-005 (schema canónico)
+    └── bloquea → SPEC-004 (motor escribe al schema), SPEC-006 (onboarding usa el schema)
+
+SPEC-004 (motor IMR)
+    └── habilita → SPEC-006 (onboarding persiste resultado del motor)
+
+SPEC-006 (onboarding)
+    └── cierre del funnel web → ElenaApp
 ```
 
-SPEC-001 es bloqueante real para el resto. Las specs 002–005 se pueden escribir y revisar en paralelo, pero la verificación E2E ("se llamó al endpoint y devolvió 401") requiere que el deploy funcione primero.
+Camino crítico de ejecución: 005 → 004 → 006.
 
-Si por algo SPEC-001 demora, podemos resolver 002–005 en local (con `npm run dev`) y dejar la verificación productiva para después.
+**Nota sobre integración Web ↔ ElenaApp:** ElenaApp existe pero está en desarrollo, sin users reales en producción. Esa ventana se aprovecha en SPEC-005 para definir el schema canónico sin migración. El contrato (`src/lib/types/user.ts`) es el handover formal hacia el equipo de ElenaApp — debe respetarse cuando la app llegue a producción.
