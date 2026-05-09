@@ -157,16 +157,40 @@ Cierra SPEC-016.
 
 ## Resultado
 
-Implementado en una sola pasada (2026-05-09).
+Implementado en una sola pasada (2026-05-09), con una corrección arquitectónica importante (SPEC-016b) detectada al verificar en producción.
 
-**Archivos tocados:**
-- `metamorfosis-web/src/pages/api/admin/leads.ts` — GET extendido con campos CRM + nuevo endpoint PUT con validación completa, helper `normalizeTimestamp`, marca `contactedAt` solo en la primera transición a `'contacted'`.
-- `metamorfosis-web/src/components/admin/LeadList.tsx` — reescrito con tipo `Lead` completo, `STATUS_META`, filtros por chip con counts, búsqueda, status dropdown inline, filas expandibles con notas (onBlur) y tags (Enter para agregar, × para quitar), optimistic updates con rollback, CSV export que respeta filtros.
+**SPEC-016b — Cambio de fuente de datos del CRM:** la primera versión de SPEC-016 leía la collection `waitlist_leads`, asumiendo que era el buffer principal de leads. Al testear con un usuario de prueba (Carlos), el lead "test" no aparecía en el CRM aunque el quiz lo había completado. Investigación reveló que post-SPEC-006 el flow real es:
+
+1. Visitante completa el quiz IMR → sessionStorage.
+2. Se le pide registro Firebase Auth (`createUserWithEmailAndPassword`).
+3. Frontend llama `POST /api/users/onboard` → escribe el doc canónico en `users/{uid}` con bio, habits, imrResult, waitlist.status='pending'.
+4. **Side-effect del onboard:** borra cualquier doc en `waitlist_leads` con el mismo email (mergeo a user real).
+
+Resultado: la collection `waitlist_leads` quedó **legacy/vacía**. Nadie del frontend llama `/api/leads` (verificado por grep — código huérfano). Todos los leads reales viven en `users/{uid}`.
+
+**Decisión:** migración limpia. CRM lee/escribe sobre `users` exclusivamente. Los campos CRM van en `users/{uid}.crm.*` para no contaminar el schema canónico v1 — ElenaApp ignora ese sub-objeto sin problema.
+
+**Archivos finales (post-016b):**
+- `metamorfosis-web/src/pages/api/admin/leads.ts`:
+  - `GET` lee `users` con `orderBy('meta.createdAt', 'desc').limit(500)`. Si Firestore se queja por índice ausente, fallback a fetch sin orden + sort client-side.
+  - Mapea cada `UserDoc` a la shape Lead que consume el frontend, con `proxy_scores` ahora derivados de `bio + profile + habits + imr.current` (más rico que el shape antiguo de waitlist).
+  - `PUT` actualiza `crm.status`, `crm.notes`, `crm.tags`, `crm.contactedAt`, `crm.lastUpdatedAt` con notación dot-path en `users/{uid}`.
+- `metamorfosis-web/src/components/admin/LeadList.tsx` — sin cambios respecto a la primera versión: el componente recibe la misma shape `Lead`, transparente al cambio de backend.
+- `firebase/firestore.rules` — agregado bloque protegido `crm.*` (igual que `app.*`): el dueño puede leer su propio doc pero no puede modificar `crm.*`. Solo el Admin SDK escribe.
 
 **Decisiones de diseño tomadas en la marcha:**
 - Notes guardan en `onBlur` y no con debounce: simplicidad sobre microoptimización; en la práctica el admin solo escribe notas cuando termina de pensar.
 - Tags trimmean y deduplican client-side antes del PUT, server-side se valida de nuevo (defensa en profundidad).
-- `contactedAt` no se borra si el lead vuelve a `'new'`: refleja la realidad histórica (sí hubo contacto). Solo se setea la primera vez.
-- `STATUS_META` mapea cada status a un par (`classes` para chip default, `activeClasses` para chip seleccionado/dropdown). Mantiene la paleta consistente con el resto del admin (verde `#00C49A` para convertido, amarillo para contacto en curso, púrpura para qualified).
+- `contactedAt` no se borra si el lead vuelve a `'new'`: refleja la realidad histórica. Solo se setea la primera vez.
+- `STATUS_META` mapea cada status a un par (chip default + chip activo) con paleta consistente con el resto del admin.
+- `proxy_scores` ahora muestra `imc`, `ica`, `bodyFatPct`, `metabolicAge`, `goals`, `pathologies`, `gender`, `age`, `fastingHours`, `sleepQuality` — el admin tiene contexto operativo sin abrir Firebase Console.
 
-**Sin desviaciones del plan.** Ningún criterio de aceptación quedó sin cumplir.
+**Trade-offs de SPEC-016b conscientes:**
+- Cuando ElenaApp llegue a producción, los users que se onboardean **desde la app** (no desde web) también van a aparecer en el CRM como "Nuevo". Eso es correcto: son leads nuevos del ecosistema. Si Carlos quiere segmentar por origen, puede filtrar por `proxy_scores.label` o por `quiz_type` que ahora viene de `meta.source` ('web' | 'app' | 'imported').
+- `waitlist_leads` queda en Firestore vacía. No la borramos por ahora — si aparece un doc legacy se ignora (el CRM solo lee `users`). Si Carlos quiere recuperar el "test" lead, lo crea como user real desde Firebase Auth Console o desde la web.
+
+**Despliegue:**
+- Código (`leads.ts`) se mergea con el push a main.
+- Reglas de Firestore se publican manualmente desde Firebase Console (Firestore → Rules → Publicar) o `firebase deploy --only firestore:rules`. Las rules NO se deployan auto con el push a Hostinger.
+
+**Sin desviaciones del plan funcional.** Todos los criterios de aceptación quedan cumplidos sobre la fuente correcta (`users`).

@@ -20,6 +20,8 @@ service cloud.firestore {
     // Solo el dueño puede leer/escribir su propio doc.
     // El bloque `app.*` está reservado para ElenaApp; web no debe tocarlo
     // desde el cliente (la app móvil sí, autenticada como el mismo uid).
+    // El bloque `crm.*` (SPEC-016b) es metadata operativa del admin
+    // (status, notes, tags); el dueño NO debe poder modificarlo.
     match /users/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow create: if request.auth != null && request.auth.uid == uid;
@@ -30,6 +32,11 @@ service cloud.firestore {
                       !('app' in request.resource.data.keys())
                       // Si lo toca, debe quedar idéntico al actual (no edita app.*)
                       || request.resource.data.app == resource.data.app
+                    )
+                    && (
+                      // Mismo principio para `crm`: el dueño no puede tocarlo
+                      !('crm' in request.resource.data.keys())
+                      || request.resource.data.crm == resource.data.crm
                     );
       allow delete: if false; // nunca desde cliente
 
