@@ -19,14 +19,14 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
 >
     <div class="container mx-auto px-6 h-20 flex items-center justify-between">
         {/* Logo */}
-        <a href="/" class="flex items-center gap-2 group">
+        <a href="/" class="flex items-center gap-3 group" id="navbar-logo">
             <img
                 src="/logoSite.png"
-                alt="Logo"
-                class="h-10 w-auto group-hover:scale-110 transition-transform duration-500"
+                alt="Metamorfosis Real"
+                class="h-12 md:h-14 w-auto drop-shadow-[0_0_18px_rgba(59,130,246,0.55)] group-hover:drop-shadow-[0_0_22px_rgba(59,130,246,0.85)] group-hover:scale-110 transition-all duration-500"
             />
             <span
-                class="text-white font-black italic uppercase tracking-tighter text-xl group-hover:text-blue-400 transition-colors"
+                class="text-white font-black italic uppercase tracking-tighter text-xl md:text-2xl group-hover:text-blue-400 transition-colors"
                 >Metamorfosis <span class="text-blue-500">Real</span></span
             >
         </a>
