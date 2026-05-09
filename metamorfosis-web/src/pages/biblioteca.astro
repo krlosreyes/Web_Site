@@ -1,11 +1,12 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { db } from "../lib/firebaseAdmin";
+import { COLLECTIONS } from "../lib/constants/firestore";
 import { BookOpen, Award, Zap, ChevronRight } from "lucide-astro";
 
 export const prerender = false;
 
-const postsRef = db.collection('metamorfosis_posts');
+const postsRef = db.collection(COLLECTIONS.POSTS);
 const snapshot = await postsRef.orderBy('createdAt', 'desc').get();
 const articles = snapshot.docs.map(doc => ({
     id: doc.id,

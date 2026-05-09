@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { db } from "../../lib/firebaseAdmin";
+import { COLLECTIONS } from "../../lib/constants/firestore";
 import ArticleQuiz from "../../components/ArticleQuiz";
 import { Clock, Calendar, BookOpen, Link as LinkIcon } from "lucide-astro";
 import { marked } from "marked";
@@ -11,7 +12,7 @@ const { slug } = Astro.params;
 let article: any = null;
 
 try {
-    const postsRef = db.collection("metamorfosis_posts");
+    const postsRef = db.collection(COLLECTIONS.POSTS);
     const snapshot = await postsRef.where("slug", "==", slug).limit(1).get();
 
     if (!snapshot.empty) {

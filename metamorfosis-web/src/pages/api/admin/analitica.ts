@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../../lib/firebaseAdmin';
+import { COLLECTIONS } from '../../../lib/constants/firestore';
 import { isAuthenticatedFromCookie, parseCookies, enforceProductionSecurity } from '../../../lib/auth';
 
 export const prerender = false;
@@ -17,7 +18,7 @@ export const GET: APIRoute = async ({ request }) => {
                 headers: { 'Content-Type': 'application/json' }
             });
         }
-        const pruebasRef = db.collection('pruebas');
+        const pruebasRef = db.collection(COLLECTIONS.PRUEBAS);
         const snapshot = await pruebasRef.limit(200).get();
 
         const docs = snapshot.docs.map(doc => {

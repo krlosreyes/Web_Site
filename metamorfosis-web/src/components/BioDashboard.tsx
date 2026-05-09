@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
+import { COLLECTIONS } from '../lib/constants/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 const Icons = {
@@ -26,6 +27,10 @@ const BioDashboard = () => {
             let errors: any[] = [];
             
             try {
+                // TODO(SPEC-005.3): borrar tras migración. La colección 'profiles'
+                // se elimina cuando el script migrate-users-schema-v1 corra y
+                // mueva los docs a users/{uid}. No se agrega como constante en
+                // COLLECTIONS porque no debe usarse en código nuevo.
                 const profileRef = doc(db, 'profiles', email.toLowerCase());
                 const profileSnap = await getDoc(profileRef);
                 if (profileSnap.exists()) mergedData = { ...profileSnap.data() };
@@ -34,7 +39,8 @@ const BioDashboard = () => {
             }
 
             try {
-                const userRef = doc(db, 'users', email.toLowerCase());
+                // TODO(SPEC-005.4): cambiar key de email a uid tras migración.
+                const userRef = doc(db, COLLECTIONS.USERS, email.toLowerCase());
                 const userSnap = await getDoc(userRef);
                 if (userSnap.exists()) mergedData = { ...mergedData, ...userSnap.data() };
             } catch (e: any) {

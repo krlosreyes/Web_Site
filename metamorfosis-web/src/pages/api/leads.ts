@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../lib/firebaseAdmin';
+import { COLLECTIONS } from '../../lib/constants/firestore';
 
 export const prerender = false;
 
@@ -19,7 +20,7 @@ export const POST: APIRoute = async ({ request }) => {
         const emailClean = email.toLowerCase().trim();
 
         // ─── UNIQUE EMAIL CHECK ───
-        const leadsRef = db.collection('waitlist_leads');
+        const leadsRef = db.collection(COLLECTIONS.WAITLIST_LEADS);
         const snapshot = await leadsRef.where('email', '==', emailClean).get();
         
         if (!snapshot.empty) {

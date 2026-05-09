@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, setDoc, getDoc, arrayUnion } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
+import { COLLECTIONS } from '../lib/constants/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 interface Question {
@@ -90,7 +91,9 @@ const ArticleQuiz: React.FC<Props> = ({ questions: rawQuestions, articleId }) =>
 
         if (currentUser) {
             try {
-                const profileRef = doc(db, 'users', currentUser.email.toLowerCase());
+                // TODO(SPEC-005.4): cambiar a uid una vez completada la migración
+                // El doc por email queda como fallback hasta que la migración consolide users/{uid}.
+                const profileRef = doc(db, COLLECTIONS.USERS, currentUser.email.toLowerCase());
                 await setDoc(profileRef, {
                     completedQuizzes: arrayUnion({
                         articleId,

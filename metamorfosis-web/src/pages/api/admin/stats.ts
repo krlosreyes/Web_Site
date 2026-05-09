@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../../lib/firebaseAdmin';
+import { COLLECTIONS } from '../../../lib/constants/firestore';
 import { isAuthenticatedFromCookie, parseCookies, enforceProductionSecurity } from '../../../lib/auth';
 
 export const prerender = false;
@@ -8,22 +9,22 @@ export const GET: APIRoute = async ({ request }) => {
     try {
         // Enforce production security requirements
         enforceProductionSecurity();
-        
+
         // Parse cookies and check authentication
         const cookies = parseCookies(request);
         if (!isAuthenticatedFromCookie(cookies)) {
-            return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), {
                 status: 401,
                 headers: { 'Content-Type': 'application/json' }
             });
         }
-        // Total Posts
-        const postsRef = db.collection('post');
+        // Total Posts (antes apuntaba a 'post' (singular) — colección inexistente, totalPosts siempre devolvía 0)
+        const postsRef = db.collection(COLLECTIONS.POSTS);
         const postsCountSnap = await postsRef.count().get();
         const totalPosts = postsCountSnap.data().count;
 
         // Total Leads Capturados
-        const leadsRef = db.collection('waitlist_leads');
+        const leadsRef = db.collection(COLLECTIONS.WAITLIST_LEADS);
         const leadsCountSnap = await leadsRef.count().get();
         const totalLeads = leadsCountSnap.data().count;
 

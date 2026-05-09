@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../../lib/firebaseAdmin';
+import { COLLECTIONS } from '../../../lib/constants/firestore';
 import { isAuthenticatedFromCookie, parseCookies, enforceProductionSecurity } from '../../../lib/auth';
 
 export const prerender = false;
@@ -18,7 +19,7 @@ export const GET: APIRoute = async ({ request }) => {
             });
         }
         
-        const leadsRef = db.collection('waitlist_leads');
+        const leadsRef = db.collection(COLLECTIONS.WAITLIST_LEADS);
         const snapshot = await leadsRef.orderBy('created_at', 'desc').limit(100).get();
 
         const leads = snapshot.docs.map(doc => {

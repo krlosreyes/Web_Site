@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword, updateProfile, onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../lib/firebase';
+import { COLLECTIONS } from '../lib/constants/firestore';
 import { calculateSPEC705 } from '../utils/imr-engine';
 
 const IMRQuiz = () => {
@@ -61,7 +62,7 @@ const IMRQuiz = () => {
     const autoSave = async (result: any) => {
         setIsSaving(true);
         try {
-            const profileRef = doc(db, 'users', currentUser.email.toLowerCase());
+            const profileRef = doc(db, COLLECTIONS.USERS, currentUser.email.toLowerCase());
             await setDoc(profileRef, {
                 imr: result.imr,
                 zona: result.zona,
@@ -85,7 +86,7 @@ const IMRQuiz = () => {
         try {
             const userCred = await createUserWithEmailAndPassword(auth, regData.email, regData.pass);
             await updateProfile(userCred.user, { displayName: regData.name });
-            const profileRef = doc(db, 'users', regData.email.toLowerCase());
+            const profileRef = doc(db, COLLECTIONS.USERS, regData.email.toLowerCase());
             await setDoc(profileRef, {
                 imr: result.imr,
                 zona: result.zona,

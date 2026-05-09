@@ -116,7 +116,11 @@ import Layout from '../layouts/Layout.astro';
             if (mode === 'register') {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCredential.user, { displayName: nameInput });
-                
+
+                // TODO(SPEC-006): reemplazar por POST /api/users/onboard que crea
+                // users/{uid} con el schema canónico (UserDoc v1) y mergea cualquier
+                // lead anónimo previo. La colección 'profiles' va a ser eliminada
+                // por SPEC-005.3 (script de migración).
                 const profileRef = doc(db, 'profiles', email.toLowerCase());
                 await setDoc(profileRef, {
                     userName: nameInput,
@@ -128,6 +132,7 @@ import Layout from '../layouts/Layout.astro';
                 sessionStorage.setItem('imr_userName', nameInput);
             } else {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                // TODO(SPEC-005.4): leer users/{uid} en lugar de profiles/{email}.
                 const profileRef = doc(db, 'profiles', email.toLowerCase());
                 const profileSnap = await getDoc(profileRef);
                 if (profileSnap.exists()) {

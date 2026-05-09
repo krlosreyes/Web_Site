@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../../lib/firebaseAdmin';
+import { COLLECTIONS } from '../../../lib/constants/firestore';
 import { isAuthenticatedFromCookie, parseCookies, enforceProductionSecurity } from '../../../lib/auth';
 
 export const prerender = false;
@@ -18,7 +19,7 @@ export const GET: APIRoute = async ({ request }) => {
             });
         }
         
-        const postsRef = db.collection('metamorfosis_posts');
+        const postsRef = db.collection(COLLECTIONS.POSTS);
         // Fetch up to 50 recent posts
         const snapshot = await postsRef.limit(50).get();
 
@@ -85,7 +86,7 @@ export const POST: APIRoute = async ({ request }) => {
             createdAt: new Date().toISOString()
         };
 
-        const docRef = await db.collection('metamorfosis_posts').add(newPost);
+        const docRef = await db.collection(COLLECTIONS.POSTS).add(newPost);
         return new Response(JSON.stringify({ success: true, id: docRef.id }), { status: 201 });
     } catch (error) {
         return new Response(JSON.stringify({ error: 'Error al crear' }), { status: 500 });
@@ -101,7 +102,7 @@ export const PUT: APIRoute = async ({ request }) => {
         const body = await request.json();
         const { id, ...data } = body;
         
-        await db.collection('metamorfosis_posts').doc(id).update({
+        await db.collection(COLLECTIONS.POSTS).doc(id).update({
             ...data,
             updatedAt: new Date().toISOString()
         });
@@ -121,7 +122,7 @@ export const DELETE: APIRoute = async ({ url, request }) => {
         const id = url.searchParams.get('id');
         if (!id) return new Response(null, { status: 400 });
 
-        await db.collection('metamorfosis_posts').doc(id).delete();
+        await db.collection(COLLECTIONS.POSTS).doc(id).delete();
         return new Response(JSON.stringify({ success: true }), { status: 200 });
     } catch (error) {
         return new Response(JSON.stringify({ error: 'Error al borrar' }), { status: 500 });

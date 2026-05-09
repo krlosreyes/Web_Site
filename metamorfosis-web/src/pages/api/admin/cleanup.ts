@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../../lib/firebaseAdmin';
+import { COLLECTIONS } from '../../../lib/constants/firestore';
 import {
     isAuthenticatedFromCookie,
     parseCookies,
@@ -25,7 +26,7 @@ export const POST: APIRoute = async ({ request }) => {
             });
         }
 
-        const postsRef = db.collection('metamorfosis_posts');
+        const postsRef = db.collection(COLLECTIONS.POSTS);
         const snapshot = await postsRef.get();
 
         let deletedCount = 0;
