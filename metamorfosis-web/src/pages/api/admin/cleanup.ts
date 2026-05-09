@@ -1,22 +1,57 @@
+import type { APIRoute } from 'astro';
 import { db } from '../../../lib/firebaseAdmin';
+import {
+    isAuthenticatedFromCookie,
+    parseCookies,
+    enforceProductionSecurity,
+} from '../../../lib/auth';
 
-export async function GET() {
+export const prerender = false;
+
+/**
+ * POST /api/admin/cleanup
+ * Borra documentos corruptos de `metamorfosis_posts` (slug.length > 200).
+ * Requiere sesión admin válida; rechaza con 401 en otro caso.
+ */
+export const POST: APIRoute = async ({ request }) => {
     try {
+        enforceProductionSecurity();
+
+        const cookies = parseCookies(request);
+        if (!isAuthenticatedFromCookie(cookies)) {
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+                status: 401,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
         const postsRef = db.collection('metamorfosis_posts');
         const snapshot = await postsRef.get();
 
         let deletedCount = 0;
+        const batch = db.batch();
         for (const doc of snapshot.docs) {
             const data = doc.data();
-            // Detectamos el artículo corrupto por la longitud exagerada del slug o título
+            // Heurística: artículos corruptos por slug exageradamente largo
             if (data.slug && data.slug.length > 200) {
-                await doc.ref.delete();
+                batch.delete(doc.ref);
                 deletedCount++;
             }
         }
+        if (deletedCount > 0) await batch.commit();
 
-        return new Response(JSON.stringify({ success: true, deletedCount }), { status: 200 });
-    } catch (error: any) {
-        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+        return new Response(JSON.stringify({ success: true, deletedCount }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+        });
+    } catch (error) {
+        console.error('[cleanup] Error:', error);
+        return new Response(
+            JSON.stringify({ error: 'Error interno del servidor' }),
+            {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+            }
+        );
     }
-}
+};
