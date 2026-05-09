@@ -44,17 +44,10 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
                 >La Tribu</a
             >
             {
-                isAdmin ? (
+                isAdmin && (
                     <a
                         href="/admin/dashboard"
                         class="text-[10px] font-black text-[#00C49A] hover:text-white uppercase tracking-[0.2em] transition-colors"
-                    >
-                        Admin
-                    </a>
-                ) : (
-                    <a
-                        href="/admin"
-                        class="text-[10px] font-black text-gray-400 hover:text-white uppercase tracking-[0.2em] transition-colors opacity-30 hover:opacity-100"
                     >
                         Admin
                     </a>

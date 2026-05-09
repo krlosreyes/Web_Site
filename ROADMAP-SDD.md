@@ -27,12 +27,16 @@ Atacamos los **CRÍTICOS** en orden, después los **ALTOS**, después el resto. 
 
 > **🎯 Fase 1 cerrada: 6/6 specs ✅** (2026-05-09). El sitio en producción tiene SSR funcionando, panel admin con auth unificada, motor IMR canónico, schema de Firestore versionado y compatible con ElenaApp, y onboarding sin re-fricción. Próximas fases: Fase 2 (rotación de credenciales, env vars en CI, links admin públicos), Fase 3 (UX, layouts, redes sociales reales), Fase 4 (limpieza).
 
-### Fase 2 — ALTOS (próxima tanda, una vez cerrada la Fase 1)
+### Fase 2 — ALTOS (seguridad operacional)
 
-- Variables de entorno faltantes en CI (`FIREBASE_*`, `ADMIN_PASSWORD`)
-- Verificar historial git por la service account
-- Quitar enlace `/admin` público de Navbar/Footer
-- Rotar `ADMIN_PASSWORD`
+| # | Spec | Estado | Problema | Archivo |
+|---|---|---|---|---|
+| 007 | Esconder UI admin a visitantes anónimos | 📝 Spec | Navbar/Footer exponen `/admin` a todos los visitantes | [SPEC-007](specs/SPEC-007-hide-admin-ui.md) |
+| 008 | Reglas de seguridad de Firestore | 📝 Spec | Sin rules explícitas, lectura/escritura libre desde el cliente | [SPEC-008](specs/SPEC-008-firestore-rules.md) |
+| 009 | Auditar git history por credenciales filtradas | 📝 Spec | `.env` y service account JSON pudieron commitearse en WIP | [SPEC-009](specs/SPEC-009-git-history-audit.md) |
+| 010 | Rotar `ADMIN_PASSWORD` | 📝 Spec | Password actual considerado comprometido por exposición | [SPEC-010](specs/SPEC-010-rotate-admin-password.md) |
+
+**Orden recomendado por riesgo creciente:** 007 (cero, UX) → 009 (research, no escribe) → 008 (medio, requiere testing) → 010 (medio, riesgo de bloqueo si algo va mal en hPanel).
 
 ### Fase 3 — MEDIOS (UX, consistencia, calidad)
 

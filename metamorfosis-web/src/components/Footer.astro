@@ -141,26 +141,30 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
                     class="text-xs text-[#4a637e] hover:text-[#007BFF] transition-colors duration-200 font-medium"
                     >Términos</a
                 >
-                <a
-                    href="/admin"
-                    class="flex items-center gap-1 text-xs text-[#4a637e] hover:text-[#007BFF] transition-colors duration-200 font-medium"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="w-3.5 h-3.5"
-                        fill="none"
-                        viewBox="0 0 20 20"
-                        stroke="currentColor"
-                        stroke-width="1.5"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M10 12a2 2 0 100-4 2 2 0 000 4zm7-2a7 7 0 11-14 0 7 7 0 0114 0zm-7-4v2m0 4v2"
-                        ></path>
-                    </svg>
-                    Admin
-                </a>
+                {
+                    isAdmin && (
+                        <a
+                            href="/admin/dashboard"
+                            class="flex items-center gap-1 text-xs text-[#00C49A] hover:text-white transition-colors duration-200 font-medium"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="w-3.5 h-3.5"
+                                fill="none"
+                                viewBox="0 0 20 20"
+                                stroke="currentColor"
+                                stroke-width="1.5"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M10 12a2 2 0 100-4 2 2 0 000 4zm7-2a7 7 0 11-14 0 7 7 0 0114 0zm-7-4v2m0 4v2"
+                                />
+                            </svg>
+                            Admin
+                        </a>
+                    )
+                }
             </div>
         </div>
     </div>
