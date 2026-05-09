@@ -144,12 +144,23 @@ export function createSecureSessionCookie(value: string = 'admin_authenticated')
 }
 
 /**
- * Create a logout cookie (expires immediately)
+ * Create a logout cookie (expires immediately).
+ *
+ * Importante: la cookie de logout DEBE tener los mismos flags que la cookie
+ * original que estamos invalidando. Si la original es `Secure` y la de logout
+ * no lo es, el navegador en HTTPS las trata como cookies distintas y la
+ * original queda viva. Lo aprendí cuando un click en "Cerrar Sesión" no
+ * cerraba nada y el botón "Modo Admin" seguía visible al volver al sitio.
+ *
  * @returns Cookie string that expires the session
  */
 export function createLogoutCookie(): string {
     const pastDate = new Date(0); // Epoch time
-    return `admin_session=; Path=/; HttpOnly; SameSite=Strict; Expires=${pastDate.toUTCString()}`;
+    let cookie = `admin_session=; Path=/; HttpOnly; SameSite=Strict; Expires=${pastDate.toUTCString()}`;
+    if (import.meta.env.PROD) {
+        cookie += '; Secure';
+    }
+    return cookie;
 }
 
 /**

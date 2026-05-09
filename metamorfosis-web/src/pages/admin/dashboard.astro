@@ -11,9 +11,17 @@ export const prerender = false;
 
 enforceProductionSecurity();
 
-// Logout antes del check de sesión: ?logout=true borra cookie y redirige
+// Logout antes del check de sesión: ?logout=true borra cookie y redirige.
+// Importante: pasarle TODOS los flags con los que la cookie original fue
+// emitida. Si la original era Secure, la de borrado debe ser Secure también
+// o el navegador no las matchea y la original queda viva.
 if (Astro.url.searchParams.get("logout") === "true") {
-    Astro.cookies.delete("admin_session", { path: "/" });
+    Astro.cookies.delete("admin_session", {
+        path: "/",
+        secure: import.meta.env.PROD,
+        httpOnly: true,
+        sameSite: "strict",
+    });
     return Astro.redirect("/admin/login");
 }
 
