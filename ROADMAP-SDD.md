@@ -47,9 +47,25 @@ Atacamos los **CRÍTICOS** en orden, después los **ALTOS**, después el resto. 
 | 011 | Footer real (redes + link 404) | ✅ Cerrada (2026-05-09) | Redes apuntaban a homepages genéricas, `/posts` era 404, ícono TikTok placeholder | [SPEC-011](specs/SPEC-011-footer-navbar-real.md) |
 | 012 | Limpiar duplicados en `posts/[slug]` | ✅ Cerrada (2026-05-09) | Comunidad CTA + back-link aparecen 2 veces, "1,240 biohackers" hardcoded | [SPEC-012](specs/SPEC-012-posts-slug-cleanup.md) |
 | 013 | Layouts unificados (oscuro + footer único) | ✅ Cerrada (2026-05-09) | El sitio cambia bruscamente de tema al navegar; `style p { max-width: 65ch }` global | [SPEC-013](specs/SPEC-013-unified-layouts.md) |
-| 014 | Calidad de código y tipos en scripts | 📝 Pendiente | `console.log` en 17 archivos prod, tipos null-safe, README template default | — |
-| 015 | Endpoint PDF real o disabled explicit | 📝 Pendiente | `generate-pdf-report.ts` es mockup con CDN play | — |
-| 016 | Limpieza archivos obsoletos | 📝 Pendiente | `last-update.txt`, `propuesta-*.html` en raíz, `.quarantine_modules/` | — |
+
+### Fase 4 — ADMIN AUTOMATION (dashboard administrativo)
+
+Decisión 2026-05-09: Carlos pidió "optimizar el dashboard administrativo" enfocando en automatizar publicación de artículos. Confirmó que **NO necesita Gemini API server-side** (descartado SPEC-020 original). El alcance se enfoca en mejorar el flow manual + pipeline de imágenes para sacar bottlenecks operativos.
+
+| # | Spec | Estado | Problema | Archivo |
+|---|---|---|---|---|
+| 014 | Imágenes a Cloud Storage (no base64) | 📝 Spec | Imágenes guardadas como base64 dentro del doc Firestore — riesgo de pasar el límite de 1MB y perfomance lento | [SPEC-014](specs/SPEC-014-images-cloud-storage.md) |
+| 015 | Drafts + preview en vivo + validación quiz | 📝 Pendiente | Sin drafts (cada save publica), sin preview del markdown renderizado, quiz puede publicarse vacío | — |
+| 016 | LeadList CRM funcional (status, notas, tags) | 📝 Pendiente | Tabla estática con export CSV — sin gestión de pipeline de leads | — |
+| 017 | Analítica IMR integrada al dashboard | 📝 Pendiente | Vive en página aparte, fricción de navegación | — |
+| 018 | Audit log de actividad admin | 📝 Pendiente | Sin trazabilidad de qué editó/borró cada admin | — |
+| 019 | Stats con filtros temporales + tendencias | 📝 Pendiente | Solo totales fijos, sin rango ni evolución | — |
+
+### Backlog (ex-Fase 3, postergado)
+
+- Calidad de código (`console.log` en producción, tipos null-safe en scripts inline, README default)
+- Endpoint PDF real (`generate-pdf-report.ts` es mockup con CDN play)
+- Limpieza archivos obsoletos (`last-update.txt`, `propuesta-*.html`, `.quarantine_modules/`)
 
 ### Fase 4 — BAJOS (limpieza)
 

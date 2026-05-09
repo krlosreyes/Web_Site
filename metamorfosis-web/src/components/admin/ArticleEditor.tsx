@@ -21,6 +21,67 @@ interface ArticleEditorProps {
     onCancel: () => void;
 }
 
+/**
+ * Lee un File del input y devuelve un dataUrl con la imagen comprimida y
+ * redimensionada (máx 1200px de ancho, JPEG calidad 0.7).
+ */
+function resizeAndCompress(
+    file: File,
+    maxWidth = 1200,
+    quality = 0.7
+): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onerror = () => reject(new Error('No se pudo decodificar la imagen'));
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    reject(new Error('Canvas 2D no disponible'));
+                    return;
+                }
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.src = event.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+/**
+ * Sube un dataUrl al endpoint server-side, que lo persiste en Firebase
+ * Cloud Storage (SPEC-014) y devuelve una URL pública. Reemplaza el flujo
+ * anterior que guardaba base64 inline en el doc Firestore.
+ */
+async function uploadImageToStorage(dataUrl: string, folder = 'posts/uploads'): Promise<string> {
+    const res = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dataUrl, folder }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        throw new Error(data.error || `Upload falló: HTTP ${res.status}`);
+    }
+    if (!data.url) {
+        throw new Error('Respuesta sin URL');
+    }
+    return data.url as string;
+}
+
 const normalizeQuiz = (rawQuiz: any[]): Question[] => {
     if (!Array.isArray(rawQuiz)) return [];
     return rawQuiz.map((q: any) => {
@@ -56,6 +117,8 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
     
     const [isPublishing, setIsPublishing] = useState(false);
     const [showManual, setShowManual] = useState(true);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
 
     // Sincronización forzada al cambiar de artículo
     React.useEffect(() => {
@@ -73,33 +136,20 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
         const file = e.target.files?.[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const img = new Image();
-            img.onload = () => {
-                // Configurar el lienzo para redimensionar (Máx 1200px de ancho)
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 1200;
-                let width = img.width;
-                let height = img.height;
-
-                if (width > MAX_WIDTH) {
-                    height *= MAX_WIDTH / width;
-                    width = MAX_WIDTH;
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx?.drawImage(img, 0, 0, width, height);
-
-                // Exportar como JPEG comprimido (calidad 0.7)
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                setImages(prev => [...prev, compressedBase64]);
-            };
-            img.src = event.target?.result as string;
-        };
-        reader.readAsDataURL(file);
+        setUploadError(null);
+        setIsUploading(true);
+        try {
+            const dataUrl = await resizeAndCompress(file, 1200, 0.7);
+            const url = await uploadImageToStorage(dataUrl, 'posts/uploads');
+            setImages((prev) => [...prev, url]);
+        } catch (err: any) {
+            console.error('[ArticleEditor] Upload error:', err);
+            setUploadError(err?.message || 'Error desconocido subiendo imagen');
+        } finally {
+            setIsUploading(false);
+            // Resetear el input para permitir re-seleccionar el mismo archivo
+            e.target.value = '';
+        }
     };
 
     const handleSmartPaste = () => {
@@ -374,11 +424,29 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center">
                                         <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Imágenes (Subir o URL)</label>
-                                        <label className="cursor-pointer text-[10px] bg-blue-500/20 text-blue-400 px-3 py-1 rounded-lg border border-blue-500/30 hover:bg-blue-500 hover:text-white transition-all">
-                                            <span>📁 Subir Archivo</span>
-                                            <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
+                                        <label
+                                            className={`cursor-pointer text-[10px] px-3 py-1 rounded-lg border transition-all ${
+                                                isUploading
+                                                    ? 'bg-gray-700 text-gray-400 border-gray-700 cursor-wait'
+                                                    : 'bg-blue-500/20 text-blue-400 border-blue-500/30 hover:bg-blue-500 hover:text-white'
+                                            }`}
+                                        >
+                                            <span>{isUploading ? '⏳ Subiendo…' : '📁 Subir Archivo'}</span>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={handleFileUpload}
+                                                disabled={isUploading}
+                                            />
                                         </label>
                                     </div>
+
+                                    {uploadError && (
+                                        <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-[10px] text-red-300 font-medium">
+                                            ⚠️ {uploadError}
+                                        </div>
+                                    )}
                                     
                                     <div className="grid grid-cols-2 gap-4">
                                         {images.map((img, idx) => (

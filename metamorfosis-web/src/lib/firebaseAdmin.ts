@@ -1,6 +1,7 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
+import { getStorage } from 'firebase-admin/storage';
 
 // Prevent duplicate initialization on hot-reloads in SSR
 if (!getApps().length) {
@@ -17,7 +18,10 @@ if (!getApps().length) {
 
     try {
         initializeApp({
-            credential: cert(serviceAccount)
+            credential: cert(serviceAccount),
+            // Bucket por default — debe matchear PUBLIC_FIREBASE_STORAGE_BUCKET.
+            // Sin esto, storage.bucket() necesita el nombre explícito en cada call.
+            storageBucket: import.meta.env.PUBLIC_FIREBASE_STORAGE_BUCKET ?? `${serviceAccount.projectId}.firebasestorage.app`,
         });
         console.log('✅ Firebase Admin SDK initialized successfully.');
     } catch (error) {
@@ -27,4 +31,5 @@ if (!getApps().length) {
 
 export const db = getFirestore();
 export const auth = getAuth();
+export const storage = getStorage();
 export { FieldValue };

@@ -1,0 +1,39 @@
+rules_version = '2';
+
+// Reglas de Firebase Cloud Storage — Metamorfosis Real
+//
+// Modelo:
+// - posts/* : imágenes de artículos del blog. Lectura pública (los posts
+//   son públicos), escritura solo desde Admin SDK (que bypasa rules).
+// - users/{uid}/* : reservado para uploads del propio user (avatares,
+//   fotos de progreso). Solo el dueño accede.
+// - todo lo demás: deny por default.
+//
+// Despliegue:
+//   firebase deploy --only storage
+// o pegar este archivo en Firebase Console → Storage → Rules → Publicar.
+//
+// Ver specs/SPEC-014-images-cloud-storage.md
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Imágenes de artículos: lectura pública, escritura solo Admin SDK
+    // (la verificación de auth admin la hace el endpoint /api/admin/upload-image).
+    match /posts/{path=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Uploads del propio user (avatares, progreso). Pendiente de UI cliente.
+    match /users/{uid}/{path=**} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}
