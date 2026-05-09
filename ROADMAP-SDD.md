@@ -55,8 +55,8 @@ Decisión 2026-05-09: Carlos pidió "optimizar el dashboard administrativo" enfo
 | # | Spec | Estado | Problema | Archivo |
 |---|---|---|---|---|
 | 014 | Imágenes a Cloud Storage (no base64) | ✅ Cerrada (2026-05-09) | Imágenes guardadas como base64 dentro del doc Firestore — riesgo de pasar el límite de 1MB y perfomance lento | [SPEC-014](specs/SPEC-014-images-cloud-storage.md) |
-| 015 | Drafts + preview en vivo + validación quiz | 🔨 En progreso | Sin drafts (cada save publica), sin preview del markdown renderizado, quiz puede publicarse vacío | [SPEC-015](specs/SPEC-015-drafts-preview-quiz-validation.md) |
-| 016 | LeadList CRM funcional (status, notas, tags) | 📝 Pendiente | Tabla estática con export CSV — sin gestión de pipeline de leads | — |
+| 015 | Drafts + preview en vivo + validación quiz | ✅ Cerrada (2026-05-09) | Sin drafts (cada save publica), sin preview del markdown renderizado, quiz puede publicarse vacío | [SPEC-015](specs/SPEC-015-drafts-preview-quiz-validation.md) |
+| 016 | LeadList CRM funcional (status, notas, tags) | ✅ Cerrada (2026-05-09) | Tabla estática con export CSV — sin gestión de pipeline de leads | [SPEC-016](specs/SPEC-016-leadlist-crm.md) |
 | 017 | Analítica IMR integrada al dashboard | 📝 Pendiente | Vive en página aparte, fricción de navegación | — |
 | 018 | Audit log de actividad admin | 📝 Pendiente | Sin trazabilidad de qué editó/borró cada admin | — |
 | 019 | Stats con filtros temporales + tendencias | 📝 Pendiente | Solo totales fijos, sin rango ni evolución | — |
