@@ -304,6 +304,23 @@ El último escalón valida también el criterio pendiente de SPEC-002 (happy pat
 - **Validar/throw en componentes globales es peligroso.** El footer está en todas las páginas; un throw ahí ataja el render del sitio entero. Centralizar checks en `enforceProductionSecurity` y llamarlo solo desde páginas/APIs que usan el password.
 - **Hostinger Node.js Apps necesita ~90-120s post-push** para que el deploy se aplique. Tener cuenta en futuras specs.
 
+**Cierre tardío con tres fix follow-ups (commits 43694e3, 8e62852, 9e3d8e2 aprox):**
+
+Después del refactor inicial (`5e28643`) salieron tres bugs encadenados que extendieron la spec más de lo razonable:
+
+1. **`fix(spec-003): Navbar refleja sesión admin`** — el Navbar global no detectaba la cookie admin (su script solo escuchaba `onAuthStateChanged` de Firebase). Aplicado el mismo patrón server-side de `Footer.astro`: leer la cookie con `isValidSessionValue` y renderizar UI condicional ("Modo Admin" + botón "Cerrar Sesión" rojo) cuando hay sesión admin.
+
+2. **`fix(spec-003): logout no borraba cookie por flag Secure faltante`** — `createLogoutCookie()` y `Astro.cookies.delete()` no incluían `Secure` cuando emitían la cookie de borrado. La cookie original tenía `Secure; HttpOnly; SameSite=Strict; Path=/`. Al diferir en `Secure`, los navegadores en HTTPS ignoraban el `Set-Cookie` de logout y la sesión sobrevivía. Resultado: bug crítico de seguridad — el botón "Cerrar Sesión" parecía funcionar (redirigía a `/`) pero la cookie persistía y `/admin/dashboard` seguía siendo accesible sin re-login.
+
+3. **`fix(spec-003): logout fetch con Content-Type:application/json`** — los botones "Cerrar Sesión" del Navbar y del header del dashboard hacían `fetch('/api/admin/logout', { method: 'POST' })` **sin** header `Content-Type`. Astro 6 trata POST sin JSON como form submission y lo rechaza con 403 "Cross-site POST form submissions are forbidden" antes de llegar al handler. `fetch()` con 403 NO lanza excepción (solo errores de red lo hacen), así que el `try/catch` no se enteraba y `window.location.href = '/'` daba la falsa sensación de logout exitoso. La cookie nunca se borraba.
+
+**Aprendizajes clave que se memorizan para no repetir:**
+
+- En Astro 6, **todo `fetch` POST desde JS a `/api/*` debe incluir `Content-Type: application/json`**. Sin él, 403 CSRF antes del handler. Mismo gotcha cometido dos veces seguidas en este proyecto (cleanup y logout).
+- **Las cookies de invalidación deben matchear flags exactos** (Secure, HttpOnly, SameSite, Path) de la cookie original o el browser las ignora.
+- **`fetch` con 4xx/5xx no lanza excepción** — siempre chequear `res.ok` explícitamente y loguear si hay rechazo.
+- **Cuando un fix expone otro bug**, no pedir verificación parcial. Implementar TODOS los fixes que se descubran de una sola pasada para no entrar en loop iterativo. Carlos valora su tiempo y este loop lo costó ~1 hora.
+
 **Pendientes que se mueven a otras specs:**
 
 - Verificación de rate limit en producción → backlog Fase 3.

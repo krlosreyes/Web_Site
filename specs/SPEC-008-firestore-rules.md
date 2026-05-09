@@ -1,9 +1,10 @@
 # SPEC-008 — Reglas de seguridad de Firestore
 
-**Estado:** 📝 Spec
+**Estado:** ✅ Cerrada
 **Fase:** 2
 **Severidad:** ALTO (seguridad)
 **Fecha de creación:** 2026-05-09
+**Cerrada:** 2026-05-09 (rules publicadas a las 14:33)
 **Autor:** Carlos Reyes
 **Depende de:** SPEC-005 (schema canónico)
 
@@ -179,4 +180,38 @@ Cierra specs/SPEC-008-firestore-rules.md
 
 ## Resultado
 
-*(Pendiente de implementación.)*
+Implementada y publicada el 2026-05-09 a las 14:33.
+
+**Cambios mergeados (commit `418ac32`):**
+
+- `firebase/firestore.rules` — contrato declarativo de seguridad versionado en repo.
+- `firebase/firestore.indexes.json` — `[]` por ahora (sin queries con índices compuestos).
+- `firebase.json` — config para `firebase deploy --only firestore:rules`.
+- `metamorfosis-web/src/components/ArticleQuiz.tsx` — refactor a `users/{currentUser.uid}` (cierre tardío de SPEC-005.4). Sin esto las rules nuevas habrían bloqueado la persistencia de quizzes de artículos.
+
+**Despliegue:** manual desde Firebase Console (Firestore → Rules → pegar contenido del archivo → Publicar). Las rules NO se despliegan automáticamente con el push a Hostinger — son responsabilidad de Carlos publicarlas vía Console o `firebase deploy --only firestore:rules`. Verificado en la timeline de versiones del Console: la versión activa es la del 2026-05-09 14:33.
+
+**Rules en producción (resumen):**
+
+```
+users/{uid}                  read/write: dueño; app.* protegido (ElenaApp)
+users/{uid}/daily_logs/*     read/write: dueño
+users/{uid}/article_quizzes/* read/write: dueño
+metamorfosis_posts/*         read: público; write: solo Admin SDK
+waitlist_leads/*             create: anónimo con email no vacío; resto deny
+pruebas/*                    solo Admin SDK
+{**} (default)               deny
+```
+
+**Aprendizajes:**
+
+- **Rules son una capa adicional de defensa**, no la única. El Admin SDK de los endpoints `/api/*` bypasa rules y aplica su propia validación (ej. `request.auth.uid` validado por Firebase ID token en `/api/users/onboard`). Defensa en profundidad.
+- **El campo `app.*` protegido** previene que un user manipule su propio `protocolId` o `biomarkers` desde el cliente — esos datos vienen de ElenaApp con sus propias validaciones.
+- **El timing matters**: ArticleQuiz tenía un TODO desde SPEC-005.4 que iba a romper bajo las rules. Verificar grep de `email.toLowerCase()` antes de publicar rules estrictas.
+- **Rollback es trivial** desde la timeline del Firebase Console (click una versión anterior → "Restaurar"). 30 segundos. Si las rules rompen algo en producción, la mitigación es inmediata.
+
+**Pendientes que se mueven a otras specs:**
+
+- Si en el futuro agregamos nuevas subcolecciones bajo `users/{uid}`, hay que extender las rules. Documentar en CHANGELOG.
+- reCAPTCHA en `waitlist_leads.create` (anónimo) — backlog Fase 3+ si hay bot abuse.
+- Reglas para Cloud Storage (avatares, etc.) cuando ElenaApp lo necesite — futura spec dedicada.

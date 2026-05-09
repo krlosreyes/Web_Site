@@ -1,9 +1,10 @@
 # SPEC-015 — Drafts + preview en vivo + validación quiz
 
-**Estado:** 🔨 En progreso
+**Estado:** ✅ Cerrada
 **Fase:** 4
 **Severidad:** ALTO (UX crítica del editor)
 **Fecha de creación:** 2026-05-09
+**Cerrada:** 2026-05-09
 **Autor:** Carlos Reyes
 **Depende de:** ninguna (toca areas distintas a SPEC-014, no hay conflicto)
 
@@ -209,4 +210,24 @@ Cierra specs/SPEC-015-drafts-preview-quiz-validation.md
 
 ## Resultado
 
-*(Pendiente de implementación.)*
+Implementada el 2026-05-09 en una pasada. Carlos confirmó "continuemos" tras los cambios.
+
+**Cambios mergeados:**
+
+- `api/admin/posts.ts`: default `status: 'draft'`, `publishedAt: null`, `updatedAt`. PUT marca `publishedAt` la primera vez que el post pasa a published (lookup del doc previo + condicional).
+- `biblioteca.astro`: trae todos y filtra `status !== 'draft'` (`undefined` legacy = published).
+- `posts/[slug].astro`: drafts → redirect `/404` para anónimos. Admin logueado (cookie `admin_session` válida) puede ver el draft para preview pre-publicación.
+- `ArticleEditor.tsx`: badge 🟢/🟡 + timestamp "Guardado HH:MM"; toggle ✎ Editar / 👁 Preview con `marked.parse` y mismo wrapper `prose prose-invert` que la página real; botones dobles "Guardar borrador" + "Publicar ahora"; validación quiz con `validateQuizForPublish` (pregunta no vacía, ≥2 opciones válidas, `correctAnswer` apunta a opción real); errores inline por pregunta con borde rojo + banner explicativo.
+
+**Aprendizajes:**
+
+- **`useMemo` para markdown render** evita re-parsear en cada keystroke. Solo re-parsea cuando cambia `content`.
+- **Validación con feedback inline** (no `alert`) es mucho mejor UX. Cada pregunta sabe cuál es su error específico.
+- **Compat con docs legacy** (sin campo `status`) usando `undefined === published` evita migración. El sistema funciona en modo mixto.
+- **Admin con cookie puede ver drafts** = preview pre-publicación gratis. Reutiliza `isValidSessionValue` de SPEC-003 — patrón consistente.
+
+**Pendientes que se mueven a otras specs:**
+
+- Sanitización XSS en preview con `DOMPurify` (no aplica hoy porque solo admin lo usa, pero conviene si alguna vez exponemos preview a public).
+- Auto-save de drafts en background (cada 30s o al hacer pausa de tipeo).
+- Diff visual antes de publicar (qué cambió desde la última versión publicada).
