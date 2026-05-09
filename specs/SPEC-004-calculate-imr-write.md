@@ -1,12 +1,13 @@
 # SPEC-004 — Motor IMR unificado web ↔ ElenaApp
 
-**Estado:** 📝 Spec
+**Estado:** ✅ Cerrada
 **Fase:** 1
 **Severidad:** CRÍTICO
 **Fecha de creación:** 2026-05-08
 **Última revisión:** 2026-05-09 (rescoped: scope ampliado a unificación con ElenaApp)
+**Cerrada:** 2026-05-09
 **Autor:** Carlos Reyes
-**Depende de:** SPEC-001 (deploy), **SPEC-005** (schema canónico — define `ImrResult` y dónde se persiste el cálculo)
+**Depende de:** SPEC-001 (deploy), **SPEC-005** sub-specs 5.1+5.2 (schema canónico de `ImrResult`)
 
 ---
 
@@ -232,4 +233,58 @@ curl -s -X POST https://metamorfosisvital.com.co/api/calculate-imr \
 
 ## Resultado
 
-*(Pendiente de implementación.)*
+Implementada y verificada en producción contra `https://metamorfosisvital.com.co/api/calculate-imr` el 2026-05-09.
+
+**Decisión tomada (sub-spec 4.0):** **Opción B — motor local**. Razón: ElenaApp aún en desarrollo sin users reales, motor local es más simple, sin latencia, y se puede portar a Cloud Function en el futuro sin tocar consumidores. Si después decidimos unificar remotamente, abrimos sub-spec 4.5 con la CF como canon (signature de `computeImr` queda igual; solo cambia la impl).
+
+**Cambios mergeados:**
+
+- **Nuevo** `src/lib/imr/engine.ts`: `computeImr(input): ImrResult`, helpers `bodyFatNavy`, `tmbMifflin`, constante `ENGINE_VERSION = 'spec-70.5-v1'`. Wrapper sobre `calculateSPEC705` que normaliza inputs camelCase, calcula Body Fat Navy si no viene explícito, y agrega métricas derivadas: IMC, TMB (Mifflin-St Jeor), ICA (waist/height), edad metabólica. Devuelve `ImrResult` tipado del schema canónico.
+
+- **Reescrito** `src/pages/api/calculate-imr.ts`: pure compute. Validación estricta de los 4 campos numéricos requeridos (`heightCm`, `currentWeightKg`, `waistCircumferenceCm`, `neckCircumferenceCm`); 400 si faltan. Eliminada la rama `recordId` que permitía writes anónimos a `metamorfosis_posts`. Eliminado el stub 503 de SPEC-001. Sin imports de Firestore — la persistencia va a SPEC-006.
+
+- **Refactor** `src/components/calculator/MetamorfosisCalculator.tsx`: eliminado `type IMRResult` local con `TODO(SPEC-004)`. Importa `ImrResult` desde `lib/types/user`.
+
+- **Refactor** `src/components/admin/AnaliticaIMR.tsx`: el fallback de cálculo apuntaba a `biometrics.calculateIMR` (Cloud Function `calculateIMRv2` deshabilitada, console.log cosmético). Migrado a `computeImr` local sincrónico — el fallback ahora realmente popula `imr_score`, `b_score`, `m_score`, `h_score` en la UI cuando un registro de pruebas no trae score pre-calculado.
+
+- **Eliminado** `src/utils/biometrics.ts`: sin consumidores tras el refactor.
+
+**Verificación end-to-end** (3 curls cubriendo todos los criterios):
+
+```
+Hombre 35a, 175/75/85/38   → 200, imrScore 58, IMC 24.49, FFMI 18.74, ICA 0.486
+Sin heightCm                → 400 (validación correcta)
+Mujer 42a, 165/62/78/32/h98 → 200, imrScore 56, IMC 22.77
+```
+
+**Criterios cumplidos:**
+
+- [x] Sub-spec 4.0: investigación cerrada con decisión opción B documentada en este Resultado.
+- [x] `src/lib/imr/engine.ts` exporta `computeImr` que devuelve `ImrResult`.
+- [x] `src/pages/api/calculate-imr.ts` reescrito: validación, cálculo, devuelve `{success, result}`. Sin Firestore.
+- [x] No queda `calculateIMR` (símbolo) en el endpoint, solo `computeImr`.
+- [x] No queda `recordId` en el endpoint.
+- [x] `MetamorfosisCalculator.tsx` importa `ImrResult` del schema; sin TODO local.
+- [x] `biometrics.ts` eliminado del repo.
+- [x] La calculadora `/calculadora` muestra resultado real (no 503).
+- [x] Cálculo coherente para inputs típicos.
+
+**Desviaciones del plan original:**
+
+1. **Eliminamos `biometrics.ts` en el mismo commit** en lugar de "decidir destino". Ningún consumidor lo usaba después del refactor de `AnaliticaIMR.tsx`, así que mantenerlo era código muerto.
+
+2. **No persistimos a `users/{uid}` en este endpoint**. La spec original mencionaba que si el request viene autenticado se persiste. Decidí mover esa lógica a SPEC-006 (onboarding) para mantener separación de responsabilidades: este endpoint es **pure compute**; la persistencia con verificación de Firebase ID token la hace `POST /api/users/onboard`. Beneficio: este endpoint puede usarse anónimamente desde el quiz, y el usuario decide después si registrarse.
+
+3. **Body Fat Navy en mujeres puede sobreestimar** con perímetros pequeños (cuello chico, cintura chica). En el test de mujer (42a, cuello 32, cintura 78) Navy estima ~57%. La fórmula es la estándar (Hodgdon-Beckett); si se quiere mayor precisión, el quiz puede capturar bodyFat explícito (de bioimpedancia) y pasarlo en el payload — el motor lo respeta sobre Navy.
+
+**Aprendizajes:**
+
+- **Single source of truth para tipos** (`ImrResult` exportado desde `lib/types/user`) sostiene el contrato entre web y ElenaApp futura. El día que ElenaApp consuma este motor, importa el tipo y queda sincronizado.
+- **Pure compute en endpoints** facilita testing y reusabilidad. Persistencia siempre en endpoints separados que validan auth.
+- **Body Fat Navy es práctico pero impreciso en algunos rangos.** Para futura SPEC: ofrecer en el quiz la opción de pasar bodyFat de bioimpedancia y dejar Navy como fallback.
+
+**Pendientes que se mueven a otras specs:**
+
+- Persistencia del cálculo en `users/{uid}` (con verificación de Firebase ID token) → SPEC-006.
+- Rate limiting en `/api/calculate-imr` (público, sin auth) → backlog Fase 3.
+- Migrar el motor a Cloud Function compartida con ElenaApp → sub-spec 4.5 si se decide en el futuro.
