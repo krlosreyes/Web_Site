@@ -1,10 +1,11 @@
 # SPEC-001 — Resolver SSR + estrategia de deploy
 
-**Estado:** 📝 Spec
+**Estado:** ✅ Cerrada
 **Fase:** 1
 **Severidad:** CRÍTICO
 **Fecha de creación:** 2026-05-08
 **Última revisión:** 2026-05-09 (cambio de proveedor: Vercel → Hostinger Node.js Apps)
+**Cerrada:** 2026-05-09
 **Autor:** Carlos Reyes
 **Depende de:** ninguna (bloquea SPEC-002, 003, 004, 005)
 
@@ -236,4 +237,74 @@ Cierra specs/SPEC-001-ssr-deploy-strategy.md
 
 ## Resultado
 
-*(Pendiente de implementación.)*
+Implementada y verificada en producción contra `https://metamorfosisvital.com.co` el 2026-05-09.
+
+**Cambios mergeados:**
+
+- `metamorfosis-web/package.json` → agregado `engines.node>=20` y script `start`.
+- `metamorfosis-web/astro.config.mjs` → adaptador `@astrojs/node` modo standalone, eliminado el comentario obsoleto sobre Vercel y el `vite.server.fs.allow` que arrastraba paths de instalación local.
+- `metamorfosis-web/package-lock.json` → entrada de `@astrojs/node@^10.1.0`.
+- `.github/workflows/deploy.yml` → eliminado (Hostinger gestiona deploy desde hPanel conectado a GitHub).
+- `metamorfosis-web/src/pages/api/calculate-imr.ts` → stub temporal 503 (el endpoint importaba un símbolo inexistente; reescritura completa va en SPEC-004).
+- `metamorfosis-web/src/components/calculator/MetamorfosisCalculator.tsx` → tipo `IMRResult` declarado localmente con `TODO(SPEC-004)`.
+
+**Configuración en hPanel (Node.js Apps, plan Business):**
+
+| Campo | Valor |
+|---|---|
+| Repositorio | `krlosreyes2/Web_Site` |
+| Rama | `main` |
+| Auto-deploy | Activado |
+| Node | 22.x |
+| Directorio raíz | `metamorfosis-web` |
+| Comando de compilación | `npm run build` |
+| Gestor de paquetes | `npm` |
+| Directorio de salida | `dist` |
+| **Archivo de entrada** | **`server/entry.mjs`** ← ojo, sin el prefijo `dist/` |
+
+**Variables de entorno cargadas en hPanel** (12): `PUBLIC_FIREBASE_API_KEY`, `PUBLIC_FIREBASE_AUTH_DOMAIN`, `PUBLIC_FIREBASE_PROJECT_ID`, `PUBLIC_FIREBASE_STORAGE_BUCKET`, `PUBLIC_FIREBASE_MESSAGING_SENDER_ID`, `PUBLIC_FIREBASE_APP_ID`, `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`, `PUBLIC_CLOUD_FUNCTION_URL`, `ADMIN_PASSWORD`, `NODE_ENV=production`.
+
+**Verificación end-to-end:**
+
+```
+GET  /                          → 200  (DYNAMIC, upstream-rt 0.20s)
+GET  /biblioteca                → 200  (SSR + Firestore)
+GET  /calculadora               → 200
+GET  /admin/login               → 200
+GET  /api/admin/posts           → 401  (auth bloquea sin cookie)
+POST /api/calculate-imr         → 503  {error: "...SPEC-004"}
+POST /api/leads {name,email}    → 200  {success:true}  (Firestore write OK)
+```
+
+Logs de runtime:
+
+```
+[@astrojs/node] Server listening on http://localhost:undefined
+✅ Firebase Admin SDK initialized successfully.
+```
+
+(El `localhost:undefined` es cosmético: Astro lee `process.env.PORT` para el bind pero lo loggea mal. El proceso sí está atado al puerto que Hostinger inyecta — se confirma porque el upstream responde.)
+
+**Desviaciones del plan original:**
+
+1. **Entry File diferente al de la spec.** La spec asumía `dist/server/entry.mjs` (relativo al source). En la práctica, Hostinger Node.js Apps **aplana el directorio `dist/` durante el copy** desde el build dir a `public_html/`: el contenido de `dist/client/` y `dist/server/` queda como `public_html/client/` y `public_html/server/`. El "Archivo de entrada" se evalúa relativo a `public_html/`, así que la ruta correcta es **`server/entry.mjs`** (sin el prefijo `dist/`). Esto no está documentado claramente en la docu de Hostinger; lo descubrimos al iterar.
+
+2. **Stub temporal para `/api/calculate-imr` y tipo local en `MetamorfosisCalculator.tsx`.** El endpoint original importaba `calculateIMR` desde `imr-engine.ts`, pero ese símbolo no existe ahí (el motor real es `calculateSPEC705`). El bug llevaba tiempo en el repo pero no se notaba porque el sitio se publicaba estático. Para no expandir scope de SPEC-001, dejamos un stub 503 explícito y SPEC-004 (cuyo scope se amplió en consecuencia) hace la reescritura completa.
+
+3. **Comillas envolventes en `FIREBASE_PRIVATE_KEY` y `ADMIN_PASSWORD` durante la carga inicial.** Al copiar valores desde `.env` a hPanel, las comillas dobles del archivo se incluyeron como parte del valor. `ADMIN_PASSWORD` tenía workaround (`auth.ts` strippea comillas), pero `FIREBASE_PRIVATE_KEY` se pasaba a `cert()` con las comillas y rompía el parsing. Fix: editar las dos vars en hPanel sin comillas envolventes.
+
+**Aprendizajes para futuras specs:**
+
+- **Hostinger Node.js Apps aplana `dist/`** en el copy a `public_html/`. Documentarlo en cualquier spec que toque deploy.
+- **Build OK + runtime sin logs ≠ proceso vivo.** Si "Registros de tiempo de ejecución" está vacío después de un deploy completado, lo más probable es que el Entry File no exista en la ruta esperada — revisar el árbol de `public_html/`.
+- **El log de Astro Node standalone dice `localhost:undefined`** aunque el proceso esté escuchando en el puerto correcto. No es señal de bug.
+- **Hostinger CDN devuelve 403 cuando no hay backend respondiendo**, no 502/504. Eso confunde el diagnóstico.
+- **`curl -sI -X POST`** combina HEAD con POST y a algunos CDN no les gusta. Para probar POST de verdad usar `-i` (no `-I`) y `-d` con body.
+
+**Pendientes que se moverán a otras specs:**
+
+- Reescritura del endpoint `/api/calculate-imr` con `calculateSPEC705` real → SPEC-004 (scope ya ampliado).
+- Limpieza de archivos sobrantes en `public_html/` del FTP anterior — no aplica, Hostinger los reemplazó al hacer el primer deploy de la Node.js App.
+- Rotación de `ADMIN_PASSWORD` (estuvo en repo durante el WIP) → Fase 2.
+
+**Sitio en producción:** https://metamorfosisvital.com.co (con SSR vivo).
