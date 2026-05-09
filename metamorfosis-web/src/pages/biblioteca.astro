@@ -8,10 +8,17 @@ export const prerender = false;
 
 const postsRef = db.collection(COLLECTIONS.POSTS);
 const snapshot = await postsRef.orderBy('createdAt', 'desc').get();
-const articles = snapshot.docs.map(doc => ({
+const allArticles = snapshot.docs.map(doc => ({
     id: doc.id,
-    ...doc.data()
+    ...doc.data() as Record<string, unknown>,
 }));
+
+// SPEC-015: ocultar drafts del público. Artículos legacy sin campo `status`
+// se tratan como `published` (compatibilidad con docs anteriores a SPEC-015).
+const articles = allArticles.filter((art) => {
+    const status = (art as { status?: string }).status;
+    return status === undefined || status === 'published';
+});
 
 const title = "Biblioteca de Metamorfosis | Metamorfosis Real";
 const description = "El conocimiento científico para dominar tu biología y transformar tu vida.";

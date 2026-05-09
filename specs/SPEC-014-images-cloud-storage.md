@@ -1,9 +1,10 @@
 # SPEC-014 — Imágenes a Firebase Cloud Storage (no base64)
 
-**Estado:** 📝 Spec
+**Estado:** ✅ Cerrada
 **Fase:** 4
 **Severidad:** ALTO (riesgo de bug de límite Firestore)
 **Fecha de creación:** 2026-05-09
+**Cerrada:** 2026-05-09
 **Autor:** Carlos Reyes
 **Depende de:** SPEC-005 (schema), SPEC-008 (rules) — ambas cerradas
 
@@ -305,4 +306,23 @@ Cierra specs/SPEC-014-images-cloud-storage.md
 
 ## Resultado
 
-*(Pendiente de implementación.)*
+Implementada y verificada en producción el 2026-05-09 desde la UI admin (subida de imagen real). Carlos confirmó que el upload funciona y el array `images[]` recibe URLs `https://storage.googleapis.com/...` en lugar de base64.
+
+**Cambios mergeados:**
+
+- `firebase/storage.rules` — read público en `posts/*`, deny todo lo demás (Admin SDK bypasa).
+- `firebase.json` — sección `storage`.
+- `src/lib/firebaseAdmin.ts` — export de `storage` + `storageBucket` configurado en init.
+- `src/pages/api/admin/upload-image.ts` — endpoint nuevo con auth admin, validación content-type allowlist, max 5MB, sanitización de paths, devuelve URL pública con `cache-control: public, max-age=31536000, immutable`.
+- `src/components/admin/ArticleEditor.tsx` — `handleFileUpload` reescrito: helpers `resizeAndCompress` y `uploadImageToStorage` extraídos, estados `isUploading` + `uploadError` con feedback visual.
+
+**Aprendizajes:**
+
+- **El feedback visual del upload** (botón "⏳ Subiendo…" + banner de error) es UX crítico para uploads asincrónicos. Sin él, el usuario no sabe si el click hizo algo.
+- **`makePublic()` + cache-control de 1 año** + path único con timestamp = imágenes inmutables que nunca se invalidan. Si en algún momento se necesita versioning, cambiar el filename pattern.
+- **Sanitización de paths** previene path traversal (`../..`) y caracteres raros que rompen GCS. Whitelist de chars (`a-zA-Z0-9._\-/`) es más seguro que blacklist.
+
+**Pendientes que se mueven a otras specs:**
+
+- Migración de imágenes legacy en base64 a Storage (sub-spec 14b opcional). No es bloqueante; los artículos viejos siguen funcionando porque `<img src>` acepta tanto `data:` como `https:`.
+- UI para borrar imágenes de Storage cuando se quitan del array (hoy quedan huérfanas en el bucket).

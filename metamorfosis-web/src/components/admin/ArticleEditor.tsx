@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { marked } from 'marked';
 
 interface Question {
     question: string;
     options: string[];
     correctAnswer: number;
 }
+
+type ArticleStatus = 'draft' | 'published';
 
 interface Article {
     id?: string;
@@ -13,12 +16,38 @@ interface Article {
     images: string[];
     references: string[];
     quiz: Question[];
+    status?: ArticleStatus;
 }
 
 interface ArticleEditorProps {
     article?: Article | null;
     onSave: (article: Article) => Promise<void>;
     onCancel: () => void;
+}
+
+/**
+ * Valida un quiz antes de publicar (SPEC-015). Retorna un map de errores
+ * indexed por número de pregunta. Un quiz vacío es válido (el quiz es opcional).
+ */
+function validateQuizForPublish(quiz: Question[]): Map<number, string> {
+    const errors = new Map<number, string>();
+    quiz.forEach((q, i) => {
+        const trimmedQuestion = (q.question || '').trim();
+        if (trimmedQuestion.length === 0) {
+            errors.set(i, 'La pregunta está vacía.');
+            return;
+        }
+        const validOptions = (q.options || []).filter((o) => (o || '').trim().length > 0);
+        if (validOptions.length < 2) {
+            errors.set(i, `Solo hay ${validOptions.length} opción válida — necesitás al menos 2.`);
+            return;
+        }
+        const correctOption = q.options?.[q.correctAnswer];
+        if (!correctOption || correctOption.trim().length === 0) {
+            errors.set(i, 'La opción marcada como correcta está vacía.');
+        }
+    });
+    return errors;
 }
 
 /**
@@ -116,9 +145,18 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
     const [quiz, setQuiz] = useState<Question[]>(normalizeQuiz(article?.quiz || []));
     
     const [isPublishing, setIsPublishing] = useState(false);
+    const [isSavingDraft, setIsSavingDraft] = useState(false);
+    const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
+    const [status, setStatus] = useState<ArticleStatus>(
+        (article?.status as ArticleStatus) || 'draft'
+    );
+    const [previewMode, setPreviewMode] = useState<'edit' | 'preview'>('edit');
+    const [quizErrors, setQuizErrors] = useState<Map<number, string>>(new Map());
     const [showManual, setShowManual] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
+
+    const renderedContent = useMemo(() => marked.parse(content || ''), [content]);
 
     // Sincronización forzada al cambiar de artículo
     React.useEffect(() => {
@@ -128,6 +166,8 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
             setImages(article.images || []);
             setReferences(article.references || []);
             setQuiz(normalizeQuiz(article.quiz || []));
+            setStatus((article.status as ArticleStatus) || 'draft');
+            setQuizErrors(new Map());
             setShowManual(true);
         }
     }, [article?.id, article?.content]); // Escuchar específicamente cambios en ID y Contenido
@@ -217,34 +257,88 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
         }
     };
 
-    const handlePublish = async () => {
-        if (!title || !content) {
-            alert('Falta información para publicar.');
+    /**
+     * Guarda el artículo con el status indicado. Si es 'published', valida el
+     * quiz primero (SPEC-015) y aborta si hay errores. Si es 'draft', se
+     * guarda sin validar para no bloquear el progreso.
+     */
+    const persistArticle = async (newStatus: ArticleStatus) => {
+        if (!title.trim() || !content.trim()) {
+            alert('Falta título o contenido para guardar.');
             return;
         }
 
-        setIsPublishing(true);
+        if (newStatus === 'published') {
+            const errors = validateQuizForPublish(quiz);
+            setQuizErrors(errors);
+            if (errors.size > 0) {
+                alert(
+                    `Hay ${errors.size} error(es) en el quiz. Revisá las preguntas marcadas en rojo antes de publicar.`
+                );
+                return;
+            }
+        } else {
+            // Guardar borrador no valida quiz; limpiamos errores previos.
+            setQuizErrors(new Map());
+        }
+
+        if (newStatus === 'published') setIsPublishing(true);
+        else setIsSavingDraft(true);
+
         try {
             await onSave({
                 id: article?.id,
                 title,
                 content,
-                images: images.filter(img => img.trim() !== ''),
-                references: references.filter(ref => ref.trim() !== ''),
-                quiz
+                images: images.filter((img) => img.trim() !== ''),
+                references: references.filter((ref) => ref.trim() !== ''),
+                quiz,
+                status: newStatus,
             });
-            alert('🚀 ¡Artículo publicado con éxito!');
+            setStatus(newStatus);
+            if (newStatus === 'draft') {
+                const time = new Date().toLocaleTimeString('es-ES', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                });
+                setDraftSavedAt(time);
+            }
+            // Solo alertamos en publish; los drafts se guardan en silencio con feedback inline.
+            if (newStatus === 'published') {
+                alert('🚀 ¡Artículo publicado con éxito!');
+            }
         } catch (e: any) {
             alert('Error: ' + e.message);
         } finally {
             setIsPublishing(false);
+            setIsSavingDraft(false);
         }
     };
+
+    const handleSaveDraft = () => persistArticle('draft');
+    const handlePublish = () => persistArticle('published');
 
     return (
         <div className="bg-[#0A0F1E] border border-white/5 rounded-3xl p-10 shadow-3xl max-w-4xl mx-auto animate-fade-in">
             <div className="flex justify-between items-center mb-10">
-                <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter">Mago IMR</h2>
+                <div className="flex items-center gap-4">
+                    <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter">Mago IMR</h2>
+                    {/* Badge de status (SPEC-015) */}
+                    <span
+                        className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
+                            status === 'published'
+                                ? 'bg-[#00C49A]/10 text-[#00C49A] border-[#00C49A]/30'
+                                : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
+                        }`}
+                    >
+                        {status === 'published' ? '🟢 Publicado' : '🟡 Borrador'}
+                    </span>
+                    {draftSavedAt && status === 'draft' && (
+                        <span className="text-[10px] text-gray-500 font-mono">
+                            Guardado {draftSavedAt}
+                        </span>
+                    )}
+                </div>
                 <button onClick={onCancel} className="text-gray-600 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">Cerrar</button>
             </div>
 
@@ -280,8 +374,33 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
 
                         <div className="space-y-4">
                             <div className="flex justify-between items-center">
-                                <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Cuerpo del Artículo (Editable)</label>
-                                <div className="flex gap-2 bg-white/5 p-1 rounded-lg border border-white/10">
+                                <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest">
+                                    Cuerpo del Artículo
+                                </label>
+                                {/* Toggle Edit / Preview (SPEC-015) */}
+                                <div className="flex gap-1 bg-white/5 p-1 rounded-lg border border-white/10 mr-2">
+                                    <button
+                                        onClick={() => setPreviewMode('edit')}
+                                        className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                                            previewMode === 'edit'
+                                                ? 'bg-blue-500 text-white'
+                                                : 'text-gray-500 hover:text-white'
+                                        }`}
+                                    >
+                                        ✎ Editar
+                                    </button>
+                                    <button
+                                        onClick={() => setPreviewMode('preview')}
+                                        className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                                            previewMode === 'preview'
+                                                ? 'bg-blue-500 text-white'
+                                                : 'text-gray-500 hover:text-white'
+                                        }`}
+                                    >
+                                        👁 Preview
+                                    </button>
+                                </div>
+                                <div className={`flex gap-2 bg-white/5 p-1 rounded-lg border border-white/10 ${previewMode === 'preview' ? 'opacity-30 pointer-events-none' : ''}`}>
                                     <button 
                                         onClick={() => {
                                             const textarea = document.getElementById('content-editor') as HTMLTextAreaElement;
@@ -384,27 +503,53 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
                                     </button>
                                 </div>
                             </div>
-                            <textarea 
-                                id="content-editor"
-                                value={content} 
-                                onChange={e => setContent(e.target.value)}
-                                rows={16}
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-base font-sans leading-relaxed focus:border-blue-500 outline-none transition-all resize-y min-h-[400px]"
-                                placeholder="Modifica el contenido aquí..."
-                            />
+                            {/* Editor o Preview según el toggle (SPEC-015) */}
+                            {previewMode === 'edit' ? (
+                                <textarea
+                                    id="content-editor"
+                                    value={content}
+                                    onChange={e => setContent(e.target.value)}
+                                    rows={16}
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-base font-sans leading-relaxed focus:border-blue-500 outline-none transition-all resize-y min-h-[400px]"
+                                    placeholder="Modifica el contenido aquí..."
+                                />
+                            ) : (
+                                <div className="bg-white/[0.02] border border-white/10 rounded-2xl px-6 py-6 min-h-[400px] overflow-auto">
+                                    <div
+                                        className="prose prose-invert max-w-[70ch] mx-auto"
+                                        dangerouslySetInnerHTML={{ __html: renderedContent }}
+                                    />
+                                </div>
+                            )}
                         </div>
 
-                        <button
-                            disabled={isPublishing}
-                            onClick={handlePublish}
-                            className={`w-full py-6 rounded-2xl font-black text-lg uppercase tracking-widest transition-all shadow-2xl ${
-                                isPublishing 
-                                ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
-                                : 'bg-gradient-to-r from-[#00C49A] to-blue-600 text-white hover:scale-[1.02] active:scale-95 shadow-[#00C49A]/20'
-                            }`}
-                        >
-                            {isPublishing ? '⏳ PUBLICANDO...' : '🚀 PUBLICAR AHORA'}
-                        </button>
+                        {/* Botones dobles (SPEC-015): Guardar borrador + Publicar */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <button
+                                disabled={isSavingDraft || isPublishing}
+                                onClick={handleSaveDraft}
+                                className={`py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all border ${
+                                    isSavingDraft
+                                        ? 'bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed'
+                                        : 'bg-white/5 text-white border-white/20 hover:bg-white/10 hover:border-white/40'
+                                }`}
+                                title="Guarda el progreso sin publicar al público"
+                            >
+                                {isSavingDraft ? '💾 Guardando...' : '💾 Guardar borrador'}
+                            </button>
+                            <button
+                                disabled={isPublishing || isSavingDraft}
+                                onClick={handlePublish}
+                                className={`py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-2xl ${
+                                    isPublishing
+                                        ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-[#00C49A] to-blue-600 text-white hover:scale-[1.02] active:scale-95 shadow-[#00C49A]/20'
+                                }`}
+                                title="Valida el quiz y publica al público"
+                            >
+                                {isPublishing ? '⏳ PUBLICANDO...' : '🚀 Publicar ahora'}
+                            </button>
+                        </div>
 
                         <div className="flex justify-center">
                             <button 
@@ -523,13 +668,34 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
 
                                 <div className="grid grid-cols-1 gap-6">
                                     {quiz.map((q, qIdx) => (
-                                        <div key={qIdx} className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 relative group hover:border-yellow-500/30 transition-all">
-                                            <button 
-                                                onClick={() => setQuiz(quiz.filter((_, i) => i !== qIdx))}
+                                        <div
+                                            key={qIdx}
+                                            className={`bg-white/[0.02] border rounded-2xl p-6 relative group transition-all ${
+                                                quizErrors.has(qIdx)
+                                                    ? 'border-red-500/60 bg-red-500/5'
+                                                    : 'border-white/5 hover:border-yellow-500/30'
+                                            }`}
+                                        >
+                                            <button
+                                                onClick={() => {
+                                                    setQuiz(quiz.filter((_, i) => i !== qIdx));
+                                                    // Re-validar errores tras quitar pregunta
+                                                    setQuizErrors((prev) => {
+                                                        const next = new Map(prev);
+                                                        next.delete(qIdx);
+                                                        return next;
+                                                    });
+                                                }}
                                                 className="absolute top-4 right-4 text-gray-600 hover:text-red-500 transition-colors"
                                             >
                                                 <span className="text-xl">×</span>
                                             </button>
+
+                                            {quizErrors.has(qIdx) && (
+                                                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-[11px] text-red-300 font-medium">
+                                                    ⚠️ Pregunta {qIdx + 1}: {quizErrors.get(qIdx)}
+                                                </div>
+                                            )}
 
                                             <div className="space-y-4">
                                                 <input 

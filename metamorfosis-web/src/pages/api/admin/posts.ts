@@ -63,7 +63,12 @@ export const POST: APIRoute = async ({ request }) => {
 
         const body = await request.json();
         const { title, content, images, references, quiz } = body;
-        
+
+        // SPEC-015: status field con default draft. Carlos puede pasar
+        // 'published' explícito desde el botón "Publicar ahora".
+        const status: 'draft' | 'published' = body.status === 'published' ? 'published' : 'draft';
+        const now = new Date().toISOString();
+
         // Slug ultra-seguro y truncado
         let slug = title.toLowerCase()
             .trim()
@@ -71,10 +76,10 @@ export const POST: APIRoute = async ({ request }) => {
             .replace(/[^\w\-]+/g, '')
             .replace(/\-\-+/g, '-')
             .substring(0, 100);
-            
+
         if (slug.endsWith('-')) slug = slug.slice(0, -1);
 
-        const newPost = {
+        const newPost: Record<string, unknown> = {
             title,
             slug,
             content,
@@ -83,12 +88,16 @@ export const POST: APIRoute = async ({ request }) => {
             quiz,
             metadata: { title, slug },
             analytics: { views: 0, clicks: 0, conversions: 0 },
-            createdAt: new Date().toISOString()
+            status,
+            createdAt: now,
+            updatedAt: now,
+            publishedAt: status === 'published' ? now : null,
         };
 
         const docRef = await db.collection(COLLECTIONS.POSTS).add(newPost);
-        return new Response(JSON.stringify({ success: true, id: docRef.id }), { status: 201 });
+        return new Response(JSON.stringify({ success: true, id: docRef.id, status }), { status: 201 });
     } catch (error) {
+        console.error('[posts.POST] Error:', error);
         return new Response(JSON.stringify({ error: 'Error al crear' }), { status: 500 });
     }
 };
@@ -101,14 +110,35 @@ export const PUT: APIRoute = async ({ request }) => {
 
         const body = await request.json();
         const { id, ...data } = body;
-        
-        await db.collection(COLLECTIONS.POSTS).doc(id).update({
-            ...data,
-            updatedAt: new Date().toISOString()
-        });
+        if (!id) {
+            return new Response(JSON.stringify({ error: 'id requerido' }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
+        const now = new Date().toISOString();
+        const update: Record<string, unknown> = { ...data, updatedAt: now };
+
+        // SPEC-015: si pasa a published por primera vez, marcar publishedAt.
+        // Si ya tenía publishedAt, lo dejamos (no reseteamos al re-editar).
+        if (data.status === 'published') {
+            const docSnap = await db.collection(COLLECTIONS.POSTS).doc(id).get();
+            const existing = docSnap.data() as { publishedAt?: string | null } | undefined;
+            if (!existing?.publishedAt) {
+                update.publishedAt = now;
+            }
+        } else if (data.status === 'draft') {
+            // Volver a draft no borra publishedAt — preserva historia.
+            // Si querés "despublicar" del feed, basta con cambiar status; el
+            // filtro de biblioteca/posts respeta status.
+        }
+
+        await db.collection(COLLECTIONS.POSTS).doc(id).update(update);
 
         return new Response(JSON.stringify({ success: true }), { status: 200 });
     } catch (error) {
+        console.error('[posts.PUT] Error:', error);
         return new Response(JSON.stringify({ error: 'Error al actualizar' }), { status: 500 });
     }
 };
