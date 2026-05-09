@@ -1,5 +1,6 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
 // Prevent duplicate initialization on hot-reloads in SSR
 if (!getApps().length) {
@@ -25,3 +26,5 @@ if (!getApps().length) {
 }
 
 export const db = getFirestore();
+export const auth = getAuth();
+export { FieldValue };

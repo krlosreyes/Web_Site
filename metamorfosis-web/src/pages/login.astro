@@ -59,9 +59,8 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-    import { auth, db } from '../lib/firebase';
+    import { auth } from '../lib/firebase';
     import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-    import { doc, setDoc, getDoc } from 'firebase/firestore';
 
     const tabLogin = document.getElementById('tab-login');
     const tabRegister = document.getElementById('tab-register');
@@ -73,6 +72,8 @@ import Layout from '../layouts/Layout.astro';
     const meritAlert = document.getElementById('merit-alert');
     const lockIcon = document.getElementById('lock-icon');
 
+    const QUIZ_STORAGE_KEY = 'imr_quiz_payload';
+
     const hasIMR = !!sessionStorage.getItem('imr_score');
     const hasRead = localStorage.getItem('imr_article_read') === 'true';
     const isEligible = hasIMR || hasRead;
@@ -81,32 +82,77 @@ import Layout from '../layouts/Layout.astro';
 
     const setMode = (newMode) => {
         if (newMode === 'register' && !isEligible) {
-            meritAlert.classList.remove('hidden');
-            setTimeout(() => meritAlert.classList.add('hidden'), 5000);
+            meritAlert?.classList.remove('hidden');
+            setTimeout(() => meritAlert?.classList.add('hidden'), 5000);
             return;
         }
         mode = newMode;
         if (mode === 'login') {
-            tabLogin.classList.add('bg-blue-600', 'text-white');
-            tabRegister.classList.remove('bg-blue-600', 'text-white');
-            fieldName.classList.add('hidden');
-            submitBtn.textContent = 'Sincronizar Perfil';
+            tabLogin?.classList.add('bg-blue-600', 'text-white');
+            tabRegister?.classList.remove('bg-blue-600', 'text-white');
+            fieldName?.classList.add('hidden');
+            if (submitBtn) submitBtn.textContent = 'Sincronizar Perfil';
         } else {
-            tabRegister.classList.add('bg-blue-600', 'text-white');
-            tabLogin.classList.remove('bg-blue-600', 'text-white');
-            fieldName.classList.remove('hidden');
-            submitBtn.textContent = 'Crear Identidad';
+            tabRegister?.classList.add('bg-blue-600', 'text-white');
+            tabLogin?.classList.remove('bg-blue-600', 'text-white');
+            fieldName?.classList.remove('hidden');
+            if (submitBtn) submitBtn.textContent = 'Crear Identidad';
         }
     };
 
     if (isEligible && lockIcon) lockIcon.textContent = '✅';
-    tabLogin.addEventListener('click', () => setMode('login'));
-    tabRegister.addEventListener('click', () => setMode('register'));
+    tabLogin?.addEventListener('click', () => setMode('login'));
+    tabRegister?.addEventListener('click', () => setMode('register'));
 
-    document.getElementById('auth-form').addEventListener('submit', async (e) => {
+    /**
+     * Llama a POST /api/users/onboard con el ID token para persistir el doc
+     * users/{uid} con el schema canónico v1. Idempotente: si el user ya existe,
+     * mergea sin duplicar.
+     */
+    async function onboardUser(user, payload) {
+        const idToken = await user.getIdToken();
+        const res = await fetch('/api/users/onboard', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer ' + idToken,
+            },
+            body: JSON.stringify(payload || {}),
+        });
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || 'Onboard failed: ' + res.status);
+        }
+    }
+
+    /**
+     * Lee el doc canónico via /api/users/me para popular sessionStorage con
+     * userName + imr_score (que el resto de la UI consume).
+     */
+    async function syncSessionFromServer(user) {
+        const idToken = await user.getIdToken();
+        const res = await fetch('/api/users/me', {
+            headers: { Authorization: 'Bearer ' + idToken },
+        });
+        if (res.ok) {
+            const { user: doc } = await res.json();
+            if (doc?.displayName) sessionStorage.setItem('imr_userName', doc.displayName);
+            if (doc?.imr?.current?.imrScore != null) {
+                sessionStorage.setItem('imr_score', String(doc.imr.current.imrScore));
+            }
+            if (doc?.imr?.current?.label) {
+                sessionStorage.setItem('imr_label', doc.imr.current.label);
+            }
+        }
+    }
+
+    document.getElementById('auth-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        submitBtn.textContent = 'Procesando...';
-        submitBtn.disabled = true;
+        if (submitBtn) {
+            submitBtn.textContent = 'Procesando...';
+            submitBtn.disabled = true;
+        }
 
         const email = inputEmail.value.trim();
         const password = inputPass.value.trim();
@@ -117,37 +163,29 @@ import Layout from '../layouts/Layout.astro';
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCredential.user, { displayName: nameInput });
 
-                // TODO(SPEC-006): reemplazar por POST /api/users/onboard que crea
-                // users/{uid} con el schema canónico (UserDoc v1) y mergea cualquier
-                // lead anónimo previo. La colección 'profiles' va a ser eliminada
-                // por SPEC-005.3 (script de migración).
-                const profileRef = doc(db, 'profiles', email.toLowerCase());
-                await setDoc(profileRef, {
-                    userName: nameInput,
-                    email: email.toLowerCase(),
-                    imr: parseInt(sessionStorage.getItem('imr_score') || '0'),
-                    interpretation: sessionStorage.getItem('imr_interpretation') || 'Estado Inicial',
-                    updatedAt: new Date().toISOString()
-                });
+                // Si el visitante hizo el quiz antes de registrarse, recuperamos
+                // el payload completo de sessionStorage. Si entró directo al
+                // login sin quiz, el payload va vacío y el doc se crea con
+                // bio/habits nulls; el user puede completar luego desde /quiz.
+                const stored = sessionStorage.getItem(QUIZ_STORAGE_KEY);
+                const payload = stored ? JSON.parse(stored) : {};
+
+                await onboardUser(userCredential.user, payload);
+                sessionStorage.removeItem(QUIZ_STORAGE_KEY);
                 sessionStorage.setItem('imr_userName', nameInput);
             } else {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                // TODO(SPEC-005.4): leer users/{uid} en lugar de profiles/{email}.
-                const profileRef = doc(db, 'profiles', email.toLowerCase());
-                const profileSnap = await getDoc(profileRef);
-                if (profileSnap.exists()) {
-                    const data = profileSnap.data();
-                    sessionStorage.setItem('imr_userName', data.userName);
-                    sessionStorage.setItem('imr_score', data.imr.toString());
-                }
+                await syncSessionFromServer(userCredential.user);
             }
 
             sessionStorage.setItem('user_email', email);
             window.location.href = '/dashboard';
         } catch (error) {
             alert("Error: " + error.message);
-            submitBtn.textContent = mode === 'login' ? 'Sincronizar Perfil' : 'Crear Identidad';
-            submitBtn.disabled = false;
+            if (submitBtn) {
+                submitBtn.textContent = mode === 'login' ? 'Sincronizar Perfil' : 'Crear Identidad';
+                submitBtn.disabled = false;
+            }
         }
     });
 </script>

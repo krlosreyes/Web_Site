@@ -1,20 +1,153 @@
 import React, { useState, useEffect } from 'react';
-import { doc, setDoc } from 'firebase/firestore';
-import { createUserWithEmailAndPassword, updateProfile, onAuthStateChanged } from 'firebase/auth';
-import { db, auth } from '../lib/firebase';
-import { COLLECTIONS } from '../lib/constants/firestore';
-import { calculateSPEC705 } from '../utils/imr-engine';
+import {
+    createUserWithEmailAndPassword,
+    updateProfile,
+    onAuthStateChanged,
+} from 'firebase/auth';
+import { auth } from '../lib/firebase';
+import { computeImr, bodyFatNavy, ENGINE_VERSION } from '../lib/imr/engine';
+import type { ImrResult } from '../lib/types/user';
+
+/**
+ * Quiz IMR — captura biometría + hábitos del visitante (anónimo o logueado).
+ *
+ * Flujo:
+ *   1. Visitante anónimo: completa quiz → calcula IMR client-side con el motor
+ *      canónico (lib/imr/engine) → guarda payload en sessionStorage → muestra
+ *      pantalla de registro → tras `createUserWithEmailAndPassword`, llama a
+ *      `POST /api/users/onboard` con el payload.
+ *   2. Visitante autenticado: completa quiz → calcula IMR → llama a
+ *      `POST /api/users/onboard` directamente con el ID token de su sesión.
+ *
+ * Antes este componente escribía directo a Firestore desde el cliente con
+ * un shape ad-hoc. Ahora todo pasa por el endpoint server-side, que valida
+ * el ID token y aplica el schema canónico v1 (SPEC-005) en `users/{uid}`.
+ *
+ * Ver specs/SPEC-006-onboarding-web-app.md
+ */
+
+const QUIZ_STORAGE_KEY = 'imr_quiz_payload';
+
+interface QuizState {
+    gender: 'male' | 'female';
+    age: number;
+    weight: number;
+    height: number;
+    waist: number;
+    bodyFat: number;
+    fastingHours: number;
+    dinnerHour: number;
+    exerciseMinutes: number;
+    sleepQuality: number;
+    hydrationLitros: number;
+    lastMealHour: number;
+}
+
+interface OnboardPayload {
+    profile: {
+        gender: 'male' | 'female';
+        age: number;
+        goals: string[];
+        pathologies: string[];
+    };
+    bio: {
+        heightCm: number;
+        weightKg: number;
+        waistCm: number;
+        neckCm: number | null;
+        hipCm: number | null;
+        bodyFatPct: number;
+        leanMassPct: number;
+    };
+    habits: {
+        fastingHours: number;
+        dinnerHour: number;
+        exerciseMinutesPerDay: number;
+        sleepQuality: number;
+        hydrationLitresPerDay: number;
+        lastMealHour: number;
+    };
+    imrResult: ImrResult;
+}
+
+function quizToPayload(quiz: QuizState): OnboardPayload {
+    // El quiz captura un bodyFat estimado (4 buckets); puede no ser exacto.
+    // Calculamos un fallback Navy si tuviéramos perímetros de cuello, pero por
+    // ahora el quiz no los pide explícitos — usamos el valor estimado del quiz.
+    const bodyFat = quiz.bodyFat;
+    const result: ImrResult = computeImr({
+        heightCm: quiz.height,
+        weightKg: quiz.weight,
+        waistCm: quiz.waist,
+        // Quiz actual no captura perímetros de cuello/cadera; el motor cae a
+        // bodyFat explícito del quiz, así que neckCm es indiferente. Pasamos
+        // un valor neutro para evitar NaN si el motor lo evalúa.
+        neckCm: quiz.gender === 'male' ? 38 : 32,
+        age: quiz.age,
+        gender: quiz.gender,
+        bodyFatPct: bodyFat,
+        fastingHours: quiz.fastingHours,
+        dinnerHour: quiz.dinnerHour,
+        exerciseMinutes: quiz.exerciseMinutes,
+        sleepQuality: quiz.sleepQuality,
+        hydrationLitres: quiz.hydrationLitros,
+        hydrationGoal: 3,
+        lastMealHour: quiz.lastMealHour,
+    });
+
+    return {
+        profile: {
+            gender: quiz.gender,
+            age: quiz.age,
+            goals: [],
+            pathologies: [],
+        },
+        bio: {
+            heightCm: quiz.height,
+            weightKg: quiz.weight,
+            waistCm: quiz.waist,
+            neckCm: null,
+            hipCm: null,
+            bodyFatPct: bodyFat,
+            leanMassPct: 100 - bodyFat,
+        },
+        habits: {
+            fastingHours: quiz.fastingHours,
+            dinnerHour: quiz.dinnerHour,
+            exerciseMinutesPerDay: quiz.exerciseMinutes,
+            sleepQuality: quiz.sleepQuality,
+            hydrationLitresPerDay: quiz.hydrationLitros,
+            lastMealHour: quiz.lastMealHour,
+        },
+        imrResult: result,
+    };
+}
+
+async function postOnboard(idToken: string, payload: OnboardPayload): Promise<void> {
+    const res = await fetch('/api/users/onboard', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Onboard failed with status ${res.status}`);
+    }
+}
 
 const IMRQuiz = () => {
-    const [step, setStep] = useState(0); 
-    const [subStep, setSubStep] = useState(1); // 1-8 pasos técnicos
+    const [step, setStep] = useState(0);
+    const [subStep, setSubStep] = useState(1);
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
 
-    // Estado del Motor SPEC-70.5
-    const [bioData, setBioData] = useState({
-        gender: 'male' as 'male' | 'female',
+    const [bioData, setBioData] = useState<QuizState>({
+        gender: 'male',
         age: 35,
         weight: 75,
         height: 175,
@@ -25,17 +158,20 @@ const IMRQuiz = () => {
         exerciseMinutes: 30,
         sleepQuality: 0.7,
         hydrationLitros: 2,
-        lastMealHour: 20
+        lastMealHour: 20,
     });
 
-    // Estado de Registro
     const [regData, setRegData] = useState({ name: '', email: '', pass: '' });
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
                 setCurrentUser(user);
-                setRegData(prev => ({ ...prev, name: user.displayName || '', email: user.email || '' }));
+                setRegData((prev) => ({
+                    ...prev,
+                    name: user.displayName || '',
+                    email: user.email || '',
+                }));
             }
         });
         return () => unsubscribe();
@@ -47,34 +183,28 @@ const IMRQuiz = () => {
     };
 
     const handleFinish = async () => {
-        const result = calculateSPEC705({
-            ...bioData,
-            hydrationGoal: 3, // Meta estándar
-        });
+        const payload = quizToPayload(bioData);
 
         if (currentUser) {
-            await autoSave(result);
+            // User logueado: persistir directo via /api/users/onboard
+            setIsSaving(true);
+            try {
+                const idToken = await currentUser.getIdToken();
+                await postOnboard(idToken, payload);
+                sessionStorage.removeItem(QUIZ_STORAGE_KEY);
+                sessionStorage.setItem('imr_score', String(payload.imrResult.imrScore));
+                sessionStorage.setItem('imr_label', payload.imrResult.label);
+                window.location.href = '/dashboard';
+            } catch (err) {
+                console.error('[IMRQuiz] onboard error:', err);
+                setIsSaving(false);
+                alert('No pudimos guardar tu diagnóstico. Probá de nuevo.');
+            }
         } else {
-            setStep(2); // Ir a Registro
-        }
-    };
-
-    const autoSave = async (result: any) => {
-        setIsSaving(true);
-        try {
-            const profileRef = doc(db, COLLECTIONS.USERS, currentUser.email.toLowerCase());
-            await setDoc(profileRef, {
-                imr: result.imr,
-                zona: result.zona,
-                blocks: result.blocks,
-                ffmi: result.ffmi,
-                whtr: result.whtr,
-                updatedAt: new Date().toISOString()
-            }, { merge: true });
-            sessionStorage.setItem('imr_score', result.imr.toString());
-            window.location.href = '/dashboard';
-        } catch (err) {
-            console.error(err);
+            // Anónimo: guardar payload + ir a registro
+            sessionStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(payload));
+            sessionStorage.setItem('imr_score', String(payload.imrResult.imrScore));
+            sessionStorage.setItem('imr_label', payload.imrResult.label);
             setStep(2);
         }
     };
@@ -82,24 +212,33 @@ const IMRQuiz = () => {
     const handleFinalRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
-        const result = calculateSPEC705({ ...bioData, hydrationGoal: 3 });
+
+        const stored = sessionStorage.getItem(QUIZ_STORAGE_KEY);
+        const payload: OnboardPayload = stored
+            ? JSON.parse(stored)
+            : quizToPayload(bioData);
+
         try {
-            const userCred = await createUserWithEmailAndPassword(auth, regData.email, regData.pass);
+            const userCred = await createUserWithEmailAndPassword(
+                auth,
+                regData.email,
+                regData.pass
+            );
             await updateProfile(userCred.user, { displayName: regData.name });
-            const profileRef = doc(db, COLLECTIONS.USERS, regData.email.toLowerCase());
-            await setDoc(profileRef, {
-                imr: result.imr,
-                zona: result.zona,
-                blocks: result.blocks,
-                updatedAt: new Date().toISOString()
-            });
-            sessionStorage.setItem('imr_score', result.imr.toString());
+            const idToken = await userCred.user.getIdToken();
+            await postOnboard(idToken, payload);
+
+            sessionStorage.removeItem(QUIZ_STORAGE_KEY);
+            sessionStorage.setItem('imr_score', String(payload.imrResult.imrScore));
+            sessionStorage.setItem('imr_label', payload.imrResult.label);
+            sessionStorage.setItem('imr_userName', regData.name);
             window.location.href = '/dashboard';
         } catch (err: any) {
             if (err.code === 'auth/email-already-in-use') {
                 setIsAlreadyRegistered(true);
             } else {
-                alert(err.message);
+                console.error('[IMRQuiz] register error:', err);
+                alert(err.message || 'Error al crear tu cuenta. Probá de nuevo.');
             }
             setIsSaving(false);
         }
@@ -264,8 +403,8 @@ const IMRQuiz = () => {
                     {subStep > 1 && (
                         <button onClick={() => setSubStep(subStep - 1)} className="px-8 py-4 bg-white/5 text-gray-400 rounded-xl font-bold uppercase text-[10px] tracking-widest">Atrás</button>
                     )}
-                    <button onClick={nextSubStep} className="flex-1 px-8 py-4 bg-blue-600 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-blue-600/20">
-                        {subStep === 8 ? 'Finalizar Escaneo →' : 'Siguiente Paso'}
+                    <button onClick={nextSubStep} disabled={isSaving} className="flex-1 px-8 py-4 bg-blue-600 disabled:bg-gray-700 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-blue-600/20">
+                        {isSaving ? 'Guardando…' : (subStep === 8 ? 'Finalizar Escaneo →' : 'Siguiente Paso')}
                     </button>
                 </div>
             </div>
@@ -304,8 +443,8 @@ const IMRQuiz = () => {
             <form onSubmit={handleFinalRegister} className="space-y-4 text-left">
                 <input required type="text" placeholder="Tu nombre..." className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none focus:border-blue-500" value={regData.name} onChange={e => setRegData({...regData, name: e.target.value})} />
                 <input required type="email" placeholder="Email..." className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none focus:border-blue-500" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} />
-                <input required type="password" placeholder="Crea una clave..." className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none focus:border-blue-500" value={regData.pass} onChange={e => setRegData({...regData, pass: e.target.value})} />
-                <button disabled={isSaving} type="submit" className="w-full bg-blue-600 text-white py-6 rounded-2xl font-black uppercase tracking-[0.3em] shadow-xl hover:bg-blue-500 transition-all">
+                <input required type="password" placeholder="Crea una clave..." minLength={8} className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none focus:border-blue-500" value={regData.pass} onChange={e => setRegData({...regData, pass: e.target.value})} />
+                <button disabled={isSaving} type="submit" className="w-full bg-blue-600 disabled:bg-gray-700 text-white py-6 rounded-2xl font-black uppercase tracking-[0.3em] shadow-xl hover:bg-blue-500 transition-all">
                     {isSaving ? "Generando Reporte..." : "Ver Resultados de Autoridad →"}
                 </button>
             </form>

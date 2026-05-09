@@ -3,6 +3,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { COLLECTIONS } from '../lib/constants/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+import type { UserDoc } from '../lib/types/user';
 
 const Icons = {
     Estructura: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
@@ -12,57 +13,95 @@ const Icons = {
     ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
 };
 
+interface DashboardStats {
+    imr: number;
+    userName: string;
+    zona: string;
+    blocks: { E: number; M: number; C: number };
+    bodyFatPct: number | null;
+    leanMassPct: number | null;
+    metabolicAge: number | null;
+    completedQuizzes?: any[];
+    isLoading: boolean;
+    needsOnboarding?: boolean;
+}
+
+const DEFAULT_STATS: DashboardStats = {
+    imr: 0,
+    userName: 'Biohacker',
+    zona: 'Analizando...',
+    blocks: { E: 0, M: 0, C: 0 },
+    bodyFatPct: null,
+    leanMassPct: null,
+    metabolicAge: null,
+    isLoading: true,
+};
+
 const BioDashboard = () => {
-    const [stats, setStats] = useState<any>({
-        imr: 0,
-        userName: 'Biohacker',
-        zona: 'Analizando...',
-        blocks: { E: 0, M: 0, C: 0 },
-        isLoading: true
-    });
+    const [stats, setStats] = useState<DashboardStats>(DEFAULT_STATS);
 
     useEffect(() => {
-        const fetchUserData = async (email: string, displayName: string | null) => {
-            let mergedData: any = {};
-            let errors: any[] = [];
-            
+        const fetchUserData = async (uid: string, displayName: string | null) => {
             try {
-                // TODO(SPEC-005.3): borrar tras migración. La colección 'profiles'
-                // se elimina cuando el script migrate-users-schema-v1 corra y
-                // mueva los docs a users/{uid}. No se agrega como constante en
-                // COLLECTIONS porque no debe usarse en código nuevo.
-                const profileRef = doc(db, 'profiles', email.toLowerCase());
-                const profileSnap = await getDoc(profileRef);
-                if (profileSnap.exists()) mergedData = { ...profileSnap.data() };
-            } catch (e: any) {
-                errors.push("profiles: " + e.message);
-            }
-
-            try {
-                // TODO(SPEC-005.4): cambiar key de email a uid tras migración.
-                const userRef = doc(db, COLLECTIONS.USERS, email.toLowerCase());
+                const userRef = doc(db, COLLECTIONS.USERS, uid);
                 const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) mergedData = { ...mergedData, ...userSnap.data() };
-            } catch (e: any) {
-                errors.push("users: " + e.message);
-            }
 
-            if (Object.keys(mergedData).length > 0) {
-                setStats((prev: any) => ({ ...prev, ...mergedData, userName: displayName || 'Biohacker', isLoading: false, debugErrors: errors }));
-            } else {
-                setStats((prev: any) => ({ ...prev, userName: displayName || 'Biohacker', isLoading: false, debugErrors: errors, debugMsg: "No data in DB" }));
+                if (!userSnap.exists()) {
+                    setStats({
+                        ...DEFAULT_STATS,
+                        userName: displayName || 'Biohacker',
+                        zona: 'Sin diagnóstico',
+                        isLoading: false,
+                        needsOnboarding: true,
+                    });
+                    return;
+                }
+
+                const data = userSnap.data() as UserDoc;
+                const current = data.imr?.current;
+
+                setStats({
+                    imr: current?.imrScore ?? 0,
+                    userName: displayName || data.displayName || 'Biohacker',
+                    zona: current?.label ?? 'Sin diagnóstico',
+                    blocks: current?.blocks ?? { E: 0, M: 0, C: 0 },
+                    bodyFatPct: data.bio?.bodyFatPct ?? null,
+                    leanMassPct: data.bio?.leanMassPct ?? null,
+                    metabolicAge: current?.metabolicAge ?? null,
+                    completedQuizzes: (data as any).completedQuizzes ?? [],
+                    isLoading: false,
+                    needsOnboarding: !current,
+                });
+            } catch (err) {
+                console.error('[BioDashboard] fetch error:', err);
+                setStats((prev) => ({
+                    ...prev,
+                    userName: displayName || 'Biohacker',
+                    isLoading: false,
+                }));
             }
         };
 
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user && user.email) fetchUserData(user.email, user.displayName);
-            else {
+            if (user) {
+                fetchUserData(user.uid, user.displayName);
+            } else {
+                // No logueado: fallback a sessionStorage (resultado del quiz anónimo)
                 const localScore = sessionStorage.getItem('imr_score');
+                const localLabel = sessionStorage.getItem('imr_label');
                 const localName = sessionStorage.getItem('imr_userName');
                 if (localScore) {
-                    setStats({ imr: parseInt(localScore), userName: localName || 'Biohacker', zona: 'Análisis SPEC-70.5', blocks: { E: 0.5, M: 0.4, C: 0.6 }, isLoading: false });
+                    setStats({
+                        ...DEFAULT_STATS,
+                        imr: parseInt(localScore, 10) || 0,
+                        userName: localName || 'Biohacker',
+                        zona: localLabel || 'Análisis SPEC-70.5',
+                        blocks: { E: 0.5, M: 0.4, C: 0.6 },
+                        isLoading: false,
+                    });
                 } else {
-                    setStats((prev: any) => ({ ...prev, isLoading: false }));
+                    // Anónimo sin quiz previo: mostrar CTA al onboarding
+                    setStats((prev) => ({ ...prev, isLoading: false, needsOnboarding: true }));
                 }
             }
         });
@@ -92,6 +131,19 @@ const BioDashboard = () => {
 
     return (
         <div className="animate-fade-in space-y-12 pb-20">
+            {/* Banner cuando no hay diagnóstico aún */}
+            {stats.needsOnboarding && !stats.isLoading && (
+                <div className="bg-gradient-to-br from-blue-500/10 to-[#00C49A]/10 border border-blue-500/30 rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div>
+                        <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Tu diagnóstico está vacío</h3>
+                        <p className="text-gray-400 text-sm">Hacé el escaneo SPEC-70.5 (2 minutos) y desbloqueá tu reporte completo.</p>
+                    </div>
+                    <a href="/quiz" className="bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-widest text-xs px-8 py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all whitespace-nowrap">
+                        Iniciar Escaneo →
+                    </a>
+                </div>
+            )}
+
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-8">
                 <div>
@@ -139,10 +191,34 @@ const BioDashboard = () => {
                                 <div key={b.key} className="bg-black/40 p-3 rounded-2xl border border-white/5 flex flex-col items-center gap-1 group">
                                     <div className="text-[#00C49A] opacity-60 scale-90">{b.icon}</div>
                                     <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest">{b.label}</div>
-                                    <div className="text-lg font-black text-white italic">{Math.round((stats.blocks?.[b.key] || 0) * 100)}%</div>
+                                    <div className="text-lg font-black text-white italic">{Math.round((stats.blocks?.[b.key as 'E' | 'M' | 'C'] || 0) * 100)}%</div>
                                 </div>
                             ))}
                         </div>
+
+                        {/* Composición corporal estimada (SPEC-006) */}
+                        {(stats.bodyFatPct !== null || stats.leanMassPct !== null || stats.metabolicAge !== null) && (
+                            <div className="grid grid-cols-3 gap-3 mt-3">
+                                {stats.bodyFatPct !== null && (
+                                    <div className="bg-black/40 p-3 rounded-2xl border border-white/5 flex flex-col items-center gap-1">
+                                        <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest">% Grasa</div>
+                                        <div className="text-lg font-black text-white italic">{Math.round(stats.bodyFatPct)}%</div>
+                                    </div>
+                                )}
+                                {stats.leanMassPct !== null && (
+                                    <div className="bg-black/40 p-3 rounded-2xl border border-white/5 flex flex-col items-center gap-1">
+                                        <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Masa Magra</div>
+                                        <div className="text-lg font-black text-white italic">{Math.round(stats.leanMassPct)}%</div>
+                                    </div>
+                                )}
+                                {stats.metabolicAge !== null && (
+                                    <div className="bg-black/40 p-3 rounded-2xl border border-white/5 flex flex-col items-center gap-1">
+                                        <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Edad Metab.</div>
+                                        <div className="text-lg font-black text-white italic">{stats.metabolicAge}<span className="text-xs text-gray-500 ml-1">a</span></div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
