@@ -1,10 +1,11 @@
 # SPEC-005 — Schema canónico de `users/{uid}` compartido Web ↔ ElenaApp
 
-**Estado:** 📝 Spec
+**Estado:** ✅ Cerrada
 **Fase:** 1
 **Severidad:** CRÍTICO
 **Fecha de creación:** 2026-05-08
 **Última revisión:** 2026-05-09 (rescoped: integración web ↔ ElenaApp)
+**Cerrada:** 2026-05-09 (5.1, 5.2 directamente; 5.3 descartada; 5.4 absorbida por SPEC-006)
 **Autor:** Carlos Reyes
 **Depende de:** SPEC-001 (deploy)
 **Bloquea:** SPEC-004 (motor IMR), SPEC-006 (onboarding unificado)
@@ -300,4 +301,43 @@ curl -s -H "Cookie: $COOKIE" https://metamorfosisvital.com.co/api/admin/stats | 
 
 ## Resultado
 
-*(Pendiente de implementación.)*
+**Sub-specs 5.1 (types + constants) y 5.2 (fix `stats.ts`) cerradas el 2026-05-09.**
+Sub-specs 5.3 (script de migración legacy → schema v1) y 5.4 (refactor consumidores a `uid`) pendientes — se cierran junto con SPEC-006 cuando el script se ejecute con datos reales.
+
+**Cambios mergeados:**
+
+- **Nuevo** `src/lib/types/user.ts`: `UserDoc`, `ImrResult`, `ImrHistoryEntry`, `WaitlistLead` con doc inline. Contrato compartido con ElenaApp.
+- **Nuevo** `src/lib/constants/firestore.ts`: `COLLECTIONS = { USERS, POSTS, WAITLIST_LEADS, PRUEBAS }`, `USER_SUBCOLLECTIONS = { DAILY_LOGS, ARTICLE_QUIZZES }`, `SCHEMA_VERSION = 1`.
+- **Reemplazo de literales** en 12 archivos (server + client). `grep "db\.collection\(['\"](metamorfosis_posts|users|waitlist_leads|pruebas|post)['\"]\)"` no devuelve resultados.
+- **Bug fix `stats.ts`:** apuntaba a `'post'` singular → ahora `COLLECTIONS.POSTS`. `totalPosts` antes daba siempre 0; ahora cuenta correctamente (verificado en producción: `{success:true, totalPosts:1, totalLeads:1}`).
+- **`'profiles'` legacy** (3 ocurrencias en `login.astro` y `BioDashboard.tsx`) queda como literal con `TODO(SPEC-005.3)` / `TODO(SPEC-005.4)` / `TODO(SPEC-006)`. Se elimina en sub-spec 5.3 cuando corra el script de migración. NO se agregó constante `PROFILES` para no fomentar uso en código nuevo.
+
+**Verificación end-to-end:**
+
+```sh
+COOKIE=$(curl -s -i -X POST https://metamorfosisvital.com.co/api/admin/login \
+    -H 'Content-Type: application/json' \
+    -d '{"password":"<ADMIN_PASSWORD>"}' \
+    | grep -i 'set-cookie' | head -1 | sed 's/[Ss]et-[Cc]ookie: //;s/;.*//')
+
+curl -s -H "Cookie: $COOKIE" https://metamorfosisvital.com.co/api/admin/stats
+# {"success":true,"totalPosts":1,"totalLeads":1}
+```
+
+**Aprendizajes:**
+
+- **Una "fuente única de verdad" para nombres de colecciones** (`COLLECTIONS`) elimina toda una clase de bugs como el que tuvimos con `'post'` vs `'metamorfosis_posts'`. Cualquier rename futuro toca un solo archivo.
+- **Tipos Firestore en un archivo dedicado** (`src/lib/types/user.ts`) es lo que va a permitir compartirlo con ElenaApp como package o source-copy. La forma del schema v1 está fija.
+- **`schemaVersion: 1`** desde el día cero. Cuando cambie la fórmula del IMR o agreguemos campos nuevos, el flag permite migrar selectivamente sin romper docs viejos.
+
+**Cierre completo de la spec — sub-specs 5.3 y 5.4 resueltas (2026-05-09):**
+
+- **Sub-spec 5.3 (script de migración legacy → schema v1) descartada.** Carlos confirmó (2026-05-09) que las colecciones legacy `profiles/{email}` y `users/{email}` solo contenían docs de prueba durante desarrollo. No requieren migración: se borran manualmente desde Firebase Console (acción del usuario, fuera del repo). El script `scripts/migrate-users-schema-v1.ts` que la spec describía no se implementó por innecesario.
+
+- **Sub-spec 5.4 (refactor consumidores a `uid`) absorbida por SPEC-006.** Al implementar SPEC-006, `IMRQuiz.tsx`, `pages/login.astro` y `BioDashboard.tsx` se reescribieron para leer/escribir `users/{uid}` (no `users/{email}`) siguiendo el schema canónico v1. Específicamente:
+    - `IMRQuiz.tsx` ahora llama a `POST /api/users/onboard` con ID token; el endpoint server-side escribe en `users/{uid}` con la forma de `UserDoc`.
+    - `login.astro` (rama register) llama a `/onboard` tras `createUserWithEmailAndPassword`. La rama login llama a `GET /api/users/me`.
+    - `BioDashboard.tsx` lee `doc(db, COLLECTIONS.USERS, user.uid)` y mapea `bio.bodyFatPct`, `imr.current.imrScore`, etc. a la UI.
+    - Eliminadas las referencias literales a `'profiles'` y los TODOs.
+
+Verificación end-to-end completa (auth, escritura idempotente, lectura del schema, edad metabólica clínicamente coherente) en SPEC-006 sección Resultado.

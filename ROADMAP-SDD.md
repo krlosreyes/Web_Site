@@ -21,9 +21,11 @@ Atacamos los **CRÍTICOS** en orden, después los **ALTOS**, después el resto. 
 | 001 | Resolver SSR + deploy en Hostinger Node.js Apps | ✅ Cerrada (2026-05-09) | `output: 'server'` sin adaptador; reusar Hostinger Business (Node.js Apps disponible en plan actual) | [SPEC-001](specs/SPEC-001-ssr-deploy-strategy.md) |
 | 002 | Auth en `/api/admin/cleanup` | ✅ Cerrada (2026-05-09) | Endpoint admin sin autenticación | [SPEC-002](specs/SPEC-002-cleanup-auth.md) |
 | 003 | Unificar contrato de auth admin | ✅ Cerrada (2026-05-09) | 3 formas distintas de validar la cookie `admin_session` | [SPEC-003](specs/SPEC-003-admin-auth-contract.md) |
-| 005 | Schema canónico de `users/{uid}` compartido Web ↔ ElenaApp | 🔨 En progreso (5.1+5.2 ✅) | `profiles` vs `users` por email, sin schema versionado, sin contrato con ElenaApp; `'post'` singular en stats.ts | [SPEC-005](specs/SPEC-005-firestore-collections.md) |
+| 005 | Schema canónico de `users/{uid}` compartido Web ↔ ElenaApp | ✅ Cerrada (2026-05-09) | `profiles` vs `users` por email, sin schema versionado, sin contrato con ElenaApp; `'post'` singular en stats.ts | [SPEC-005](specs/SPEC-005-firestore-collections.md) |
 | 004 | Motor IMR unificado web ↔ ElenaApp | ✅ Cerrada (2026-05-09) | 3 motores divergentes en la web; `calculateIMRv2` (CF GCP) sin estado claro; recordId habilita writes anónimos | [SPEC-004](specs/SPEC-004-calculate-imr-write.md) |
-| 006 | Onboarding web crea user listo para ElenaApp | 📝 Spec | Registrarse en web no produce user válido para app; re-onboarding garantizado | [SPEC-006](specs/SPEC-006-onboarding-web-app.md) |
+| 006 | Onboarding web crea user listo para ElenaApp | ✅ Cerrada (2026-05-09) | Registrarse en web no produce user válido para app; re-onboarding garantizado | [SPEC-006](specs/SPEC-006-onboarding-web-app.md) |
+
+> **🎯 Fase 1 cerrada: 6/6 specs ✅** (2026-05-09). El sitio en producción tiene SSR funcionando, panel admin con auth unificada, motor IMR canónico, schema de Firestore versionado y compatible con ElenaApp, y onboarding sin re-fricción. Próximas fases: Fase 2 (rotación de credenciales, env vars en CI, links admin públicos), Fase 3 (UX, layouts, redes sociales reales), Fase 4 (limpieza).
 
 ### Fase 2 — ALTOS (próxima tanda, una vez cerrada la Fase 1)
 

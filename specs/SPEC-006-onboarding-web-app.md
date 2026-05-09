@@ -1,9 +1,10 @@
 # SPEC-006 — Onboarding web crea user listo para ElenaApp sin re-onboarding
 
-**Estado:** 📝 Spec
+**Estado:** ✅ Cerrada
 **Fase:** 1
 **Severidad:** CRÍTICO (de funnel)
 **Fecha de creación:** 2026-05-09
+**Cerrada:** 2026-05-09
 **Autor:** Carlos Reyes
 **Depende de:** SPEC-005 (schema canónico), SPEC-004 (motor IMR unificado)
 
@@ -228,4 +229,72 @@ Devuelve el `users/{uid}` del user autenticado (proxy server-side para que el cl
 
 ## Resultado
 
-*(Pendiente de implementación.)*
+Implementada y verificada en producción contra `https://metamorfosisvital.com.co` el 2026-05-09. Cierra Fase 1 del roadmap.
+
+**Cambios mergeados:**
+
+- **`src/lib/firebaseAdmin.ts`**: + `getAuth()` admin export + `FieldValue` para `arrayUnion` en `imr.history`.
+
+- **Nuevo** `src/pages/api/users/onboard.ts`: valida Firebase ID token, mergea/crea `users/{uid}` con schema v1 (SPEC-005). El `uid` sale del token verificado, no del body — previene suplantación. Idempotente con `set { merge: true }` + `arrayUnion`. Side effect: borra `waitlist_leads` con email matching (lead anónimo → user real).
+
+- **Nuevo** `src/pages/api/users/me.ts`: lectura del propio user via ID token. Útil para sincronizar sessionStorage tras login.
+
+- **Refactor** `src/components/IMRQuiz.tsx`: motor unificado (`computeImr` de SPEC-004) genera `ImrResult` completo. Visitante anónimo guarda payload en `sessionStorage` para reutilizarlo tras registro. Visitante logueado llama a `POST /api/users/onboard` directo. Eliminado el `setDoc` client-side ad-hoc.
+
+- **Refactor** `src/pages/login.astro`: registro tras `createUserWithEmailAndPassword` llama a `POST /api/users/onboard` con payload del quiz si existe. Login llama a `GET /api/users/me` para sincronizar `sessionStorage`. Eliminados todos los TODOs y las escrituras directas a `'profiles'`.
+
+- **Refactor** `src/components/BioDashboard.tsx`: lee `users/{uid}` (no `users/{email}` ni `profiles/{email}`). Mapea schema v1 a UI. Muestra `% grasa`, `% masa magra`, `edad metabólica` cuando hay datos. Banner CTA al `/quiz` cuando no hay diagnóstico (`needsOnboarding`).
+
+**Fix encadenado de SPEC-004 — edad metabólica con base empírica** (3 iteraciones hasta estabilizar):
+
+1. **v1 (cerrada en SPEC-004)**: heurística lineal `age + (1 - imr/100)*20 - (imr/100)*10`. Sin base científica.
+2. **v2 (intento Katch-McArdle vs ACSM)**: `BMR_user - BMR_ref` con LBM y referencia BMI=22 + body fat ACSM. Bug: la LBM absoluta crece con el peso, así que sobrepeso (95kg, 30%bf) terminaba con `metabolicAge=18` (clamp) porque su LBM (66.5kg) supera la referencia "ideal" (52kg). Engañoso clínicamente.
+3. **v3 (final)**: composición corporal + BMI directo, sin pasar por LBM absoluta:
+   ```
+   deltaBf  = bodyFat - referenceBfPct(age, gender)   // ACSM ranges
+   deltaBmi = max(0, bmi - 22)                          // solo penaliza sobrepeso
+   offset   = deltaBf * 1.0 + deltaBmi * 0.6
+   metAge   = clamp(18, age + offset, 80)
+   ```
+
+**Verificación de la fórmula final:**
+
+```
+Auth: GET /api/users/me sin token        → 401
+Auth: POST /api/users/onboard sin token  → 401
+Atlético 35a (bf=15, BMI 24)             → metabolicAge=34 (1 año más joven)
+Sobrepeso 50a (bf=30, BMI 31)            → metabolicAge=63 (13 años envejecido)
+Élite 30a (bf=10, BMI 21.6)              → metabolicAge=23 (7 años más joven)
+```
+
+Los tres tests del motor están en el rango clínico esperado.
+
+**Criterios de aceptación cumplidos:**
+
+- [x] `POST /api/users/onboard` valida ID token, crea/mergea `users/{uid}` con schema v1.
+- [x] Quiz anónimo + registro → IMR del quiz queda en `users/{uid}.imr.history`.
+- [x] `waitlist_leads` con email matching se borran tras onboarding.
+- [x] Dashboard muestra IMR + body fat + lean mass + edad metabólica del user logueado.
+- [ ] (End-to-end con ElenaApp en dev) ⏳ Verificable cuando ElenaApp se construya. Lectura de `users/{uid}` con schema v1 está garantizada por contrato.
+
+**Cumplimiento de SPEC-005 sub-spec 5.4** (refactor de consumidores a uid):
+
+Como SPEC-006 reescribió `IMRQuiz.tsx`, `login.astro` y `BioDashboard.tsx` para que lean/escriban `users/{uid}` (no por email), la sub-spec 5.4 de SPEC-005 quedó cumplida en este commit. SPEC-005 se cierra como ✅.
+
+**Sub-spec 5.3** (script de migración) **se descarta**: Carlos confirmó (2026-05-09) que las colecciones `profiles/{email}` y `users/{email}` legacy solo contienen docs de prueba. Se borran manualmente desde Firebase Console — no se necesita script.
+
+**Aprendizajes:**
+
+- **No usar LBM absoluta para "edad metabólica"** — sobrepeso engaña al cálculo. Composición corporal (% grasa) + BMI son métricas más robustas.
+- **El UID de Firebase Auth es la key correcta** para documents de user en Firestore. El email cambia; el uid no.
+- **Idempotencia con `set { merge: true } + arrayUnion`** garantiza que onboard sea seguro de reintentarse.
+- **`uid` siempre del token verificado, nunca del body**: previene que un atacante con credenciales válidas mute datos de otro user.
+- **3 iteraciones de fórmula es razonable** cuando el primer modelo es heurístico. Cada iteración debe testearse contra casos clínicos reales (atleta / promedio / sobrepeso / obeso) — no solo verificar que compile.
+
+**Pendientes que se mueven a otras specs (Fase 2 y posteriores):**
+
+- Reglas de Firestore (`firestore.rules`) que limiten lectura a dueño + admin → spec dedicada.
+- Verificación E2E con ElenaApp cuando llegue a producción.
+- Rate limiting en `/api/calculate-imr` (público) → backlog.
+- Mostrar `waitlist.position` real (con counter agregado) → spec UX.
+- Email de bienvenida automático tras onboard → spec marketing.
