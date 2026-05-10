@@ -11,6 +11,8 @@ import ArticleEditor from './ArticleEditor';
  * la primera vez que el tab ANALYTICS se activa.
  */
 const AnaliticaIMR = React.lazy(() => import('./AnaliticaIMR'));
+/** SPEC-018: lazy load del visor de audit log. */
+const AuditLog = React.lazy(() => import('./AuditLog'));
 
 class ErrorBoundary extends React.Component<{children: React.ReactNode, onReset: () => void}, {hasError: boolean, error: string}> {
     constructor(props: any) {
@@ -39,7 +41,7 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode, onReset:
     }
 }
 
-type AdminTab = 'ARCHIVE' | 'LEADS' | 'ANALYTICS';
+type AdminTab = 'ARCHIVE' | 'LEADS' | 'ANALYTICS' | 'AUDIT';
 
 const LazyLoader = () => (
     <div className="flex items-center justify-center min-h-[400px] bg-gray-900 border border-gray-800 rounded-2xl">
@@ -132,6 +134,17 @@ const AdminApp = () => {
                         <svg className={`w-5 h-5 relative z-10 ${activeTab === 'ANALYTICS' ? 'text-purple-300' : 'text-purple-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                         <span className="relative z-10">Analítica IMR</span>
                     </button>
+
+                    <button
+                        onClick={() => setActiveTab('AUDIT')}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm border ${activeTab === 'AUDIT'
+                            ? 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.15)]'
+                            : 'bg-transparent text-gray-500 border-transparent hover:bg-gray-800/50 hover:text-white'
+                            }`}
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                        Audit log
+                    </button>
                 </aside>
             )}
 
@@ -146,15 +159,20 @@ const AdminApp = () => {
                         />
                     ) : (
                         <>
-                            {/* StatsGrid se oculta en ANALYTICS para evitar redundancia
-                                con las métricas profundas del módulo de analítica. */}
-                            {activeTab !== 'ANALYTICS' && <StatsGrid />}
+                            {/* StatsGrid se oculta en ANALYTICS y AUDIT para evitar redundancia
+                                con las métricas profundas / saturación visual. */}
+                            {activeTab !== 'ANALYTICS' && activeTab !== 'AUDIT' && <StatsGrid />}
                             <div className="flex-1 animate-fade-in-up">
                                 {activeTab === 'LEADS' && <LeadList />}
                                 {activeTab === 'ARCHIVE' && <PostList onEdit={handleEdit} onNew={handleNew} />}
                                 {activeTab === 'ANALYTICS' && (
                                     <Suspense fallback={<LazyLoader />}>
                                         <AnaliticaIMR />
+                                    </Suspense>
+                                )}
+                                {activeTab === 'AUDIT' && (
+                                    <Suspense fallback={<LazyLoader />}>
+                                        <AuditLog />
                                     </Suspense>
                                 )}
                             </div>
