@@ -103,8 +103,16 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
         </div>
 
         {/* Mobile Toggle */}
-        <button class="md:hidden text-white" id="menu-toggle">
+        <button
+            class="md:hidden text-white p-2 -mr-2 rounded-lg hover:bg-white/10 transition-colors"
+            id="menu-toggle"
+            aria-label="Abrir menú"
+            aria-expanded="false"
+            aria-controls="mobile-menu"
+        >
+            {/* Ícono hamburguesa (cuando el menú está cerrado) */}
             <svg
+                id="menu-icon-open"
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
                 height="24"
@@ -120,80 +128,280 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
                     x2="21"
                     y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
+            {/* Ícono X (cuando el menú está abierto) */}
+            <svg
+                id="menu-icon-close"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="hidden"
+                ><line x1="18" y1="6" x2="6" y2="18"></line><line
+                    x1="6"
+                    y1="6"
+                    x2="18"
+                    y2="18"></line>
+            </svg>
         </button>
+    </div>
+
+    {/* Mobile Menu Panel */}
+    <div
+        id="mobile-menu"
+        class="hidden md:hidden bg-black/95 backdrop-blur-md border-t border-white/10 shadow-2xl"
+    >
+        <div class="container mx-auto px-6 py-5 flex flex-col gap-1">
+            <a
+                href="/biblioteca"
+                class="mobile-menu-link text-sm font-black text-gray-300 hover:text-white hover:bg-white/5 uppercase tracking-[0.2em] py-3 px-3 rounded-lg transition-colors"
+                >Biblioteca</a
+            >
+            <a
+                href="/comunidad"
+                class="mobile-menu-link text-sm font-black text-gray-300 hover:text-white hover:bg-white/5 uppercase tracking-[0.2em] py-3 px-3 rounded-lg transition-colors"
+                >La Tribu</a
+            >
+            {
+                isAdmin && (
+                    <a
+                        href="/admin/dashboard"
+                        class="mobile-menu-link text-sm font-black text-[#00C49A] hover:text-white hover:bg-[#00C49A]/10 uppercase tracking-[0.2em] py-3 px-3 rounded-lg transition-colors"
+                    >
+                        Admin
+                    </a>
+                )
+            }
+
+            <div class="h-px bg-white/10 my-2"></div>
+
+            {
+                isAdmin ? (
+                    <>
+                        <span class="flex items-center gap-2 text-xs font-black text-[#00C49A] uppercase tracking-[0.2em] py-3 px-3">
+                            <span class="w-2 h-2 rounded-full bg-[#00C49A] animate-pulse" />
+                            Modo Admin
+                        </span>
+                        <button
+                            id="mobile-admin-logout-btn"
+                            class="text-left text-sm font-black text-red-400 hover:text-red-300 hover:bg-red-500/10 uppercase tracking-[0.2em] py-3 px-3 rounded-lg transition-colors"
+                        >
+                            Cerrar Sesión
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        <a
+                            href="/login"
+                            id="mobile-login-btn"
+                            class="mobile-menu-link text-sm font-black text-white hover:text-blue-400 hover:bg-white/5 uppercase tracking-[0.2em] py-3 px-3 rounded-lg transition-colors"
+                        >
+                            Ingresar
+                        </a>
+                        <button
+                            id="mobile-logout-btn"
+                            class="hidden text-left text-sm font-black text-red-400 hover:text-red-300 hover:bg-red-500/10 uppercase tracking-[0.2em] py-3 px-3 rounded-lg transition-colors"
+                        >
+                            Cerrar Sesión
+                        </button>
+                        <a
+                            href="https://elena-app.vercel.app/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="mobile-menu-link mt-2 bg-blue-600 hover:bg-blue-500 text-white text-center px-6 py-3 rounded-full text-sm font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-blue-600/30 active:scale-95"
+                        >
+                            Abrir App
+                        </a>
+                    </>
+                )
+            }
+        </div>
     </div>
 </nav>
 
 <script>
-    // Logout admin: llama al endpoint para borrar la cookie HttpOnly y redirige.
-    // IMPORTANTE: el header `Content-Type: application/json` es obligatorio.
-    // Sin él, Astro 6 trata el POST como form submission cross-site y lo
-    // rechaza con 403 antes de llegar al handler — la cookie nunca se borra
-    // y `fetch` no lanza excepción con un 403 (solo con errores de red), así
-    // que el `catch` no se entera. Mismo gotcha que con /api/admin/cleanup.
-    const adminLogoutBtn = document.getElementById("admin-logout-btn");
-    adminLogoutBtn?.addEventListener("click", async () => {
-        try {
-            const res = await fetch("/api/admin/logout", {
-                method: "POST",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-            });
-            if (!res.ok) {
-                console.error(
-                    "Logout admin no pudo borrar la cookie:",
-                    res.status,
-                    await res.text()
-                );
+    /**
+     * Navbar — script único que envuelve TODA la lógica en una init() que
+     * corre tanto si el DOM ya está parseado como si no. Esto garantiza
+     * funcionamiento en todas las páginas, en SSR, y en prod (donde el HTML
+     * minificado puede llegar al cliente con un orden inesperado).
+     *
+     * Cubre:
+     *   - Toggle del menú móvil (#menu-toggle ↔ #mobile-menu)
+     *   - Cerrar al click en link, click fuera, tecla Escape, resize a desktop
+     *   - Logout admin (desktop + mobile) con Content-Type:application/json
+     *   - Login/Logout user regular Firebase (desktop + mobile, espejados)
+     *   - Scroll effect del navbar
+     */
+    function initNavbar() {
+        const navbar = document.getElementById("navbar");
+        if (!navbar) return;
+
+        // Marcamos init para evitar doble bind si el script se ejecuta
+        // dos veces (por ejemplo en navegación SPA-like del futuro)
+        if ((navbar as any)._mrInit) return;
+        (navbar as any)._mrInit = true;
+
+        // ─────────── Mobile menu toggle ───────────
+        const menuToggle = document.getElementById("menu-toggle");
+        const mobileMenu = document.getElementById("mobile-menu");
+        const iconOpen = document.getElementById("menu-icon-open");
+        const iconClose = document.getElementById("menu-icon-close");
+
+        const setMenuOpen = (open: boolean) => {
+            if (!mobileMenu || !menuToggle) return;
+            if (open) {
+                mobileMenu.classList.remove("hidden");
+                iconOpen?.classList.add("hidden");
+                iconClose?.classList.remove("hidden");
+                menuToggle.setAttribute("aria-expanded", "true");
+                menuToggle.setAttribute("aria-label", "Cerrar menú");
+            } else {
+                mobileMenu.classList.add("hidden");
+                iconOpen?.classList.remove("hidden");
+                iconClose?.classList.add("hidden");
+                menuToggle.setAttribute("aria-expanded", "false");
+                menuToggle.setAttribute("aria-label", "Abrir menú");
             }
-        } catch (error) {
-            console.error("Error al cerrar sesión admin:", error);
-        }
-        window.location.href = "/";
-    });
+        };
 
-    // Auth de USUARIO regular (Firebase) — solo si los botones existen, es decir
-    // cuando NO hay sesión admin (modo visitante).
-    const loginBtn = document.getElementById("login-btn");
-    const logoutBtn = document.getElementById("logout-btn");
+        const isMenuOpen = () =>
+            !!mobileMenu && !mobileMenu.classList.contains("hidden");
 
-    if (loginBtn && logoutBtn) {
-        import("../lib/firebase").then(({ auth }) => {
-            import("firebase/auth").then(
-                ({ onAuthStateChanged, signOut }) => {
-                    onAuthStateChanged(auth, (user) => {
-                        const hasSession =
-                            user || sessionStorage.getItem("imr_userName");
-                        if (hasSession) {
-                            loginBtn.classList.add("hidden");
-                            logoutBtn.classList.remove("hidden");
-                        } else {
-                            loginBtn.classList.remove("hidden");
-                            logoutBtn.classList.add("hidden");
-                        }
-                    });
-
-                    logoutBtn.addEventListener("click", async () => {
-                        await signOut(auth);
-                        sessionStorage.clear();
-                        localStorage.removeItem("imr_article_read");
-                        window.location.href = "/";
-                    });
-                }
-            );
+        menuToggle?.addEventListener("click", (e) => {
+            e.stopPropagation();
+            setMenuOpen(!isMenuOpen());
         });
+
+        // Cerrar al click en cualquier link del menú móvil
+        mobileMenu?.querySelectorAll("a").forEach((link) => {
+            link.addEventListener("click", () => setMenuOpen(false));
+        });
+
+        // Cerrar con Escape
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && isMenuOpen()) setMenuOpen(false);
+        });
+
+        // Cerrar al click fuera del navbar
+        document.addEventListener("click", (e) => {
+            if (!isMenuOpen()) return;
+            const target = e.target as Node;
+            if (navbar.contains(target)) return;
+            setMenuOpen(false);
+        });
+
+        // Cerrar si la ventana se redimensiona a desktop (≥768px)
+        // Usamos matchMedia para detectar el cruce del breakpoint md
+        const mql = window.matchMedia("(min-width: 768px)");
+        const handleBreakpoint = (e: MediaQueryListEvent | MediaQueryList) => {
+            if (e.matches && isMenuOpen()) setMenuOpen(false);
+        };
+        // Soportar API moderna y legacy (Safari < 14)
+        if (typeof mql.addEventListener === "function") {
+            mql.addEventListener("change", handleBreakpoint);
+        } else if (typeof (mql as any).addListener === "function") {
+            (mql as any).addListener(handleBreakpoint);
+        }
+
+        // ─────────── Logout admin (desktop + mobile) ───────────
+        // IMPORTANTE: el header `Content-Type: application/json` es obligatorio.
+        // Sin él Astro 6 trata el POST como form submission cross-site y lo
+        // rechaza con 403 — la cookie nunca se borra. fetch no lanza con 4xx,
+        // así que sin chequeo explícito el bug pasa desapercibido.
+        const handleAdminLogout = async () => {
+            try {
+                const res = await fetch("/api/admin/logout", {
+                    method: "POST",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                });
+                if (!res.ok) {
+                    console.error(
+                        "Logout admin no pudo borrar la cookie:",
+                        res.status,
+                        await res.text()
+                    );
+                }
+            } catch (error) {
+                console.error("Error al cerrar sesión admin:", error);
+            }
+            window.location.href = "/";
+        };
+        document
+            .getElementById("admin-logout-btn")
+            ?.addEventListener("click", handleAdminLogout);
+        document
+            .getElementById("mobile-admin-logout-btn")
+            ?.addEventListener("click", handleAdminLogout);
+
+        // ─────────── Auth user regular (Firebase) ───────────
+        // Espejado entre desktop y mobile: si existe cualquiera de los dos
+        // pares, cargamos Firebase y bindeamos el toggle.
+        const loginBtn = document.getElementById("login-btn");
+        const logoutBtn = document.getElementById("logout-btn");
+        const mobileLoginBtn = document.getElementById("mobile-login-btn");
+        const mobileLogoutBtn = document.getElementById("mobile-logout-btn");
+
+        if (loginBtn || logoutBtn || mobileLoginBtn || mobileLogoutBtn) {
+            import("../lib/firebase").then(({ auth }) => {
+                import("firebase/auth").then(
+                    ({ onAuthStateChanged, signOut }) => {
+                        onAuthStateChanged(auth, (user) => {
+                            const hasSession =
+                                user ||
+                                sessionStorage.getItem("imr_userName");
+                            if (hasSession) {
+                                loginBtn?.classList.add("hidden");
+                                logoutBtn?.classList.remove("hidden");
+                                mobileLoginBtn?.classList.add("hidden");
+                                mobileLogoutBtn?.classList.remove("hidden");
+                            } else {
+                                loginBtn?.classList.remove("hidden");
+                                logoutBtn?.classList.add("hidden");
+                                mobileLoginBtn?.classList.remove("hidden");
+                                mobileLogoutBtn?.classList.add("hidden");
+                            }
+                        });
+
+                        const handleUserLogout = async () => {
+                            await signOut(auth);
+                            sessionStorage.clear();
+                            localStorage.removeItem("imr_article_read");
+                            window.location.href = "/";
+                        };
+                        logoutBtn?.addEventListener("click", handleUserLogout);
+                        mobileLogoutBtn?.addEventListener(
+                            "click",
+                            handleUserLogout
+                        );
+                    }
+                );
+            });
+        }
+
+        // ─────────── Scroll effect ───────────
+        const onScroll = () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add("bg-black/80", "h-16");
+                navbar.classList.remove("bg-black/20", "h-20");
+            } else {
+                navbar.classList.add("bg-black/20", "h-20");
+                navbar.classList.remove("bg-black/80", "h-16");
+            }
+        };
+        window.addEventListener("scroll", onScroll, { passive: true });
+        onScroll(); // sincronizar estado inicial al cargar
     }
 
-    // Scroll Effect
-    window.addEventListener("scroll", () => {
-        const nav = document.getElementById("navbar");
-        if (!nav) return;
-        if (window.scrollY > 50) {
-            nav.classList.add("bg-black/80", "h-16");
-            nav.classList.remove("bg-black/20", "h-20");
-        } else {
-            nav.classList.add("bg-black/20", "h-20");
-            nav.classList.remove("bg-black/80", "h-16");
-        }
-    });
+    // Ejecutar cuando el DOM esté listo. Si ya lo está, correr sync.
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initNavbar);
+    } else {
+        initNavbar();
+    }
 </script>
