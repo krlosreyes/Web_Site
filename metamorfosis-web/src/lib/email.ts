@@ -66,6 +66,7 @@ export async function sendWelcomeEmail(input: {
     to: string;
     name?: string | null;
 }): Promise<SendEmailResult> {
+    // SPEC-029b: usar el nombre real, fallback "biohacker" solo si no hay nada.
     const displayName = input.name?.trim() || 'biohacker';
     const subject = `Bienvenido a Metamorfosis Real, ${displayName}`;
 
@@ -74,12 +75,15 @@ export async function sendWelcomeEmail(input: {
 
 Acabás de unirte al ecosistema de Metamorfosis Real. Tu perfil quedó creado y estás en la lista de espera de ElenaApp — la app móvil que va a optimizar tus hábitos diarios (ayuno, nutrición, ejercicio, hidratación, sueño).
 
+🎁 BENEFICIO EXCLUSIVO POR SER DE LOS PRIMEROS 1000
+
+Como uno de los primeros 1000 usuarios registrados, tenés asegurado un precio preferencial en la suscripción anual de ElenaApp cuando se lance. Te lo notificamos antes que a nadie por este mismo correo.
+
 Mientras tanto, lo que ya tenés disponible:
 - Tu dashboard personal: https://metamorfosisvital.com.co/dashboard
-- La biblioteca de artículos: https://metamorfosisvital.com.co/biblioteca
-- El canal de YouTube con la formación completa: https://www.youtube.com/@Metamorfosisreal
-
-Cuando ElenaApp esté lista, te avisamos por este mismo correo.
+- La biblioteca de artículos científicos: https://metamorfosisvital.com.co/biblioteca
+- La Tribu (foro de la comunidad): https://metamorfosisvital.com.co/comunidad
+- Canal de YouTube con la formación completa: https://www.youtube.com/@Metamorfosisreal
 
 Cualquier duda, podés responderle directamente a este email.
 
@@ -107,7 +111,18 @@ Metamorfosis Real`;
           <tr>
             <td style="padding:32px 40px;color:#cbd5e1;font-size:15px;line-height:1.6;">
               <p style="margin:0 0 16px;">Acabás de unirte al ecosistema de Metamorfosis Real. Tu perfil quedó creado y <strong style="color:#00C49A;">estás en la lista de espera de ElenaApp</strong> — la app móvil que va a optimizar tus hábitos diarios (ayuno, nutrición, ejercicio, hidratación, sueño).</p>
-              <p style="margin:0 0 24px;">Mientras tanto, lo que ya tenés disponible:</p>
+
+              <!-- BENEFICIO PRIMEROS 1000 -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+                <tr>
+                  <td style="padding:20px 22px;background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(245,158,11,0.04));border:1px solid rgba(245,158,11,0.35);border-radius:16px;">
+                    <div style="font-size:11px;font-weight:900;color:#f59e0b;letter-spacing:0.25em;text-transform:uppercase;margin-bottom:10px;">🎁 Beneficio exclusivo</div>
+                    <p style="margin:0;color:#fde68a;font-size:14px;line-height:1.5;">Como uno de los <strong>primeros 1000 usuarios registrados</strong>, tenés asegurado un <strong>precio preferencial en la suscripción anual de ElenaApp</strong> cuando se lance. Te lo notificamos antes que a nadie por este mismo correo.</p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 16px;">Mientras tanto, lo que ya tenés disponible:</p>
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
                 <tr>
                   <td style="padding:14px 18px;background:rgba(0,196,154,0.06);border:1px solid rgba(0,196,154,0.2);border-radius:12px;">
@@ -117,7 +132,13 @@ Metamorfosis Real`;
                 <tr><td style="height:8px;line-height:8px;">&nbsp;</td></tr>
                 <tr>
                   <td style="padding:14px 18px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:12px;">
-                    <a href="https://metamorfosisvital.com.co/biblioteca" style="color:#60a5fa;text-decoration:none;font-weight:700;font-size:14px;">→ Biblioteca de artículos</a>
+                    <a href="https://metamorfosisvital.com.co/biblioteca" style="color:#60a5fa;text-decoration:none;font-weight:700;font-size:14px;">→ Biblioteca de artículos científicos</a>
+                  </td>
+                </tr>
+                <tr><td style="height:8px;line-height:8px;">&nbsp;</td></tr>
+                <tr>
+                  <td style="padding:14px 18px;background:rgba(236,72,153,0.06);border:1px solid rgba(236,72,153,0.2);border-radius:12px;">
+                    <a href="https://metamorfosisvital.com.co/comunidad" style="color:#f472b6;text-decoration:none;font-weight:700;font-size:14px;">→ La Tribu (foro de la comunidad)</a>
                   </td>
                 </tr>
                 <tr><td style="height:8px;line-height:8px;">&nbsp;</td></tr>
@@ -127,7 +148,6 @@ Metamorfosis Real`;
                   </td>
                 </tr>
               </table>
-              <p style="margin:0 0 16px;">Cuando ElenaApp esté lista, te avisamos por este mismo correo.</p>
               <p style="margin:0 0 4px;color:#94a3b8;font-size:13px;">Cualquier duda, podés responderle directamente a este email.</p>
             </td>
           </tr>

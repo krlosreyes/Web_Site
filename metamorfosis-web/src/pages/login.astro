@@ -199,6 +199,11 @@ import Layout from '../layouts/Layout.astro';
                 const stored = sessionStorage.getItem(QUIZ_STORAGE_KEY);
                 const payload = stored ? JSON.parse(stored) : {};
 
+                // SPEC-029b: pasar displayName explícito al backend.
+                // El ID token recién emitido NO refleja todavía el updateProfile
+                // anterior, así que decoded.name viene vacío server-side.
+                payload.displayName = nameInput;
+
                 await onboardUser(userCredential.user, payload);
                 sessionStorage.removeItem(QUIZ_STORAGE_KEY);
                 sessionStorage.setItem('imr_userName', nameInput);

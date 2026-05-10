@@ -27,6 +27,10 @@ import { logAdminAction } from '../../../lib/auditLog';
 export const prerender = false;
 
 interface OnboardBody {
+    /** SPEC-029b: el frontend pasa el nombre acá porque `decoded.name` del
+     *  ID token está vacío para cuentas recién creadas (updateProfile aún
+     *  no se reflejó en el token cacheado). */
+    displayName?: string;
     profile?: Partial<UserDoc['profile']>;
     bio?: Partial<Omit<UserDoc['bio'], 'updatedAt'>>;
     habits?: Partial<Omit<UserDoc['habits'], 'updatedAt' | 'source'>>;
@@ -80,7 +84,10 @@ export const POST: APIRoute = async ({ request }) => {
             uid,
             email: decoded.email ?? '',
             emailLower: email,
-            displayName: decoded.name ?? existing?.displayName ?? null,
+            // SPEC-029b: prioridad body.displayName (frontend lo pasa explícito)
+            // > decoded.name (Firebase ID token, vacío en cuentas nuevas)
+            // > existing.displayName (re-onboard de user existente)
+            displayName: body.displayName?.trim() || decoded.name || existing?.displayName || null,
             photoURL: decoded.picture ?? existing?.photoURL ?? null,
             profile: {
                 gender: body.profile?.gender ?? existing?.profile?.gender ?? null,
@@ -190,7 +197,7 @@ export const POST: APIRoute = async ({ request }) => {
             try {
                 const result = await sendWelcomeEmail({
                     to: decoded.email,
-                    name: decoded.name ?? userPayload.displayName ?? null,
+                    name: userPayload.displayName ?? null,
                 });
                 if (!result.skipped) {
                     await userRef.update({ welcomeEmailSentAt: now });
