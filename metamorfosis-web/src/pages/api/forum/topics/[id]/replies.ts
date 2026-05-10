@@ -83,10 +83,11 @@ export const POST: APIRoute = async ({ params, request }) => {
             if (parentData?.status === 'deleted') {
                 return jsonResponse(400, { error: 'No se puede responder a una reply eliminada' });
             }
-            // Cap a 2: si el padre está en el nivel máximo, el nuevo reply
-            // queda al mismo nivel (mantiene parentReplyId apuntando al
-            // padre real, pero visualmente se ve plano al nivel 2).
-            depth = Math.min(2, Number(parentData?.depth ?? 0) + 1);
+            // SPEC-039: cap a 1 (estilo Instagram). Si respondés a una reply
+            // (nivel 1), tu reply queda al mismo nivel 1. parentReplyId se
+            // mantiene apuntando al reply real para que el frontend pueda
+            // mostrar `@autor` y conservar el lineage de la conversación.
+            depth = Math.min(1, Number(parentData?.depth ?? 0) + 1);
         }
 
         let replyId = '';

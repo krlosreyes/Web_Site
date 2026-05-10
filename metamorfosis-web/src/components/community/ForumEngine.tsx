@@ -489,32 +489,48 @@ const ForumEngine = () => {
     };
 
     /**
-     * SPEC-038: aplana el árbol de replies en orden de visualización
-     * (DFS por parentReplyId), con numeración tipo 1, 1.1, 1.1.1.
+     * SPEC-038/039: aplana el árbol de replies en orden DFS por parentReplyId.
+     * Cap visual a 1 nivel (estilo Instagram). Si una reply responde a otra
+     * reply, mantenemos el lineage en `mentionAuthor` para mostrar `@autor`.
      */
     const flattenReplyTree = (
         all: Reply[]
-    ): Array<{ reply: Reply; number: string; renderDepth: number }> => {
+    ): Array<{
+        reply: Reply;
+        renderDepth: 0 | 1;
+        mentionAuthor: string | null;
+    }> => {
         const byParent = new Map<string | null, Reply[]>();
+        const byId = new Map<string, Reply>();
         all.forEach((r) => {
+            byId.set(r.id, r);
             const key = (r.parentReplyId ?? null) as string | null;
             const list = byParent.get(key) || [];
             list.push(r);
             byParent.set(key, list);
         });
-        // Sort cada bucket por createdAt asc
         byParent.forEach((list) => list.sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
 
-        const result: Array<{ reply: Reply; number: string; renderDepth: number }> = [];
-        const walk = (parentId: string | null, prefix: string, renderDepth: number) => {
+        const result: Array<{
+            reply: Reply;
+            renderDepth: 0 | 1;
+            mentionAuthor: string | null;
+        }> = [];
+        const walk = (parentId: string | null, depth: 0 | 1) => {
             const children = byParent.get(parentId) || [];
-            children.forEach((r, idx) => {
-                const num = prefix ? `${prefix}.${idx + 1}` : `${idx + 1}`;
-                result.push({ reply: r, number: num, renderDepth });
-                walk(r.id, num, Math.min(2, renderDepth + 1));
+            children.forEach((r) => {
+                // Si esta reply tiene un parentReplyId que NO es null Y ese padre
+                // también es una reply (no el topic), mostramos @autor del padre.
+                const parent = r.parentReplyId ? byId.get(r.parentReplyId) : null;
+                const mentionAuthor =
+                    parent && depth === 1 ? parent.authorName || null : null;
+
+                result.push({ reply: r, renderDepth: depth, mentionAuthor });
+                // Las replies hijas siempre se renderizan al mismo nivel 1 (Instagram-style)
+                walk(r.id, 1);
             });
         };
-        walk(null, '', 0);
+        walk(null, 0);
         return result;
     };
 
@@ -643,15 +659,16 @@ const ForumEngine = () => {
                                 {replies.length === 0 ? (
                                     <p className="text-gray-600 text-sm italic">Sé el primero en responder.</p>
                                 ) : (
-                                    flattenReplyTree(replies).map(({ reply: r, number, renderDepth }) => {
+                                    flattenReplyTree(replies).map(({ reply: r, renderDepth, mentionAuthor }) => {
                                         const liked = !!replyLikes[r.id];
-                                        // Indentación responsive según depth (cap a 2)
+                                        // SPEC-039: indentación binaria estilo Instagram.
+                                        // Top-level (depth 0) sin indent; replies (depth 1)
+                                        // con indent + border-left azul que las agrupa
+                                        // visualmente bajo su comment top-level.
                                         const indentCls =
                                             renderDepth === 0
                                                 ? ''
-                                                : renderDepth === 1
-                                                    ? 'sm:ml-8 ml-4 border-l-2 border-blue-500/15 pl-3 sm:pl-4'
-                                                    : 'sm:ml-16 ml-8 border-l-2 border-purple-500/15 pl-3 sm:pl-4';
+                                                : 'ml-4 sm:ml-12 border-l-2 border-blue-500/20 pl-3 sm:pl-5';
                                         return (
                                             <div key={r.id} className={indentCls}>
                                                 <div className="flex gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
@@ -662,10 +679,6 @@ const ForumEngine = () => {
                                                     />
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                                            {/* SPEC-038: numeración tipo 1.1.1 */}
-                                                            <span className="text-[9px] font-mono text-gray-500 bg-white/5 border border-white/10 px-1.5 py-0.5 rounded uppercase tracking-widest">
-                                                                {number}
-                                                            </span>
                                                             <span className="text-white font-bold text-sm break-words">{r.authorName}</span>
                                                             <span className="text-[10px] text-gray-600 font-mono uppercase tracking-widest">
                                                                 Hace {relTime(r.createdAt)}
@@ -680,7 +693,15 @@ const ForumEngine = () => {
                                                                 </button>
                                                             )}
                                                         </div>
-                                                        <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap break-words mb-3">{r.content}</p>
+                                                        <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap break-words mb-3">
+                                                            {/* SPEC-039: si responde a otra reply, prepend @autor en azul */}
+                                                            {mentionAuthor && (
+                                                                <span className="text-blue-400 font-semibold mr-1">
+                                                                    @{mentionAuthor}
+                                                                </span>
+                                                            )}
+                                                            {r.content}
+                                                        </p>
                                                         <div className="flex items-center gap-2 flex-wrap">
                                                             {/* SPEC-036: like en reply */}
                                                             <button
