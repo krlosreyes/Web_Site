@@ -11,11 +11,21 @@
  *
  * Privacy: Umami no setea cookies y no recolecta PII por default —
  * no requiere banner GDPR/CCPA.
+ *
+ * SPEC-028b: leemos la env var con `process.env.*` primero (runtime, server),
+ * con fallback a `import.meta.env.*` (build-time inlining). Bajo SSR esto
+ * permite que un cambio en la env var de Hostinger surta efecto sin tener
+ * que disparar un rebuild completo. `import.meta.env.PUBLIC_*` queda como
+ * red de seguridad para `astro dev` y otros contextos build-time-only.
  */
 const path = Astro.url.pathname;
 const isAdminPath = path.startsWith('/admin');
-const websiteId = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID;
-const enabled = import.meta.env.PROD && !!websiteId && !isAdminPath;
+const websiteId =
+    process.env.PUBLIC_UMAMI_WEBSITE_ID ||
+    import.meta.env.PUBLIC_UMAMI_WEBSITE_ID;
+const isProd =
+    process.env.NODE_ENV === 'production' || import.meta.env.PROD;
+const enabled = isProd && !!websiteId && !isAdminPath;
 ---
 
 {

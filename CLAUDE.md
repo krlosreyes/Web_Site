@@ -46,10 +46,12 @@ respetar el schema versionado (`SCHEMA_VERSION` en
 - **Reglas de Firestore:** vivien en `firebase/firestore.rules`. NO se deployan
   con el push: hay que publicarlas manualmente desde Firebase Console o con
   `firebase deploy --only firestore:rules`.
-- **Analytics:** Umami cloud (SPEC-028). Variable `PUBLIC_UMAMI_WEBSITE_ID` en
-  Hostinger env vars (formato `PUBLIC_*` requerido por Astro para que sea
-  accesible al cliente). El componente `UmamiScript.astro` excluye `/admin/*`
-  y solo se inyecta en `import.meta.env.PROD`.
+- **Analytics:** Umami cloud (SPEC-028 + SPEC-028b). Variable
+  `PUBLIC_UMAMI_WEBSITE_ID` en Hostinger env vars. El componente
+  `UmamiScript.astro` excluye `/admin/*` y solo se inyecta en producción.
+  IMPORTANTE: leer la env var con `process.env.PUBLIC_UMAMI_WEBSITE_ID`
+  (runtime SSR), no con `import.meta.env.*` (build-time inlining) — si no,
+  hay que rebuildear cada vez que la env var cambia en Hostinger.
 
 **Prohibido sin spec previa:**
 - Cambiar de Hostinger a otro hosting (Vercel/Netlify/etc.).
@@ -98,6 +100,12 @@ probá esto otro":
   `grep -oE | wc -l` para contar ocurrencias reales.
 - **Build:** correr `npm run build` desde `metamorfosis-web/`, NO desde el
   root del repo.
+- **Env vars `PUBLIC_*` en SSR (post-SPEC-028b):** `import.meta.env.PUBLIC_*`
+  se inlinea en el bundle al `astro build` — un cambio de env var en
+  Hostinger NO surte efecto sin rebuild. Para variables que deben respetar
+  cambios runtime, usar `process.env.PUBLIC_X` en el frontmatter de `.astro`
+  (con fallback `|| import.meta.env.PUBLIC_X` para `astro dev`). Detectado
+  con Umami: dashboard vacío hasta cambiar el patrón a runtime-first.
 - **Páginas con `BaseLayout` deben reservar ≥80px de padding-top** en su
   primer wrapper (`pt-24` o `pt-28` según diseño). El Navbar es `fixed
   top-0 h-20` y NO empuja contenido. Excepción: páginas con hero a viewport
