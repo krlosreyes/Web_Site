@@ -88,6 +88,7 @@ const ArticleQuiz: React.FC<Props> = ({ questions: rawQuestions, articleId }) =>
     const handleFinish = async () => {
         setShowResults(true);
         const finalPercentage = Math.round((score / questions.length) * 100);
+        const dateIso = new Date().toISOString();
 
         if (currentUser) {
             try {
@@ -103,7 +104,7 @@ const ArticleQuiz: React.FC<Props> = ({ questions: rawQuestions, articleId }) =>
                     completedQuizzes: arrayUnion({
                         articleId,
                         score: finalPercentage,
-                        date: new Date().toISOString()
+                        date: dateIso
                     })
                 }, { merge: true });
                 // Despacha un evento por si necesitamos reaccionar en el dashboard
@@ -114,12 +115,86 @@ const ArticleQuiz: React.FC<Props> = ({ questions: rawQuestions, articleId }) =>
                 alert("Error al guardar tus resultados: " + err.message);
             }
         } else {
+            // SPEC-024: anónimo. Persistimos el quiz pendiente en sessionStorage
+            // para que el flush post-registro/login lo recoja en la misma sesión.
+            // Si cierra el browser sin registrarse, se descarta (esperado).
+            try {
+                sessionStorage.setItem('imr_pending_quiz', JSON.stringify({
+                    articleId,
+                    score,
+                    total: questions.length,
+                    percentage: finalPercentage,
+                    date: dateIso,
+                }));
+            } catch (err) {
+                // sessionStorage puede fallar en modo restringido; no es crítico
+                console.warn('[ArticleQuiz] sessionStorage no disponible:', err);
+            }
+            // Marcar imr_article_read para habilitar el tab "Crear Perfil" en /login
             localStorage.setItem('imr_article_read', 'true');
         }
     };
 
     if (showResults) {
         const percentage = Math.round((score / questions.length) * 100);
+
+        // SPEC-024: gating del score para anónimos. Forzamos registro/login
+        // para revelar el resultado y persistir el quiz en su perfil.
+        if (!currentUser) {
+            return (
+                <div className="bg-[#0c1f31]/60 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-10 text-center animate-fade-in shadow-2xl">
+                    <div className="text-6xl mb-6">🔒</div>
+                    <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-4">
+                        Tu puntaje está listo
+                    </h3>
+
+                    {/* Score blurreado como teaser */}
+                    <div className="inline-flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-8 py-6 mb-8 relative overflow-hidden">
+                        <span
+                            className="text-5xl font-black text-blue-400 select-none"
+                            style={{ filter: 'blur(12px)' }}
+                            aria-hidden="true"
+                        >
+                            ?/?
+                        </span>
+                        <div className="text-left border-l border-white/10 pl-6">
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Puntuación</p>
+                            <p
+                                className="text-2xl font-black text-[#00C49A] select-none"
+                                style={{ filter: 'blur(10px)' }}
+                                aria-hidden="true"
+                            >
+                                ??%
+                            </p>
+                        </div>
+                    </div>
+
+                    <p className="text-gray-300 mb-3 max-w-md mx-auto font-medium leading-relaxed">
+                        Registrate para ver tu puntaje, acceder al dashboard
+                        y entrar a la <span className="text-[#00C49A] font-bold">lista de espera de ElenaApp</span>.
+                    </p>
+                    <p className="text-[10px] text-gray-600 font-mono mb-8 uppercase tracking-widest">
+                        Tu progreso queda guardado en tu perfil tras el registro.
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="px-8 py-4 bg-white/5 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-white/10 transition-all"
+                        >
+                            Reintentar
+                        </button>
+                        <a
+                            href="/login"
+                            className="px-8 py-4 bg-blue-600 text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/30"
+                        >
+                            Registrate y ver puntaje →
+                        </a>
+                    </div>
+                </div>
+            );
+        }
+
         return (
             <div className="bg-[#0c1f31]/60 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-10 text-center animate-fade-in shadow-2xl">
                 <div className="text-6xl mb-6">{percentage >= 70 ? '🏆' : '📚'}</div>
@@ -132,8 +207,8 @@ const ArticleQuiz: React.FC<Props> = ({ questions: rawQuestions, articleId }) =>
                     </div>
                 </div>
                 <p className="text-gray-400 mb-8 max-w-sm mx-auto font-medium">
-                    {percentage >= 70 
-                        ? '¡Excelente! Has dominado la teoría de este pilar biológico.' 
+                    {percentage >= 70
+                        ? '¡Excelente! Has dominado la teoría de este pilar biológico.'
                         : 'Buen intento, pero te recomendamos repasar los conceptos técnicos.'}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">

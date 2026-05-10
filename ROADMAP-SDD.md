@@ -78,6 +78,7 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 021 | Pre-commit hook anti-credenciales | 📝 Candidata | SPEC-009 detectó retroactivamente; un hook lo previene a futuro | Si se suma colaborador al repo |
 | 022 | Limpieza técnica (console.log, mockup PDF, HTMLs obsoletos) | ✅ Cerrada (2026-05-10) | Restos de pre-proyecto y debug en el repo | [SPEC-022](specs/SPEC-022-limpieza-tecnica.md) |
 | 023 | PostList con orden + filtro + fecha de publicación editable | ✅ Cerrada (2026-05-10) | Sin orden por fecha, sin filtros, sin forma de backdatear publishedAt | [SPEC-023](specs/SPEC-023-postlist-orden-y-fecha-manual.md) |
+| 024 | ArticleQuiz: gating de score + CTA registro para anónimos | ✅ Cerrada (2026-05-10) | Anónimos veían botón "dashboard" sin auth y perdían el score al cerrar el browser | [SPEC-024](specs/SPEC-024-article-quiz-anonimo-cta-registro.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 

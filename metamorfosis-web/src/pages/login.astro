@@ -59,8 +59,10 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-    import { auth } from '../lib/firebase';
+    import { auth, db } from '../lib/firebase';
     import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+    import { doc, setDoc, arrayUnion } from 'firebase/firestore';
+    import { COLLECTIONS } from '../lib/constants/firestore';
 
     const tabLogin = document.getElementById('tab-login');
     const tabRegister = document.getElementById('tab-register');
@@ -127,6 +129,33 @@ import Layout from '../layouts/Layout.astro';
     }
 
     /**
+     * SPEC-024: si el visitante completó un quiz como anónimo antes de
+     * registrarse/loguearse, persiste el resultado en su perfil. Best-effort:
+     * si falla por rules o red, el redirect al dashboard sigue. Vale tanto
+     * para register (cuenta nueva) como login (volver a entrar).
+     */
+    async function flushPendingQuiz(user) {
+        try {
+            const raw = sessionStorage.getItem('imr_pending_quiz');
+            if (!raw) return;
+            const quiz = JSON.parse(raw);
+            if (!quiz?.articleId) return;
+            const userRef = doc(db, COLLECTIONS.USERS, user.uid);
+            await setDoc(userRef, {
+                completedQuizzes: arrayUnion({
+                    articleId: quiz.articleId,
+                    score: quiz.percentage,
+                    date: quiz.date,
+                }),
+            }, { merge: true });
+            sessionStorage.removeItem('imr_pending_quiz');
+        } catch (err) {
+            // Best-effort: el redirect sigue aunque la persistencia falle.
+            console.error('[login] flushPendingQuiz error:', err);
+        }
+    }
+
+    /**
      * Lee el doc canónico via /api/users/me para popular sessionStorage con
      * userName + imr_score (que el resto de la UI consume).
      */
@@ -173,9 +202,14 @@ import Layout from '../layouts/Layout.astro';
                 await onboardUser(userCredential.user, payload);
                 sessionStorage.removeItem(QUIZ_STORAGE_KEY);
                 sessionStorage.setItem('imr_userName', nameInput);
+                // SPEC-024: persistir quiz pendiente del anónimo en su nuevo perfil
+                await flushPendingQuiz(userCredential.user);
             } else {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 await syncSessionFromServer(userCredential.user);
+                // SPEC-024: si volvió como anónimo, completó un quiz nuevo y
+                // ahora se loguea, también persistimos
+                await flushPendingQuiz(userCredential.user);
             }
 
             sessionStorage.setItem('user_email', email);
