@@ -1,8 +1,16 @@
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import StatsGrid from './StatsGrid';
 import PostList from './PostList';
 import LeadList from './LeadList';
 import ArticleEditor from './ArticleEditor';
+
+/**
+ * Lazy load de AnaliticaIMR (SPEC-017).
+ * Recharts + cálculo del motor IMR sobre cada doc — pesado para usuarios
+ * que sólo quieren gestionar leads o artículos. El chunk se descarga
+ * la primera vez que el tab ANALYTICS se activa.
+ */
+const AnaliticaIMR = React.lazy(() => import('./AnaliticaIMR'));
 
 class ErrorBoundary extends React.Component<{children: React.ReactNode, onReset: () => void}, {hasError: boolean, error: string}> {
     constructor(props: any) {
@@ -18,7 +26,7 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode, onReset:
                 <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-10 text-center">
                     <p className="text-red-400 font-bold text-lg mb-2">⚠️ Error en el componente</p>
                     <p className="text-gray-400 text-sm mb-6 font-mono">{this.state.error}</p>
-                    <button 
+                    <button
                         onClick={() => { this.setState({ hasError: false, error: '' }); this.props.onReset(); }}
                         className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-red-500 transition-all"
                     >
@@ -31,8 +39,21 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode, onReset:
     }
 }
 
+type AdminTab = 'ARCHIVE' | 'LEADS' | 'ANALYTICS';
+
+const LazyLoader = () => (
+    <div className="flex items-center justify-center min-h-[400px] bg-gray-900 border border-gray-800 rounded-2xl">
+        <div className="flex flex-col items-center gap-4">
+            <div className="w-8 h-8 border-2 border-purple-500/30 border-t-purple-400 rounded-full animate-spin" />
+            <span className="text-xs text-gray-500 uppercase tracking-widest font-mono">
+                Cargando módulo de analítica…
+            </span>
+        </div>
+    </div>
+);
+
 const AdminApp = () => {
-    const [activeTab, setActiveTab] = useState<'ARCHIVE' | 'LEADS'>('ARCHIVE');
+    const [activeTab, setActiveTab] = useState<AdminTab>('ARCHIVE');
     const [isEditing, setIsEditing] = useState(false);
     const [editingPost, setEditingPost] = useState<any>(null);
 
@@ -47,7 +68,7 @@ const AdminApp = () => {
             if (response.ok) {
                 setIsEditing(false);
                 setEditingPost(null);
-                window.location.reload(); 
+                window.location.reload();
             } else {
                 const errData = await response.json();
                 throw new Error(errData.error || 'Error en el servidor');
@@ -100,14 +121,17 @@ const AdminApp = () => {
                         Gestión de Artículos
                     </button>
 
-                    <a
-                        href="/admin/analitica-imr"
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm border bg-transparent text-gray-500 border-transparent hover:bg-gray-800/50 hover:text-white mt-4 relative group"
+                    <button
+                        onClick={() => setActiveTab('ANALYTICS')}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm border mt-4 relative group ${activeTab === 'ANALYTICS'
+                            ? 'bg-purple-500/10 text-purple-300 border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.15)]'
+                            : 'bg-transparent text-gray-500 border-transparent hover:bg-gray-800/50 hover:text-white'
+                            }`}
                     >
-                        <div className="absolute inset-0 bg-[#00C49A]/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur-md"></div>
-                        <svg className="w-5 h-5 relative z-10 text-[#00C49A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        <span className="relative z-10">Analítica IMR →</span>
-                    </a>
+                        <div className="absolute inset-0 bg-purple-500/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur-md"></div>
+                        <svg className={`w-5 h-5 relative z-10 ${activeTab === 'ANALYTICS' ? 'text-purple-300' : 'text-purple-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        <span className="relative z-10">Analítica IMR</span>
+                    </button>
                 </aside>
             )}
 
@@ -115,17 +139,24 @@ const AdminApp = () => {
             <main className="flex-1 min-w-0 flex flex-col gap-8">
                 <ErrorBoundary onReset={handleReset}>
                     {isEditing ? (
-                        <ArticleEditor 
-                            article={editingPost} 
-                            onSave={handleSaveArticle} 
-                            onCancel={() => setIsEditing(false)} 
+                        <ArticleEditor
+                            article={editingPost}
+                            onSave={handleSaveArticle}
+                            onCancel={() => setIsEditing(false)}
                         />
                     ) : (
                         <>
-                            <StatsGrid />
+                            {/* StatsGrid se oculta en ANALYTICS para evitar redundancia
+                                con las métricas profundas del módulo de analítica. */}
+                            {activeTab !== 'ANALYTICS' && <StatsGrid />}
                             <div className="flex-1 animate-fade-in-up">
                                 {activeTab === 'LEADS' && <LeadList />}
                                 {activeTab === 'ARCHIVE' && <PostList onEdit={handleEdit} onNew={handleNew} />}
+                                {activeTab === 'ANALYTICS' && (
+                                    <Suspense fallback={<LazyLoader />}>
+                                        <AnaliticaIMR />
+                                    </Suspense>
+                                )}
                             </div>
                         </>
                     )}
@@ -136,4 +167,3 @@ const AdminApp = () => {
 };
 
 export default AdminApp;
-

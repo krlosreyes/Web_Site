@@ -142,21 +142,23 @@ export const GET: APIRoute = async ({ request, url }) => {
         const usersRef = db.collection(COLLECTIONS.USERS);
 
         // ─── Totales globales (count() es barato) ───
+        // SPEC-015: posts legacy sin campo `status` se tratan como 'published'.
+        // Para que el conteo respete esa convención evitamos
+        // `where('status', '==', 'published')` (excluye legacy) y calculamos
+        // `publicados = total − drafts`. Cubre legacy automáticamente.
         const [allPostsCount, draftsCount, allUsersCount] = await Promise.all([
-            postsRef.where('status', '==', 'published').count().get().catch(() =>
-                // fallback: si el index no existe o un doc legacy no tiene status,
-                // contamos todos como "publicados" para no romper la UI.
-                postsRef.count().get()
-            ),
-            postsRef.where('status', '==', 'draft').count().get().catch(() =>
-                ({ data: () => ({ count: 0 }) } as any)
-            ),
+            postsRef.count().get(),
+            postsRef
+                .where('status', '==', 'draft')
+                .count()
+                .get()
+                .catch(() => ({ data: () => ({ count: 0 }) } as any)),
             usersRef.count().get(),
         ]);
 
-        // ─── Fetches en rango: traemos los docs para poder agrupar y promediar ───
-        // Para `range=all` traemos sin filtrar pero con cap; para los otros,
-        // intentamos filtro server-side y si falla el índice, in-memory.
+        // ─── Fetches: para users por meta.createdAt; para posts traemos TODOS
+        // y filtramos in-memory porque la convención `status == 'published' OR
+        // status missing` no se puede expresar en una sola query Firestore. ───
         const fetchInRange = async (
             ref: FirebaseFirestore.Query,
             field: string
@@ -181,10 +183,25 @@ export const GET: APIRoute = async ({ request, url }) => {
             }
         };
 
-        const [usersInRange, postsPublishedInRange] = await Promise.all([
-            fetchInRange(usersRef, 'meta.createdAt'),
-            fetchInRange(postsRef.where('status', '==', 'published'), 'publishedAt'),
-        ]);
+        // Para posts, traemos todos y filtramos: status !== 'draft' (incluye legacy)
+        // + fecha de publicación in-range (publishedAt → createdAt → created_at).
+        const allPostsSnap = await postsRef.limit(2000).get();
+        const isPublished = (data: any) => data?.status !== 'draft';
+        const postPublishDate = (data: any): Date | null =>
+            toDate(data?.publishedAt) ||
+            toDate(data?.createdAt) ||
+            toDate(data?.created_at);
+
+        const postsPublishedInRange = allPostsSnap.docs.filter((doc) => {
+            const data = doc.data();
+            if (!isPublished(data)) return false;
+            const d = postPublishDate(data);
+            if (!d) return false;
+            if (startISO && d.toISOString() < startISO) return false;
+            return true;
+        });
+
+        const usersInRange = await fetchInRange(usersRef, 'meta.createdAt');
 
         // ─── Buckets vacíos pre-poblados con 0 ───
         const buckets = generateBuckets(startISO, bucketBy);
@@ -222,11 +239,11 @@ export const GET: APIRoute = async ({ request, url }) => {
         }
 
         // ─── Agregar posts publicados en rango ───
+        // El filtro principal ya se aplicó arriba; acá solo bucketeamos.
         for (const doc of postsPublishedInRange) {
             const data = doc.data();
-            const published = toDate(data.publishedAt) || toDate(data.created_at);
+            const published = postPublishDate(data);
             if (!published) continue;
-            if (startISO && published.toISOString() < startISO) continue;
             const k = bucketKey(published, bucketBy);
             if (postsByBucket.has(k)) {
                 postsByBucket.set(k, (postsByBucket.get(k) || 0) + 1);
@@ -257,7 +274,12 @@ export const GET: APIRoute = async ({ request, url }) => {
             rangeLabel,
             bucketBy,
             totals: {
-                posts: allPostsCount.data().count,
+                // SPEC-015: legacy (sin status) cuenta como publicado.
+                // posts publicados = total − drafts (incluye automáticamente legacy).
+                posts: Math.max(
+                    0,
+                    allPostsCount.data().count - draftsCount.data().count
+                ),
                 drafts: draftsCount.data().count,
                 users: allUsersCount.data().count,
                 newUsersInRange: usersInRange.filter((d) => {
