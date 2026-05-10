@@ -106,6 +106,13 @@ probá esto otro":
   cambios runtime, usar `process.env.PUBLIC_X` en el frontmatter de `.astro`
   (con fallback `|| import.meta.env.PUBLIC_X` para `astro dev`). Detectado
   con Umami: dashboard vacío hasta cambiar el patrón a runtime-first.
+- **Imágenes en `/public` (post-SPEC-030):** NO commitear PNG/JPG >500 KB sin
+  generar `.webp` paralelo y usar el `.webp` para in-page render. El original
+  pesado se mantiene SOLO para OG/schema (scrapers FB/LinkedIn no parsean
+  webp confiable). Pipeline: `convert orig.png -quality 82 -define
+  webp:method=6 orig.webp`. Pruebas con header-bg: 2 MB → 141 KB (-93%).
+  Imágenes con LCP: declarar `preloadImage` en `BaseLayout` props para
+  inyectar `<link rel="preload" as="image" fetchpriority="high">`.
 - **Páginas con `BaseLayout` deben reservar ≥80px de padding-top** en su
   primer wrapper (`pt-24` o `pt-28` según diseño). El Navbar es `fixed
   top-0 h-20` y NO empuja contenido. Excepción: páginas con hero a viewport

@@ -108,8 +108,12 @@ const ElenaAppCTA: React.FC = () => {
                         <div className="relative pt-12 pb-6 px-6 sm:px-10 text-center">
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[200px] bg-blue-600/15 blur-[100px] -z-10 pointer-events-none"></div>
                             <img
-                                src="/elena-mockup.png"
+                                src="/elena-mockup.webp"
                                 alt="ElenaApp"
+                                width={160}
+                                height={160}
+                                loading="lazy"
+                                decoding="async"
                                 className="w-32 sm:w-40 mx-auto mb-6 drop-shadow-[0_0_30px_rgba(59,130,246,0.4)]"
                             />
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/15 border border-yellow-400/30 text-yellow-300 text-[10px] font-black uppercase tracking-[0.3em] mb-4">

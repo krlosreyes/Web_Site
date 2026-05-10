@@ -15,6 +15,15 @@ interface Props {
     publishedAt?: string | null;
     /** SPEC-027: ISO string. Solo se renderiza si ogType='article'. */
     updatedAt?: string | null;
+    /**
+     * SPEC-030: path absoluto al LCP image de la página para inyectar
+     * <link rel="preload" as="image" fetchpriority="high">. Sin esto,
+     * el browser no descubre el background-image hasta parsear el CSS.
+     * Pasarlo SOLO en la página dueña del LCP (ej. home con el hero).
+     */
+    preloadImage?: string;
+    /** SPEC-030: MIME type del preload image. Default 'image/webp'. */
+    preloadImageType?: string;
 }
 
 const {
@@ -22,11 +31,15 @@ const {
     description = "Metamorfosis Real - Ecosistema de salud metabólica de alta autoridad.",
     // SPEC-027: el default era /og-image.jpg (inexistente). Cambio a header-bg.jpg
     // que sí está en /public. Cuando se diseñe un OG asset dedicado, cambiar acá.
+    // Nota SPEC-030: mantenemos el .jpg acá (no webp) porque algunos scrapers
+    // de OG (LinkedIn, FB legacy) no parsean webp confiablemente.
     image = "/header-bg.jpg",
     canonicalURL = Astro.url.href,
     ogType = "website",
     publishedAt = null,
     updatedAt = null,
+    preloadImage,
+    preloadImageType = "image/webp",
 } = Astro.props;
 
 const siteName = "Metamorfosis Real";
@@ -71,16 +84,47 @@ const siteName = "Metamorfosis Real";
         <meta property="twitter:description" content={description} />
         <meta property="twitter:image" content={new URL(image, Astro.url)} />
 
+        <!-- SPEC-030: preload del LCP image cuando la página lo declara.
+             Mejora "Descubrimiento de solicitudes de LCP" de Lighthouse:
+             sin esto, el background-image del Hero se descubre recién
+             después de parsear el CSS, lo que retrasa el LCP. -->
+        {preloadImage && (
+            <link
+                rel="preload"
+                as="image"
+                href={preloadImage}
+                type={preloadImageType}
+                fetchpriority="high"
+            />
+        )}
+
         <!-- SPEC-028: Analytics con Umami (excluye /admin/* y dev) -->
         <UmamiScript />
 
-        <!-- Google Fonts: Space Grotesk & Inter -->
+        <!-- Google Fonts: Space Grotesk & Inter
+             SPEC-030: pattern non-blocking. El <link rel="stylesheet"> normal
+             bloquea render hasta que descarga el CSS (~970ms según Lighthouse).
+             media="print" + onload swap a "all" hace que NO bloquee; el
+             <noscript> es fallback para users con JS deshabilitado. -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
+            rel="preload"
+            as="style"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+        />
+        <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
             rel="stylesheet"
+            media="print"
+            onload="this.media='all'"
         />
+        <noscript>
+            <link
+                href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+                rel="stylesheet"
+            />
+        </noscript>
     </head>
     <body class="bg-base text-primary">
         <!-- PERSISTENT GLOW -->

@@ -11,7 +11,12 @@ const description =
   "Ecosistema de salud metabólica de alta autoridad. Optimiza tu biología con ciencia real y el motor de inteligencia de ElenaApp.";
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout
+  title={title}
+  description={description}
+  preloadImage="/header-bg.webp"
+  preloadImageType="image/webp"
+>
   <!-- HERO SECTION -->
   <Hero />
 
@@ -76,9 +81,13 @@ const description =
           <div
             class="w-full aspect-[4/5] bg-bg-base/50 rounded-3xl border border-text-primary/5 shadow-2xl flex items-center justify-center overflow-hidden group"
           >
-            <img 
-              src="/elena-mockup.png" 
-              alt="ElenaApp Metabolic Dashboard Mockup" 
+            <img
+              src="/elena-mockup.webp"
+              alt="ElenaApp Metabolic Dashboard Mockup"
+              width="1024"
+              height="1024"
+              loading="lazy"
+              decoding="async"
               class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
             <div
