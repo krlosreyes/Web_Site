@@ -152,7 +152,7 @@ const ForumEngine = () => {
                     <Icons.Lock size={32} className="text-blue-400" />
                 </div>
                 
-                <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-6 leading-tight">
+                <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-6 leading-tight break-words">
                     Casi llegas a <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">La Tribu</span>
                 </h2>
                 <p className="text-gray-400 text-base max-w-xl mx-auto mb-12 font-medium">
@@ -212,7 +212,7 @@ const ForumEngine = () => {
                             <p className="text-[10px] text-gray-500 uppercase tracking-widest">Biohacker Verificado • Hace {selectedTopic.createdAt}</p>
                          </div>
                     </div>
-                    <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-8 leading-tight">{selectedTopic.title}</h2>
+                    <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-8 leading-tight break-words">{selectedTopic.title}</h2>
                     <p className="text-gray-300 text-xl leading-relaxed font-medium mb-12">{selectedTopic.content}</p>
                     
                     <div className="border-t border-white/5 pt-10">

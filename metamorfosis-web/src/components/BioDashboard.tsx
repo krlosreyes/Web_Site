@@ -146,8 +146,10 @@ const BioDashboard = () => {
 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-8">
-                <div>
-                    <h1 className="text-6xl font-black text-white italic uppercase tracking-tight leading-none">
+                {/* SPEC-031: min-w-0 + flex-1 permite que el h1 se achique cuando
+                    el nombre es largo, sin desbordar el viewport en mobile. */}
+                <div className="min-w-0 flex-1">
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white italic uppercase tracking-tight leading-none break-words">
                         Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">{stats.userName}</span>
                     </h1>
                     <p className="mt-4 text-gray-500 text-[10px] font-black uppercase tracking-[0.4em]">Reporte de Diagnóstico SPEC-70.5</p>

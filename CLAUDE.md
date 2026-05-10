@@ -100,6 +100,13 @@ probá esto otro":
   completo (`h-[60vh]+`) que esperan transparencia sobre la imagen. Si
   agregás una página y olvidás esto, el primer renglón queda tapado por el
   menú — no es bug del navbar, es contrato del layout.
+- **Headings con texto dinámico** (saludo `Hola, {userName}`, título de
+  artículo, tópico de foro) DEBEN ser responsive con al menos
+  `text-3xl sm:text-Nxl md:text-Mxl` y llevar `break-words`. Su flex parent
+  necesita `min-w-0 flex-1` para permitir shrink. Sin esto, un nombre largo
+  (>10 chars) en `text-6xl` desborda el viewport mobile. Hay defensa global
+  en `global.css` (`overflow-wrap: anywhere` para h1-h6) pero esa es solo
+  red de seguridad — el responsive correcto se hace en el componente.
 
 ## 5. Mapa de archivos clave
 

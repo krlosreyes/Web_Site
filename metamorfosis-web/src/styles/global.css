@@ -28,6 +28,15 @@
     scroll-margin-top: 5rem;
   }
 
+  /* SPEC-031: defensa global anti-overflow horizontal en headings.
+     `overflow-wrap: anywhere` solo se activa cuando una palabra individual
+     es más ancha que el contenedor (caso típico: nombre de usuario largo
+     en text-6xl mobile, slug raro de artículo). En texto normal no afecta
+     el layout. Evita que cualquier heading dinámico nuevo desborde. */
+  h1, h2, h3, h4, h5, h6 {
+    overflow-wrap: anywhere;
+  }
+
   body {
     @apply bg-bg-base text-text-primary font-body antialiased selection:bg-accent-blue selection:text-white;
     min-height: 100vh;
