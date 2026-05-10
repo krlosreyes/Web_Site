@@ -201,10 +201,13 @@ const jsonLd = {
                 hasQuiz={!!(article.quiz && article.quiz.length > 0)}
             />
 
-            {/* SPEC-040: discutir el artículo en el foro (deeplink que pre-popula el form) */}
+            {/* SPEC-040 + SPEC-045: discutir el artículo en el foro.
+                Padding equivalente a PostReactions (p-6 md:p-8) para peso
+                visual coherente. Mobile-first: flex-col con CTA pill abajo;
+                en sm+ pasa a row con el → compacto a la derecha. */}
             <a
                 href={`/comunidad?createWithPost=${encodeURIComponent(slug ?? '')}&title=${encodeURIComponent(processedTitle)}`}
-                class="mt-6 flex items-center justify-between gap-4 px-6 py-5 rounded-2xl bg-blue-600/5 border border-blue-500/20 hover:bg-blue-600/10 hover:border-blue-500/40 transition-all group"
+                class="mt-8 md:mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 sm:gap-6 p-6 md:p-8 rounded-2xl bg-blue-600/5 border border-blue-500/20 hover:bg-blue-600/10 hover:border-blue-500/40 transition-all group"
             >
                 <div class="flex items-center gap-4 min-w-0">
                     <div class="w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-xl shrink-0">
@@ -214,20 +217,20 @@ const jsonLd = {
                         <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-1">
                             La Tribu
                         </p>
-                        <p class="text-sm font-bold text-white break-words">
+                        <p class="text-sm md:text-base font-bold text-white break-words leading-snug">
                             ¿Querés discutir este artículo con la comunidad?
                         </p>
                     </div>
                 </div>
-                <span class="text-blue-400 group-hover:translate-x-1 transition-transform shrink-0 text-sm font-bold uppercase tracking-widest">
+                <span class="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 sm:px-3 sm:py-1.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[11px] sm:text-xs font-bold uppercase tracking-widest group-hover:bg-blue-500/25 group-hover:translate-x-1 transition-all shrink-0">
                     Abrir tema →
                 </span>
             </a>
 
-            {/* Interactive Quiz */}
+            {/* Interactive Quiz — SPEC-045: respiración de mt-12 md:mt-16 */}
             {
                 article.quiz && article.quiz.length > 0 && (
-                    <div id="quiz-section">
+                    <div id="quiz-section" class="mt-12 md:mt-16">
                         <ArticleQuiz
                             client:visible
                             questions={article.quiz}
