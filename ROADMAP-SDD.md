@@ -1,7 +1,8 @@
 # Roadmap SDD — Metamorfosis Real
 
 **Origen:** revisión de código del 2026-05-08 (`REVISION-CODIGO-2026-05-08.md`).
-**Metodología:** Spec-Driven Development. Cada problema se resuelve con una spec completa que vive en `specs/SPEC-NNN-*.md`. La spec define contexto, solución propuesta, plan, criterios de aceptación y pruebas; la implementación cierra contra esa spec.
+**Constitución del proyecto:** ver [`CLAUDE.md`](./CLAUDE.md) — scope, stack, reglas inquebrantables, mapa de archivos.
+**Metodología:** Spec-Driven Development. Detalle en [`specs/000-METHODOLOGY-SDD.md`](./specs/000-METHODOLOGY-SDD.md). Cada problema se resuelve con una spec completa que vive en `specs/SPEC-NNN-*.md`. La spec define contexto, solución propuesta, plan, criterios de aceptación y pruebas; la implementación cierra contra esa spec.
 **Flujo git:** un commit + push directo a `main` por cada spec resuelta. Mensaje: `feat(spec-NNN): resumen` o `fix(spec-NNN): resumen` según corresponda.
 
 ---
@@ -66,6 +67,15 @@ Decisión 2026-05-09: Carlos pidió "optimizar el dashboard administrativo" enfo
 - Calidad de código (`console.log` en producción, tipos null-safe en scripts inline, README default)
 - Endpoint PDF real (`generate-pdf-report.ts` es mockup con CDN play)
 - Limpieza archivos obsoletos (`last-update.txt`, `propuesta-*.html`, `.quarantine_modules/`)
+
+### Fase 5 — METODOLOGÍA (gobernanza SDD)
+
+Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruzado con la práctica real (ver `specs/000-METHODOLOGY-SDD.md`). Los items 1-6 del manifiesto ya estaban adoptados o se adoptaron al crear `CLAUDE.md`. Los siguientes quedan candidatos a SPEC dedicada cuando el ROI lo justifique:
+
+| # | Spec | Estado | Problema | Trigger para abrir |
+|---|---|---|---|---|
+| 020 | Tests automatizados (motor IMR + auth + validadores admin) | 📝 Candidata | Solo "pruebas manuales"; refactors grandes podrían introducir regresiones silenciosas | Próxima refactor del motor IMR o de `auth.ts` |
+| 021 | Pre-commit hook anti-credenciales | 📝 Candidata | SPEC-009 detectó retroactivamente; un hook lo previene a futuro | Si se suma colaborador al repo |
 
 ### Fase 4 — BAJOS (limpieza)
 
