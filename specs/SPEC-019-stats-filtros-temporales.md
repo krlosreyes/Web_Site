@@ -170,4 +170,13 @@ Implementado en una sola pasada (2026-05-10).
 - El endpoint acepta `range` desconocido (default a `30d`) y recupera el rango si llega vacío.
 - Si Firestore se queja por índice ausente (ej. `meta.createdAt`), el fallback in-memory cubre el caso. El admin tendrá que crear el índice desde la Console solo si el dataset crece y la query nativa se vuelve preferible. Hoy la diferencia es invisible.
 
-**Sin desviaciones del plan funcional.** Todos los criterios de aceptación quedan cumplidos.
+**Fix post-verificación (2026-05-10):** Carlos detectó al revisar que el dashboard mostraba **5 artículos publicados** cuando hay **6 reales**. Causa: el cálculo inicial usaba `where('status', '==', 'published')`, que **excluye los artículos legacy** (sin campo `status`). La convención SPEC-015 (aplicada en `biblioteca.astro:20`) dice "legacy = published".
+
+**Cambios para corregir:**
+- `totals.posts` ahora se calcula como `total − drafts` (resta inclusiva: legacy queda dentro del total y no es draft, así que cuenta como publicado).
+- `series.postsByDay` cambia de `where('status', '==', 'published')` a fetch completo + filtro in-memory `status !== 'draft'`.
+- Fecha de publicación resuelta con prioridad `publishedAt → createdAt → created_at` para soportar artículos legacy con campos en distintos casing.
+
+Esto es exactamente la regla "fixes completos en una pasada" — al verificar cuantitativamente la salida descubrimos el bug y se cerró sin abrir nueva spec.
+
+**Sin otras desviaciones.** Todos los criterios de aceptación quedan cumplidos.
