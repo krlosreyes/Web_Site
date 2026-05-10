@@ -85,6 +85,7 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 029 | Email transaccional de bienvenida (Resend) | ✅ Cerrada (2026-05-10) | Tras registro no llegaba ningún email; promesa de "lista de espera ElenaApp" sin confirmación | [SPEC-029](specs/SPEC-029-email-transaccional-bienvenida.md) |
 | 031 | Headings responsive sin desborde (audit completo) | ✅ Cerrada (2026-05-10) | "HOLA, METAMORFOSIS" se cortaba en mobile por `text-6xl` sin breakpoints; otros lugares con texto dinámico tenían riesgo similar | [SPEC-031](specs/SPEC-031-headings-responsive-no-desborde.md) |
 | 032 | Likes/Dislikes en artículos | ✅ Cerrada (2026-05-10) | Cero feedback estructurado del lector; sin proxies de calidad por artículo | [SPEC-032](specs/SPEC-032-likes-articulos.md) |
+| 033 | Foro funcional con persistencia (La Tribu) | ✅ Cerrada (2026-05-10) | El foro era 100% mock: topics hardcoded, replies sin enviar, likes estáticos, todo se perdía al refresh | [SPEC-033](specs/SPEC-033-foro-funcional.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 

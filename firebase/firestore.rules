@@ -91,6 +91,28 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ===== forum_topics (SPEC-033) =====
+    // Foro de comunidad. Read público sobre topics activos (anónimos pueden
+    // ver, no comentar). Writes SIEMPRE bloqueados al cliente: las mutaciones
+    // van por endpoints `/api/forum/*` con Admin SDK + transactions atómicas
+    // que mantienen counters denormalizados (replyCount, likeCount, views)
+    // sincronizados.
+    match /forum_topics/{topic} {
+      allow read: if !('status' in resource.data) || resource.data.status == 'active';
+      allow write: if false;
+
+      match /replies/{reply} {
+        allow read: if !('status' in resource.data) || resource.data.status == 'active';
+        allow write: if false;
+      }
+
+      match /likes/{uid} {
+        // Lectura solo para logueados (no exponemos identidad de votantes)
+        allow read: if request.auth != null;
+        allow write: if false;
+      }
+    }
+
     // ===== admin_audit_log (SPEC-018) =====
     // Audit log de mutaciones admin. Lectura/escritura SOLO desde Admin SDK
     // (los handlers /api/admin/* lo escriben con el helper logAdminAction).

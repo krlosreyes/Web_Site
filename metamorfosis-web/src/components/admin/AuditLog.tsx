@@ -18,7 +18,14 @@ type AuditAction =
     | 'login_admin'
     | 'logout_admin'
     | 'send_welcome_email'
-    | 'react_post';
+    | 'react_post'
+    | 'create_forum_topic'
+    | 'delete_forum_topic'
+    | 'create_forum_reply'
+    | 'delete_forum_reply'
+    | 'like_forum_topic'
+    | 'admin_delete_forum_topic'
+    | 'admin_delete_forum_reply';
 
 interface AuditEntry {
     id: string;
@@ -42,6 +49,13 @@ const ACTION_META: Record<AuditAction, { label: string; emoji: string; color: st
     logout_admin: { label: 'Logout', emoji: '🔒', color: 'text-gray-400 border-gray-500/30 bg-gray-500/10' },
     send_welcome_email: { label: 'Email bienvenida', emoji: '✉️', color: 'text-pink-300 border-pink-500/30 bg-pink-500/10' },
     react_post: { label: 'Reacción artículo', emoji: '👍', color: 'text-cyan-300 border-cyan-500/30 bg-cyan-500/10' },
+    create_forum_topic: { label: 'Foro: nuevo topic', emoji: '💬', color: 'text-blue-300 border-blue-500/30 bg-blue-500/10' },
+    delete_forum_topic: { label: 'Foro: borrar topic', emoji: '🗑️', color: 'text-red-300 border-red-500/30 bg-red-500/10' },
+    create_forum_reply: { label: 'Foro: nueva respuesta', emoji: '↩️', color: 'text-blue-200 border-blue-400/30 bg-blue-400/10' },
+    delete_forum_reply: { label: 'Foro: borrar respuesta', emoji: '✂️', color: 'text-red-200 border-red-400/30 bg-red-400/10' },
+    like_forum_topic: { label: 'Foro: like', emoji: '❤️', color: 'text-pink-400 border-pink-500/30 bg-pink-500/10' },
+    admin_delete_forum_topic: { label: 'Admin: borrar topic', emoji: '🛡️', color: 'text-orange-300 border-orange-500/30 bg-orange-500/10' },
+    admin_delete_forum_reply: { label: 'Admin: borrar reply', emoji: '🛡️', color: 'text-orange-200 border-orange-400/30 bg-orange-400/10' },
 };
 
 const FILTER_OPTIONS: Array<{ key: AuditAction | 'all'; label: string }> = [
@@ -52,6 +66,10 @@ const FILTER_OPTIONS: Array<{ key: AuditAction | 'all'; label: string }> = [
     { key: 'delete_post', label: 'Borrar posts' },
     { key: 'upload_image', label: 'Imágenes' },
     { key: 'cleanup', label: 'Cleanups' },
+    { key: 'react_post', label: 'Reacciones' },
+    { key: 'create_forum_topic', label: 'Foro: topics' },
+    { key: 'create_forum_reply', label: 'Foro: replies' },
+    { key: 'like_forum_topic', label: 'Foro: likes' },
 ];
 
 const AuditLog = () => {

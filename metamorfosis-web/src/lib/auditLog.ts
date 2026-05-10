@@ -29,9 +29,16 @@ export type AuditAction =
     | 'login_admin'
     | 'logout_admin'
     | 'send_welcome_email'
-    | 'react_post';
+    | 'react_post'
+    | 'create_forum_topic'
+    | 'delete_forum_topic'
+    | 'create_forum_reply'
+    | 'delete_forum_reply'
+    | 'like_forum_topic'
+    | 'admin_delete_forum_topic'
+    | 'admin_delete_forum_reply';
 
-export type AuditResource = 'post' | 'lead' | 'image' | 'system' | 'session';
+export type AuditResource = 'post' | 'lead' | 'image' | 'system' | 'session' | 'forum_topic' | 'forum_reply';
 
 export interface AuditChange {
     before: unknown;

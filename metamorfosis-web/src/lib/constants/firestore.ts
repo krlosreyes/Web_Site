@@ -19,6 +19,8 @@ export const COLLECTIONS = {
     PRUEBAS: 'pruebas',
     /** Audit log de mutaciones admin (SPEC-018). Solo Admin SDK escribe/lee. */
     ADMIN_AUDIT_LOG: 'admin_audit_log',
+    /** Foro de comunidad (SPEC-033). Subcolecciones: replies/{id}, likes/{uid}. */
+    FORUM_TOPICS: 'forum_topics',
 } as const;
 
 /** Subcolecciones bajo `users/{uid}`. */
