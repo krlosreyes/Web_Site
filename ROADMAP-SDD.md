@@ -81,6 +81,7 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 024 | ArticleQuiz: gating de score + CTA registro para anónimos | ✅ Cerrada (2026-05-10) | Anónimos veían botón "dashboard" sin auth y perdían el score al cerrar el browser | [SPEC-024](specs/SPEC-024-article-quiz-anonimo-cta-registro.md) |
 | 025 | Fecha pública del artículo refleja `publishedAt` | ✅ Cerrada (2026-05-10) | El frontend público mostraba `createdAt` y biblioteca ordenaba por `createdAt`, ignorando la fecha editable de SPEC-023 | [SPEC-025](specs/SPEC-025-fecha-publicacion-publica.md) |
 | 026 | Navbar no tapa contenido (dashboard + defensa global) | ✅ Cerrada (2026-05-10) | `dashboard.astro` con `pt-8` insuficiente; navbar de 80px tapaba el título del user | [SPEC-026](specs/SPEC-026-navbar-no-tapa-contenido.md) |
+| 027 | SEO técnico (sitemap, robots, OG dinámicas, schema.org) | ✅ Cerrada (2026-05-10) | Sin sitemap, sin robots, OG image rota (default a `/og-image.jpg` inexistente) | [SPEC-027](specs/SPEC-027-seo-tecnico.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 

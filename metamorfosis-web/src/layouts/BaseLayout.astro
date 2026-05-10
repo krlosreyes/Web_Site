@@ -8,13 +8,24 @@ interface Props {
     description?: string;
     image?: string;
     canonicalURL?: string;
+    /** SPEC-027: ogType='article' para artículos, default 'website'. */
+    ogType?: 'website' | 'article';
+    /** SPEC-027: ISO string. Solo se renderiza si ogType='article'. */
+    publishedAt?: string | null;
+    /** SPEC-027: ISO string. Solo se renderiza si ogType='article'. */
+    updatedAt?: string | null;
 }
 
 const {
     title,
     description = "Metamorfosis Real - Ecosistema de salud metabólica de alta autoridad.",
-    image = "/og-image.jpg",
+    // SPEC-027: el default era /og-image.jpg (inexistente). Cambio a header-bg.jpg
+    // que sí está en /public. Cuando se diseñe un OG asset dedicado, cambiar acá.
+    image = "/header-bg.jpg",
     canonicalURL = Astro.url.href,
+    ogType = "website",
+    publishedAt = null,
+    updatedAt = null,
 } = Astro.props;
 
 const siteName = "Metamorfosis Real";
@@ -34,12 +45,23 @@ const siteName = "Metamorfosis Real";
         <meta name="description" content={description} />
         <link rel="canonical" href={canonicalURL} />
 
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="website" />
+        <!-- Open Graph / Facebook (SPEC-027: site_name + locale + tipo dinámico) -->
+        <meta property="og:type" content={ogType} />
+        <meta property="og:site_name" content={siteName} />
+        <meta property="og:locale" content="es_CO" />
         <meta property="og:url" content={Astro.url} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:image" content={new URL(image, Astro.url)} />
+        {ogType === 'article' && publishedAt && (
+            <meta property="article:published_time" content={publishedAt} />
+        )}
+        {ogType === 'article' && updatedAt && (
+            <meta property="article:modified_time" content={updatedAt} />
+        )}
+        {ogType === 'article' && (
+            <meta property="article:author" content={siteName} />
+        )}
 
         <!-- Twitter -->
         <meta property="twitter:card" content="summary_large_image" />

@@ -64,13 +64,56 @@ const readingMinutes = Math.max(1, Math.round(wordCount / 200));
 // SPEC-025: la fecha pública del artículo refleja `publishedAt` (editable
 // manualmente desde el admin via SPEC-023). Si el doc es legacy y solo tiene
 // `createdAt`, cae a esa para no perder la fecha original.
-const formattedDate = formatDate(article.publishedAt || article.createdAt);
+const publishedAtIso = article.publishedAt || article.createdAt || null;
+const updatedAtIso = article.updatedAt || null;
+const formattedDate = formatDate(publishedAtIso);
+
+// SPEC-027: SEO técnico — OG image del artículo + JSON-LD schema.org
+const ogImage = (article.images && article.images[0]) || '/header-bg.jpg';
+const articleDescription = (article.content || '').substring(0, 160);
+
+const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: processedTitle,
+    description: articleDescription,
+    image: ogImage.startsWith('http') ? ogImage : new URL(ogImage, Astro.url).toString(),
+    datePublished: publishedAtIso,
+    dateModified: updatedAtIso || publishedAtIso,
+    author: {
+        '@type': 'Organization',
+        name: 'Metamorfosis Real',
+        url: 'https://metamorfosisvital.com.co',
+    },
+    publisher: {
+        '@type': 'Organization',
+        name: 'Metamorfosis Real',
+        logo: {
+            '@type': 'ImageObject',
+            url: new URL('/logoSite.png', Astro.url).toString(),
+        },
+    },
+    mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': Astro.url.toString(),
+    },
+};
 ---
 
 <BaseLayout
     title={processedTitle}
-    description={article.content?.substring(0, 160)}
+    description={articleDescription}
+    image={ogImage}
+    ogType="article"
+    publishedAt={publishedAtIso}
+    updatedAt={updatedAtIso}
 >
+    {/* SPEC-027: schema.org Article para rich snippets en Google SERP */}
+    <script
+        type="application/ld+json"
+        is:inline
+        set:html={JSON.stringify(jsonLd)}
+    ></script>
     <article class="min-h-screen relative bg-[#020617] overflow-hidden">
         <!-- Cuadrícula Técnica de Fondo (Sutil) -->
         <div

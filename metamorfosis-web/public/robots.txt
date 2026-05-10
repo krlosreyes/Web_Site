@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Áreas privadas / dinámicas — no indexar
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /dashboard-7d
+Disallow: /diagnostico
+Disallow: /login
+
+# Sitemap canónico
+Sitemap: https://metamorfosisvital.com.co/sitemap.xml
