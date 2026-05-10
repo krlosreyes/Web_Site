@@ -60,7 +60,7 @@ Decisión 2026-05-09: Carlos pidió "optimizar el dashboard administrativo" enfo
 | 016 | LeadList CRM funcional (status, notas, tags) | ✅ Cerrada (2026-05-09) | Tabla estática con export CSV — sin gestión de pipeline de leads | [SPEC-016](specs/SPEC-016-leadlist-crm.md) |
 | 017 | Analítica IMR integrada al dashboard | 📝 Pendiente | Vive en página aparte, fricción de navegación | — |
 | 018 | Audit log de actividad admin | 📝 Pendiente | Sin trazabilidad de qué editó/borró cada admin | — |
-| 019 | Stats con filtros temporales + tendencias | 📝 Pendiente | Solo totales fijos, sin rango ni evolución | — |
+| 019 | Stats con filtros temporales + tendencias | ✅ Cerrada (2026-05-10) | Solo totales fijos, sin rango ni evolución | [SPEC-019](specs/SPEC-019-stats-filtros-temporales.md) |
 
 ### Backlog (ex-Fase 3, postergado)
 
