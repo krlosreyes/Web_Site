@@ -98,6 +98,7 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 045 | Footer del artículo: espaciado y peso visual coherentes | ✅ Cerrada (2026-05-10) | PostReactions / La Tribu CTA / Quiz se veían amontonados con pesos visuales distintos | [SPEC-045](specs/SPEC-045-articulo-footer-respiracion.md) |
 | 046 | Pilares como taxonomía unificada (foro + artículos) | ✅ Cerrada (2026-05-10) | Foro tenía categorías inventadas; artículos sin categoría formal | [SPEC-046](specs/SPEC-046-pilares-categorias-unificadas.md) |
 | 047 | Landing del quiz: copy que invita | ✅ Cerrada (2026-05-10) | "PROTOCOLO SPEC-70.5" era jerga interna sin invitación al user | [SPEC-047](specs/SPEC-047-quiz-landing-copy.md) |
+| 048 | ElenaApp CTA con modal de waitlist (primeros 1000) | ✅ Cerrada (2026-05-10) | Botón "Abrir App" sacaba al user del sitio sin convertirlo a la waitlist | [SPEC-048](specs/SPEC-048-elenaapp-cta-waitlist-modal.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 
