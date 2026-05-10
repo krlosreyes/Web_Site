@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { auth } from '../../lib/firebase';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 
@@ -199,6 +199,9 @@ const ForumEngine = () => {
                     if (lr.ok) {
                         const ld = await lr.json();
                         setTopicLiked(!!ld.liked);
+                        // SPEC-037: sincronizar refs con estado server
+                        topicIntentRef.current = !!ld.liked;
+                        topicSyncedRef.current = !!ld.liked;
                     }
                     // SPEC-036: estado de likes en cada reply
                     if (data.success && Array.isArray(data.replies)) {
@@ -220,6 +223,9 @@ const ForumEngine = () => {
                             })
                         );
                         setReplyLikes(likesMap);
+                        // SPEC-037: sincronizar refs con estado server por reply
+                        replyIntentRef.current = { ...likesMap };
+                        replySyncedRef.current = { ...likesMap };
                     }
                 } catch {
                     // no crítico
@@ -227,6 +233,8 @@ const ForumEngine = () => {
             } else {
                 setTopicLiked(false);
                 setReplyLikes({});
+                replyIntentRef.current = {};
+                replySyncedRef.current = {};
             }
         } catch (err) {
             console.error('[ForumEngine] fetchTopicDetail:', err);
@@ -297,7 +305,13 @@ const ForumEngine = () => {
                     Authorization: `Bearer ${idToken}`,
                 },
             });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            // SPEC-037: leer detalle del error desde el body, no solo HTTP code
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                const detail = body?.error || `HTTP ${res.status}`;
+                console.error('[ForumEngine] deleteTopic failed:', { topicId, status: res.status, body });
+                throw new Error(detail);
+            }
             // Si estábamos viendo el detalle, salir
             if (selectedTopicId === topicId) {
                 setSelectedTopicId(null);
@@ -306,7 +320,7 @@ const ForumEngine = () => {
             await fetchTopics();
         } catch (err: any) {
             console.error('[ForumEngine] deleteTopic:', err);
-            alert('Error eliminando: ' + (err?.message || 'desconocido'));
+            alert('No pudimos eliminar el topic: ' + (err?.message || 'error desconocido'));
         }
     };
 
@@ -366,54 +380,110 @@ const ForumEngine = () => {
         }
     };
 
-    const handleToggleLike = async () => {
+    // SPEC-037: last-intent-wins para like del topic. UI INSTANT, server background.
+    const topicIntentRef = useRef<boolean>(false);
+    const topicSyncedRef = useRef<boolean>(false);
+    const topicInFlightRef = useRef(false);
+
+    const syncTopicLike = async () => {
+        if (!user || !selectedTopicId || topicInFlightRef.current) return;
+        topicInFlightRef.current = true;
+        while (topicIntentRef.current !== topicSyncedRef.current) {
+            const target = topicIntentRef.current;
+            try {
+                const idToken = await user.getIdToken();
+                const res = await fetch(
+                    `/api/forum/topics/${encodeURIComponent(selectedTopicId)}/like`,
+                    {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${idToken}`,
+                        },
+                        body: JSON.stringify({ liked: target }),
+                    }
+                );
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                topicSyncedRef.current = data.success ? !!data.liked : target;
+                if (data.success && typeof data.likeCount === 'number') {
+                    setSelectedTopic((prev) => (prev ? { ...prev, likeCount: data.likeCount } : prev));
+                }
+            } catch (err) {
+                console.error('[ForumEngine] topic like sync failed:', err);
+                topicIntentRef.current = topicSyncedRef.current;
+                setTopicLiked(topicSyncedRef.current);
+                break;
+            }
+        }
+        topicInFlightRef.current = false;
+    };
+
+    const handleToggleLike = () => {
         if (!user || !selectedTopicId || !selectedTopic) return;
         const next = !topicLiked;
-        // optimistic
+        // UI instant
         setTopicLiked(next);
         setSelectedTopic({
             ...selectedTopic,
             likeCount: Math.max(0, (selectedTopic.likeCount || 0) + (next ? 1 : -1)),
         });
-        try {
-            const idToken = await user.getIdToken();
-            const res = await fetch(
-                `/api/forum/topics/${encodeURIComponent(selectedTopicId)}/like`,
-                {
+        topicIntentRef.current = next;
+        syncTopicLike();
+    };
+
+    // SPEC-037: last-intent-wins por reply. Map de refs indexado por replyId.
+    const replyIntentRef = useRef<Record<string, boolean>>({});
+    const replySyncedRef = useRef<Record<string, boolean>>({});
+    const replyInFlightRef = useRef<Record<string, boolean>>({});
+
+    const syncReplyLike = async (replyId: string) => {
+        if (!user || !selectedTopicId || replyInFlightRef.current[replyId]) return;
+        replyInFlightRef.current[replyId] = true;
+        while (replyIntentRef.current[replyId] !== replySyncedRef.current[replyId]) {
+            const target = !!replyIntentRef.current[replyId];
+            try {
+                const idToken = await user.getIdToken();
+                const res = await fetch('/api/forum/replies/like', {
                     method: 'POST',
                     credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                         Authorization: `Bearer ${idToken}`,
                     },
-                    body: JSON.stringify({ liked: next }),
+                    body: JSON.stringify({
+                        topicId: selectedTopicId,
+                        replyId,
+                        liked: target,
+                    }),
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                replySyncedRef.current[replyId] = data.success ? !!data.liked : target;
+                if (data.success && typeof data.likeCount === 'number') {
+                    setReplies((prev) =>
+                        prev.map((r) => (r.id === replyId ? { ...r, likeCount: data.likeCount } : r))
+                    );
                 }
-            );
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            if (data.success) {
-                setTopicLiked(!!data.liked);
-                if (typeof data.likeCount === 'number') {
-                    setSelectedTopic((prev) => (prev ? { ...prev, likeCount: data.likeCount } : prev));
-                }
+            } catch (err) {
+                console.error('[ForumEngine] reply like sync failed:', err);
+                // Rollback al último estado server-confirmed
+                replyIntentRef.current[replyId] = !!replySyncedRef.current[replyId];
+                setReplyLikes((prev) => ({ ...prev, [replyId]: !!replySyncedRef.current[replyId] }));
+                break;
             }
-        } catch (err) {
-            console.error('[ForumEngine] toggleLike:', err);
-            // rollback
-            setTopicLiked(!next);
-            setSelectedTopic((prev) =>
-                prev ? { ...prev, likeCount: Math.max(0, (prev.likeCount || 0) + (next ? -1 : 1)) } : prev
-            );
         }
+        replyInFlightRef.current[replyId] = false;
     };
 
-    /** SPEC-036: toggle like de una reply con optimistic update y rollback. */
-    const handleToggleReplyLike = async (replyId: string) => {
+    /** Click en corazón de reply: UI INSTANT, server background. */
+    const handleToggleReplyLike = (replyId: string) => {
         if (!user || !selectedTopicId) return;
         const wasLiked = !!replyLikes[replyId];
         const next = !wasLiked;
 
-        // Optimistic
+        // UI instant
         setReplyLikes((prev) => ({ ...prev, [replyId]: next }));
         setReplies((prev) =>
             prev.map((r) =>
@@ -423,43 +493,8 @@ const ForumEngine = () => {
             )
         );
 
-        try {
-            const idToken = await user.getIdToken();
-            const res = await fetch('/api/forum/replies/like', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${idToken}`,
-                },
-                body: JSON.stringify({
-                    topicId: selectedTopicId,
-                    replyId,
-                    liked: next,
-                }),
-            });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            if (data.success) {
-                setReplyLikes((prev) => ({ ...prev, [replyId]: !!data.liked }));
-                if (typeof data.likeCount === 'number') {
-                    setReplies((prev) =>
-                        prev.map((r) => (r.id === replyId ? { ...r, likeCount: data.likeCount } : r))
-                    );
-                }
-            }
-        } catch (err) {
-            console.error('[ForumEngine] toggleReplyLike:', err);
-            // Rollback
-            setReplyLikes((prev) => ({ ...prev, [replyId]: wasLiked }));
-            setReplies((prev) =>
-                prev.map((r) =>
-                    r.id === replyId
-                        ? { ...r, likeCount: Math.max(0, (r.likeCount ?? 0) + (next ? -1 : 1)) }
-                        : r
-                )
-            );
-        }
+        replyIntentRef.current[replyId] = next;
+        syncReplyLike(replyId);
     };
 
     // ─── Render: loading auth ───

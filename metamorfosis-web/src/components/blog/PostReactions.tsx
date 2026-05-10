@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { auth } from '../../lib/firebase';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 
@@ -32,7 +32,12 @@ const PostReactions: React.FC<Props> = ({ slug, initialReactions, hasQuiz = fals
         initialReactions ?? { likes: 0, dislikes: 0 }
     );
     const [userReaction, setUserReaction] = useState<ReactionValue>(null);
-    const [submitting, setSubmitting] = useState(false);
+
+    // SPEC-037: last-intent-wins. UI cambia 0ms, server se sincroniza con la
+    // última intención del user. Sin disabled durante submit.
+    const lastIntentRef = useRef<ReactionValue>(null);
+    const syncedRef = useRef<ReactionValue>(null);
+    const inFlightRef = useRef(false);
 
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, async (u) => {
@@ -49,6 +54,9 @@ const PostReactions: React.FC<Props> = ({ slug, initialReactions, hasQuiz = fals
                         const data = await res.json();
                         if (data.success) {
                             setUserReaction(data.userReaction ?? null);
+                            // Sincronizamos refs con el estado real del server
+                            lastIntentRef.current = data.userReaction ?? null;
+                            syncedRef.current = data.userReaction ?? null;
                             if (data.counts) setCounts(data.counts);
                         }
                     }
@@ -60,12 +68,53 @@ const PostReactions: React.FC<Props> = ({ slug, initialReactions, hasQuiz = fals
         return () => unsub();
     }, [slug]);
 
-    const submitReaction = async (next: ReactionValue) => {
-        if (!user || submitting) return;
-        const previous = userReaction;
-        const previousCounts = counts;
+    /**
+     * SPEC-037: last-intent-wins. La UI cambia INSTANTE al click; el server
+     * se sincroniza en background con la última intención del user. Si llegan
+     * 5 clicks rápidos, el server solo procesa la última (ahorra writes y
+     * mantiene UI 100% responsive estilo FB/IG).
+     */
+    const syncReactionToServer = async () => {
+        if (!user || inFlightRef.current) return;
+        inFlightRef.current = true;
+        while (lastIntentRef.current !== syncedRef.current) {
+            const target = lastIntentRef.current;
+            try {
+                const idToken = await user.getIdToken();
+                const res = await fetch(`/api/posts/${encodeURIComponent(slug)}/react`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${idToken}`,
+                    },
+                    body: JSON.stringify({ value: target }),
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                syncedRef.current = data.success ? (data.userReaction ?? null) : target;
+                // Reconciliar counters con la verdad del server (raro que difieran)
+                if (data.success && data.counts) {
+                    setCounts(data.counts);
+                }
+            } catch (err) {
+                console.error('[PostReactions] sync failed, rollback:', err);
+                // Rollback al último estado confirmado
+                lastIntentRef.current = syncedRef.current;
+                setUserReaction(syncedRef.current);
+                break;
+            }
+        }
+        inFlightRef.current = false;
+    };
 
-        // Optimistic update
+    const handleClick = (intent: 'like' | 'dislike') => {
+        if (!user) return; // anónimo: no hace nada (CTA visible aparte)
+        // Toggle: si ya votaste lo mismo, quitar voto
+        const next: ReactionValue = userReaction === intent ? null : intent;
+        const previous = userReaction;
+
+        // UI INSTANTE: counters + estado local cambian en el siguiente paint
         const optimistic: Counts = { ...counts };
         if (previous === 'like') optimistic.likes -= 1;
         if (previous === 'dislike') optimistic.dislikes -= 1;
@@ -73,43 +122,12 @@ const PostReactions: React.FC<Props> = ({ slug, initialReactions, hasQuiz = fals
         if (next === 'dislike') optimistic.dislikes += 1;
         optimistic.likes = Math.max(0, optimistic.likes);
         optimistic.dislikes = Math.max(0, optimistic.dislikes);
-
         setUserReaction(next);
         setCounts(optimistic);
-        setSubmitting(true);
 
-        try {
-            const idToken = await user.getIdToken();
-            const res = await fetch(`/api/posts/${encodeURIComponent(slug)}/react`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${idToken}`,
-                },
-                body: JSON.stringify({ value: next }),
-            });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            if (data.success) {
-                setUserReaction(data.userReaction ?? null);
-                if (data.counts) setCounts(data.counts);
-            }
-        } catch (err) {
-            console.error('[PostReactions] submit error:', err);
-            // Rollback
-            setUserReaction(previous);
-            setCounts(previousCounts);
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const handleClick = (intent: 'like' | 'dislike') => {
-        if (!user) return; // anónimo: no hace nada (CTA visible aparte)
-        // Toggle: si ya votaste lo mismo, quitar voto
-        const next: ReactionValue = userReaction === intent ? null : intent;
-        submitReaction(next);
+        // Marcar la última intención y sincronizar
+        lastIntentRef.current = next;
+        syncReactionToServer();
     };
 
     const isLiked = userReaction === 'like';
@@ -132,19 +150,19 @@ const PostReactions: React.FC<Props> = ({ slug, initialReactions, hasQuiz = fals
             </p>
 
             <div className="flex flex-wrap items-center gap-4">
+                {/* SPEC-037: sin disabled durante submit; UI siempre clickeable */}
                 <button
                     type="button"
                     onClick={() => handleClick('like')}
-                    disabled={!user || submitting}
+                    disabled={!user}
                     aria-pressed={isLiked}
                     aria-label={`Me gusta — ${counts.likes} reacciones`}
-                    className={`group flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all font-bold text-sm
+                    className={`group flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all font-bold text-sm active:scale-95
                         ${isLiked
                             ? 'bg-[#00C49A]/15 border-[#00C49A]/50 text-[#00C49A] shadow-lg shadow-[#00C49A]/10'
                             : 'bg-white/5 border-white/10 text-gray-300 hover:border-[#00C49A]/30 hover:bg-[#00C49A]/5'
                         }
-                        ${!user ? 'opacity-60 cursor-not-allowed' : ''}
-                        ${submitting ? 'opacity-70 cursor-wait' : ''}`}
+                        ${!user ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                     <span className="text-2xl leading-none">👍</span>
                     <span className="font-black tabular-nums text-lg">{counts.likes}</span>
@@ -156,16 +174,15 @@ const PostReactions: React.FC<Props> = ({ slug, initialReactions, hasQuiz = fals
                 <button
                     type="button"
                     onClick={() => handleClick('dislike')}
-                    disabled={!user || submitting}
+                    disabled={!user}
                     aria-pressed={isDisliked}
                     aria-label={`No me gusta — ${counts.dislikes} reacciones`}
-                    className={`group flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all font-bold text-sm
+                    className={`group flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all font-bold text-sm active:scale-95
                         ${isDisliked
                             ? 'bg-red-500/15 border-red-500/50 text-red-300 shadow-lg shadow-red-500/10'
                             : 'bg-white/5 border-white/10 text-gray-300 hover:border-red-500/30 hover:bg-red-500/5'
                         }
-                        ${!user ? 'opacity-60 cursor-not-allowed' : ''}
-                        ${submitting ? 'opacity-70 cursor-wait' : ''}`}
+                        ${!user ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                     <span className="text-2xl leading-none">👎</span>
                     <span className="font-black tabular-nums text-lg">{counts.dislikes}</span>

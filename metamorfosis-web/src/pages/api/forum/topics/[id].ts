@@ -86,17 +86,28 @@ export const DELETE: APIRoute = async ({ params, request }) => {
     try {
         const topicRef = db.collection(COLLECTIONS.FORUM_TOPICS).doc(id);
         const snap = await topicRef.get();
-        if (!snap.exists) return jsonResponse(404, { error: 'Topic no encontrado' });
+        if (!snap.exists) {
+            console.error('[forum.topics.DELETE] Topic no existe', { id });
+            return jsonResponse(404, { error: 'Topic no encontrado' });
+        }
 
         const data = snap.data();
         if (data?.authorUid !== session.uid) {
-            return jsonResponse(403, { error: 'Solo el autor puede borrar' });
+            // SPEC-037: log detallado para diagnóstico en hPanel
+            console.error('[forum.topics.DELETE] uid mismatch', {
+                topicId: id,
+                requesterUid: session.uid,
+                authorUid: data?.authorUid,
+                status: data?.status,
+            });
+            return jsonResponse(403, { error: 'Solo el autor del topic puede eliminarlo' });
         }
 
         await topicRef.update({
             status: 'deleted',
             updatedAt: new Date().toISOString(),
         });
+        console.log('[forum.topics.DELETE] OK', { topicId: id, by: session.uid });
 
         await logAdminAction({
             action: 'delete_forum_topic',
