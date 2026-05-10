@@ -21,6 +21,8 @@ import type { APIRoute } from 'astro';
 import { db, auth, FieldValue } from '../../../lib/firebaseAdmin';
 import { COLLECTIONS, SCHEMA_VERSION } from '../../../lib/constants/firestore';
 import type { ImrResult, UserDoc } from '../../../lib/types/user';
+import { sendWelcomeEmail } from '../../../lib/email';
+import { logAdminAction } from '../../../lib/auditLog';
 
 export const prerender = false;
 
@@ -177,6 +179,33 @@ export const POST: APIRoute = async ({ request }) => {
             } catch (e) {
                 // No bloquea el onboard si la limpieza falla
                 console.warn('[onboard] Error limpiando leads:', e);
+            }
+        }
+
+        // SPEC-029: email de bienvenida — best-effort, idempotente.
+        // Solo se envía si no se envió antes (campo welcomeEmailSentAt).
+        const alreadySent = (existing as { welcomeEmailSentAt?: string } | undefined)
+            ?.welcomeEmailSentAt;
+        if (!alreadySent && decoded.email) {
+            try {
+                const result = await sendWelcomeEmail({
+                    to: decoded.email,
+                    name: decoded.name ?? userPayload.displayName ?? null,
+                });
+                if (!result.skipped) {
+                    await userRef.update({ welcomeEmailSentAt: now });
+                    // Audit log: registrar el envío sin guardar el email completo (PII)
+                    await logAdminAction({
+                        action: 'send_welcome_email',
+                        resource: 'session',
+                        resourceId: uid,
+                        changes: { messageId: { before: null, after: result.id ?? 'unknown' } },
+                        request,
+                    });
+                }
+            } catch (e) {
+                // Best-effort: no rompemos el onboard si el email falla.
+                console.error('[onboard] Welcome email error:', e);
             }
         }
 

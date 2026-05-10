@@ -82,6 +82,7 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 025 | Fecha pública del artículo refleja `publishedAt` | ✅ Cerrada (2026-05-10) | El frontend público mostraba `createdAt` y biblioteca ordenaba por `createdAt`, ignorando la fecha editable de SPEC-023 | [SPEC-025](specs/SPEC-025-fecha-publicacion-publica.md) |
 | 026 | Navbar no tapa contenido (dashboard + defensa global) | ✅ Cerrada (2026-05-10) | `dashboard.astro` con `pt-8` insuficiente; navbar de 80px tapaba el título del user | [SPEC-026](specs/SPEC-026-navbar-no-tapa-contenido.md) |
 | 027 | SEO técnico (sitemap, robots, OG dinámicas, schema.org) | ✅ Cerrada (2026-05-10) | Sin sitemap, sin robots, OG image rota (default a `/og-image.jpg` inexistente) | [SPEC-027](specs/SPEC-027-seo-tecnico.md) |
+| 029 | Email transaccional de bienvenida (Resend) | ✅ Cerrada (2026-05-10) | Tras registro no llegaba ningún email; promesa de "lista de espera ElenaApp" sin confirmación | [SPEC-029](specs/SPEC-029-email-transaccional-bienvenida.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 

@@ -27,7 +27,8 @@ export type AuditAction =
     | 'upload_image'
     | 'cleanup'
     | 'login_admin'
-    | 'logout_admin';
+    | 'logout_admin'
+    | 'send_welcome_email';
 
 export type AuditResource = 'post' | 'lead' | 'image' | 'system' | 'session';
 
