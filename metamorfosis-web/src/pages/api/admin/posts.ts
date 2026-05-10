@@ -4,6 +4,26 @@ import { COLLECTIONS } from '../../../lib/constants/firestore';
 import { isAuthenticatedFromCookie, parseCookies, enforceProductionSecurity } from '../../../lib/auth';
 import { logAdminAction, diffOf } from '../../../lib/auditLog';
 
+/**
+ * Parsea publishedAt del body (SPEC-023). Devuelve:
+ *   - string ISO si parsea OK.
+ *   - null si está vacío/no provisto (caller debe aplicar default).
+ *   - Lanza Error con mensaje útil si no parsea (caller responde 400).
+ */
+function parsePublishedAt(raw: unknown): string | null {
+    if (raw === undefined || raw === null) return null;
+    if (typeof raw !== 'string') {
+        throw new Error('publishedAt debe ser string ISO (ej. "2026-05-10T14:30:00Z")');
+    }
+    const trimmed = raw.trim();
+    if (trimmed === '') return null;
+    const d = new Date(trimmed);
+    if (isNaN(d.getTime())) {
+        throw new Error(`publishedAt inválido: "${trimmed}"`);
+    }
+    return d.toISOString();
+}
+
 export const prerender = false;
 
 export const GET: APIRoute = async ({ request }) => {
@@ -70,6 +90,17 @@ export const POST: APIRoute = async ({ request }) => {
         const status: 'draft' | 'published' = body.status === 'published' ? 'published' : 'draft';
         const now = new Date().toISOString();
 
+        // SPEC-023: publishedAt manual desde el editor. Si no viene, default existente.
+        let manualPublishedAt: string | null;
+        try {
+            manualPublishedAt = parsePublishedAt(body.publishedAt);
+        } catch (e: any) {
+            return new Response(JSON.stringify({ error: e.message }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
         // Slug ultra-seguro y truncado
         let slug = title.toLowerCase()
             .trim()
@@ -92,7 +123,7 @@ export const POST: APIRoute = async ({ request }) => {
             status,
             createdAt: now,
             updatedAt: now,
-            publishedAt: status === 'published' ? now : null,
+            publishedAt: manualPublishedAt ?? (status === 'published' ? now : null),
         };
 
         const docRef = await db.collection(COLLECTIONS.POSTS).add(newPost);
@@ -131,20 +162,38 @@ export const PUT: APIRoute = async ({ request }) => {
         const now = new Date().toISOString();
         const update: Record<string, unknown> = { ...data, updatedAt: now };
 
+        // SPEC-023: publishedAt manual del editor. Si viene, gana sobre
+        // cualquier lógica automática. Si no viene, aplicamos la lógica
+        // SPEC-015 de "marcar la 1ª vez que pasa a published".
+        let manualPublishedAt: string | null;
+        try {
+            manualPublishedAt = parsePublishedAt(data.publishedAt);
+        } catch (e: any) {
+            return new Response(JSON.stringify({ error: e.message }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
         // Snapshot previo para audit log + lógica de publishedAt
         const docSnap = await db.collection(COLLECTIONS.POSTS).doc(id).get();
         const existing = (docSnap.data() ?? {}) as Record<string, unknown>;
 
-        // SPEC-015: si pasa a published por primera vez, marcar publishedAt.
-        // Si ya tenía publishedAt, lo dejamos (no reseteamos al re-editar).
-        if (data.status === 'published') {
-            if (!(existing as { publishedAt?: string | null }).publishedAt) {
-                update.publishedAt = now;
+        if (manualPublishedAt) {
+            // Carlos especificó la fecha — respetarla
+            update.publishedAt = manualPublishedAt;
+        } else {
+            // No vino fecha en el body: preservar la existente o aplicar SPEC-015.
+            // Si data.publishedAt era undefined, dejamos el campo del update sin tocar.
+            // Pero spread copió `publishedAt: undefined` desde data — limpiar.
+            delete update.publishedAt;
+            // SPEC-015: si pasa a published por primera vez, marcar publishedAt.
+            if (data.status === 'published') {
+                if (!(existing as { publishedAt?: string | null }).publishedAt) {
+                    update.publishedAt = now;
+                }
             }
-        } else if (data.status === 'draft') {
-            // Volver a draft no borra publishedAt — preserva historia.
-            // Si querés "despublicar" del feed, basta con cambiar status; el
-            // filtro de biblioteca/posts respeta status.
+            // Volver a draft NO borra publishedAt — preserva historia.
         }
 
         await db.collection(COLLECTIONS.POSTS).doc(id).update(update);

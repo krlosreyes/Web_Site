@@ -77,6 +77,7 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 020 | Tests automatizados (motor IMR + auth) | ✅ Cerrada (2026-05-10) | Solo "pruebas manuales"; refactors grandes podrían introducir regresiones silenciosas | [SPEC-020](specs/SPEC-020-tests-automatizados.md) |
 | 021 | Pre-commit hook anti-credenciales | 📝 Candidata | SPEC-009 detectó retroactivamente; un hook lo previene a futuro | Si se suma colaborador al repo |
 | 022 | Limpieza técnica (console.log, mockup PDF, HTMLs obsoletos) | ✅ Cerrada (2026-05-10) | Restos de pre-proyecto y debug en el repo | [SPEC-022](specs/SPEC-022-limpieza-tecnica.md) |
+| 023 | PostList con orden + filtro + fecha de publicación editable | ✅ Cerrada (2026-05-10) | Sin orden por fecha, sin filtros, sin forma de backdatear publishedAt | [SPEC-023](specs/SPEC-023-postlist-orden-y-fecha-manual.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 

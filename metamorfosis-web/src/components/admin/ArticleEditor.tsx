@@ -17,7 +17,31 @@ interface Article {
     references: string[];
     quiz: Question[];
     status?: ArticleStatus;
+    /** ISO string. SPEC-023: editable manualmente. */
+    publishedAt?: string | null;
 }
+
+/**
+ * Convierte un Date a string `YYYY-MM-DDTHH:mm` en hora LOCAL del browser
+ * para el input type="datetime-local". (El input no acepta ISO con TZ.)
+ */
+const toLocalInput = (d: Date): string => {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return (
+        `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+        `T${pad(d.getHours())}:${pad(d.getMinutes())}`
+    );
+};
+
+/**
+ * Convierte un string `YYYY-MM-DDTHH:mm` (hora local) a ISO UTC para
+ * persistir. Si el input está vacío, devuelve null.
+ */
+const fromLocalInput = (local: string): string | null => {
+    if (!local || !local.trim()) return null;
+    const d = new Date(local);
+    return isNaN(d.getTime()) ? null : d.toISOString();
+};
 
 interface ArticleEditorProps {
     article?: Article | null;
@@ -150,6 +174,14 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
     const [status, setStatus] = useState<ArticleStatus>(
         (article?.status as ArticleStatus) || 'draft'
     );
+    /** SPEC-023: fecha de publicación editable manualmente. */
+    const [publishedAtLocal, setPublishedAtLocal] = useState<string>(() => {
+        if (article?.publishedAt) {
+            const d = new Date(article.publishedAt);
+            if (!isNaN(d.getTime())) return toLocalInput(d);
+        }
+        return '';
+    });
     const [previewMode, setPreviewMode] = useState<'edit' | 'preview'>('edit');
     const [quizErrors, setQuizErrors] = useState<Map<number, string>>(new Map());
     const [showManual, setShowManual] = useState(true);
@@ -167,6 +199,13 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
             setReferences(article.references || []);
             setQuiz(normalizeQuiz(article.quiz || []));
             setStatus((article.status as ArticleStatus) || 'draft');
+            // SPEC-023: sincronizar fecha de publicación al cambiar de artículo
+            if (article.publishedAt) {
+                const d = new Date(article.publishedAt);
+                setPublishedAtLocal(isNaN(d.getTime()) ? '' : toLocalInput(d));
+            } else {
+                setPublishedAtLocal('');
+            }
             setQuizErrors(new Map());
             setShowManual(true);
         }
@@ -286,7 +325,11 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
         else setIsSavingDraft(true);
 
         try {
-            await onSave({
+            // SPEC-023: enviar publishedAt solo si está set; si está vacío,
+            // omitimos el campo para que el backend respete el valor existente
+            // o aplique el default automático.
+            const publishedAtIso = fromLocalInput(publishedAtLocal);
+            const payload: Article = {
                 id: article?.id,
                 title,
                 content,
@@ -294,7 +337,9 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
                 references: references.filter((ref) => ref.trim() !== ''),
                 quiz,
                 status: newStatus,
-            });
+            };
+            if (publishedAtIso) payload.publishedAt = publishedAtIso;
+            await onSave(payload);
             setStatus(newStatus);
             if (newStatus === 'draft') {
                 const time = new Date().toLocaleTimeString('es-ES', {
@@ -365,11 +410,46 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
                     <div className="space-y-6 pt-4 animate-fade-in">
                         <div className="space-y-4">
                             <label className="text-[10px] font-black text-[#00C49A] uppercase tracking-widest">Título del Artículo</label>
-                            <input 
-                                value={title} 
+                            <input
+                                value={title}
                                 onChange={e => setTitle(e.target.value)}
                                 className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xl font-bold focus:border-[#00C49A] outline-none transition-all"
                             />
+                        </div>
+
+                        {/* SPEC-023: fecha de publicación editable */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-purple-400 uppercase tracking-widest">
+                                Fecha de publicación
+                            </label>
+                            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                                <input
+                                    type="datetime-local"
+                                    value={publishedAtLocal}
+                                    onChange={(e) => setPublishedAtLocal(e.target.value)}
+                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-mono focus:border-purple-500 outline-none transition-all"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setPublishedAtLocal(toLocalInput(new Date()))}
+                                    className="text-[10px] font-bold uppercase tracking-widest text-purple-300 border border-purple-500/30 px-4 py-3 rounded-xl hover:bg-purple-500/10 transition-colors"
+                                >
+                                    Ahora
+                                </button>
+                                {publishedAtLocal && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setPublishedAtLocal('')}
+                                        className="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-red-400 px-3 py-3 transition-colors"
+                                        title="Limpiar (mantiene la fecha existente del artículo)"
+                                    >
+                                        Limpiar
+                                    </button>
+                                )}
+                            </div>
+                            <p className="text-[10px] text-gray-600 font-mono">
+                                Si está vacío, se usa la fecha actual al publicar (o se mantiene la existente al editar). Hora local del navegador.
+                            </p>
                         </div>
 
                         <div className="space-y-4">
