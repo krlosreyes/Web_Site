@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { marked } from 'marked';
+import { PILLARS, isValidPillarId, type PillarId } from '../../lib/constants/pillars';
 
 interface Question {
     question: string;
@@ -19,6 +20,8 @@ interface Article {
     status?: ArticleStatus;
     /** ISO string. SPEC-023: editable manualmente. */
     publishedAt?: string | null;
+    /** SPEC-046: pilar metabólico obligatorio para publicar. */
+    pillar?: string | null;
 }
 
 /**
@@ -182,6 +185,8 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
         }
         return '';
     });
+    /** SPEC-046: pilar metabólico (obligatorio al publicar). */
+    const [pillar, setPillar] = useState<string>(article?.pillar || '');
     const [previewMode, setPreviewMode] = useState<'edit' | 'preview'>('edit');
     const [quizErrors, setQuizErrors] = useState<Map<number, string>>(new Map());
     const [showManual, setShowManual] = useState(true);
@@ -206,6 +211,8 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
             } else {
                 setPublishedAtLocal('');
             }
+            // SPEC-046: sincronizar pilar
+            setPillar(article.pillar || '');
             setQuizErrors(new Map());
             setShowManual(true);
         }
@@ -308,6 +315,11 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
         }
 
         if (newStatus === 'published') {
+            // SPEC-046: pilar es obligatorio al publicar
+            if (!pillar || !isValidPillarId(pillar)) {
+                alert('Tenés que elegir un Pilar Metabólico antes de publicar.');
+                return;
+            }
             const errors = validateQuizForPublish(quiz);
             setQuizErrors(errors);
             if (errors.size > 0) {
@@ -337,6 +349,8 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
                 references: references.filter((ref) => ref.trim() !== ''),
                 quiz,
                 status: newStatus,
+                // SPEC-046: pillar siempre se envía (vacío válido para drafts)
+                pillar: pillar || null,
             };
             if (publishedAtIso) payload.publishedAt = publishedAtIso;
             await onSave(payload);
@@ -415,6 +429,33 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
                                 onChange={e => setTitle(e.target.value)}
                                 className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xl font-bold focus:border-[#00C49A] outline-none transition-all"
                             />
+                        </div>
+
+                        {/* SPEC-046: Pilar Metabólico (obligatorio para publicar) */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-orange-400 uppercase tracking-widest">
+                                Pilar Metabólico {!pillar && <span className="text-red-400 ml-1">· requerido para publicar</span>}
+                            </label>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                                {PILLARS.map((p) => {
+                                    const active = pillar === p.id;
+                                    return (
+                                        <button
+                                            type="button"
+                                            key={p.id}
+                                            onClick={() => setPillar(p.id)}
+                                            className={`flex flex-col items-center gap-1 px-3 py-3 rounded-xl border text-[11px] font-bold uppercase tracking-widest transition-all active:scale-95
+                                                ${active
+                                                    ? 'bg-orange-500/15 border-orange-500/50 text-orange-200 shadow-lg shadow-orange-500/10'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:border-orange-500/30 hover:text-orange-300'}`}
+                                            aria-pressed={active}
+                                        >
+                                            <span className="text-xl leading-none">{p.emoji}</span>
+                                            <span>{p.name}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
 
                         {/* SPEC-023: fecha de publicación editable */}

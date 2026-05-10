@@ -96,6 +96,7 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 041 | Foro: pin / destacar topics (admin) | ✅ Cerrada (2026-05-10) | Admin no podía anclar topics importantes ni curar "Pregunta de la semana" | [SPEC-041](specs/SPEC-041-foro-pin-destacar.md) |
 | 042 | Foro: save / bookmark topics | ✅ Cerrada (2026-05-10) | Topics interesantes se perdían en el scroll, sin forma de volver a ellos | [SPEC-042](specs/SPEC-042-foro-save-bookmark.md) |
 | 045 | Footer del artículo: espaciado y peso visual coherentes | ✅ Cerrada (2026-05-10) | PostReactions / La Tribu CTA / Quiz se veían amontonados con pesos visuales distintos | [SPEC-045](specs/SPEC-045-articulo-footer-respiracion.md) |
+| 046 | Pilares como taxonomía unificada (foro + artículos) | ✅ Cerrada (2026-05-10) | Foro tenía categorías inventadas; artículos sin categoría formal | [SPEC-046](specs/SPEC-046-pilares-categorias-unificadas.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 

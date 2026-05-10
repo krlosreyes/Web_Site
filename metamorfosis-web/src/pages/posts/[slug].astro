@@ -2,6 +2,7 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { db } from "../../lib/firebaseAdmin";
 import { COLLECTIONS } from "../../lib/constants/firestore";
+import { getPillar } from "../../lib/constants/pillars";
 import { isValidSessionValue } from "../../lib/auth";
 import ArticleQuiz from "../../components/ArticleQuiz";
 import PostReactions from "../../components/blog/PostReactions";
@@ -151,12 +152,25 @@ const jsonLd = {
             </div>
 
             <div class="container mx-auto px-6 relative z-20 max-w-4xl pb-16">
-                <div class="flex items-center gap-2 mb-6">
+                <div class="flex items-center gap-2 mb-6 flex-wrap">
                     <span
                         class="px-3 py-1 bg-gradient-to-r from-blue-600 to-[#00C49A] text-white text-[9px] font-black uppercase tracking-[0.3em] rounded shadow-lg shadow-blue-500/20"
                     >
                         Protocolo de Autoridad IMR
                     </span>
+                    {/* SPEC-046: badge del pilar */}
+                    {(() => {
+                        const p = getPillar(article.pillar);
+                        if (!p) return null;
+                        return (
+                            <span
+                                class="px-3 py-1 bg-black/40 backdrop-blur-md border border-white/20 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded inline-flex items-center gap-1.5"
+                            >
+                                <span class="text-sm leading-none">{p.emoji}</span>
+                                {p.name}
+                            </span>
+                        );
+                    })()}
                 </div>
                 <h1
                     class="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-heading font-black leading-[1.05] mb-8 tracking-tighter drop-shadow-2xl italic uppercase bg-gradient-to-br from-white via-white to-[#00C49A] bg-clip-text text-transparent break-words"
@@ -206,7 +220,7 @@ const jsonLd = {
                 visual coherente. Mobile-first: flex-col con CTA pill abajo;
                 en sm+ pasa a row con el → compacto a la derecha. */}
             <a
-                href={`/comunidad?createWithPost=${encodeURIComponent(slug ?? '')}&title=${encodeURIComponent(processedTitle)}`}
+                href={`/comunidad?createWithPost=${encodeURIComponent(slug ?? '')}&title=${encodeURIComponent(processedTitle)}${article.pillar ? `&pillar=${encodeURIComponent(article.pillar)}` : ''}`}
                 class="mt-8 md:mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 sm:gap-6 p-6 md:p-8 rounded-2xl bg-blue-600/5 border border-blue-500/20 hover:bg-blue-600/10 hover:border-blue-500/40 transition-all group"
             >
                 <div class="flex items-center gap-4 min-w-0">

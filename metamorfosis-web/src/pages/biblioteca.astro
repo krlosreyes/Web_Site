@@ -2,6 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { db } from "../lib/firebaseAdmin";
 import { COLLECTIONS } from "../lib/constants/firestore";
+import { PILLARS, getPillar } from "../lib/constants/pillars";
 import { BookOpen, Award, Zap, ChevronRight } from "lucide-astro";
 
 export const prerender = false;
@@ -54,10 +55,38 @@ const description = "El conocimiento científico para dominar tu biología y tra
                 </p>
             </div>
 
+            <!-- SPEC-046: filtros por pilar (client-side, sin re-fetch) -->
+            <div class="max-w-4xl mx-auto mb-12">
+                <div id="pillar-filter" class="flex flex-wrap gap-2 justify-center" data-active="todos">
+                    <button
+                        type="button"
+                        data-pillar="todos"
+                        class="text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border transition-all bg-white text-black border-white"
+                    >
+                        ✨ Todos
+                    </button>
+                    {PILLARS.map((p) => (
+                        <button
+                            type="button"
+                            data-pillar={p.id}
+                            class="text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border transition-all bg-white/5 text-gray-300 border-white/10 hover:bg-white/10"
+                        >
+                            <span class="mr-1">{p.emoji}</span>
+                            {p.name}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
             <!-- Grid -->
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
-                {articles.map((art: any) => (
-                    <article class="group relative flex flex-col h-full">
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-10" id="articles-grid">
+                {articles.map((art: any) => {
+                    const pillar = getPillar(art.pillar);
+                    return (
+                    <article
+                        class="article-card group relative flex flex-col h-full"
+                        data-pillar={art.pillar || 'sin-pilar'}
+                    >
                         <div class="relative flex flex-col h-full bg-[#0c1422] border border-white/5 rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:border-blue-500/30 hover:-translate-y-2">
                             <div class="relative aspect-video overflow-hidden">
                                 {art.images && art.images[0] ? (
@@ -68,9 +97,18 @@ const description = "El conocimiento científico para dominar tu biología y tra
                                     </div>
                                 )}
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#0c1422] to-transparent"></div>
-                                
-                                <div class="absolute top-6 left-6 flex gap-2">
-                                    <span class="px-3 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-[9px] font-bold text-white uppercase tracking-widest">Protocolo</span>
+
+                                <div class="absolute top-6 left-6 flex flex-wrap gap-2">
+                                    {/* SPEC-046: badge del pilar (si está asignado) */}
+                                    {pillar && (
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-black/60 backdrop-blur-md border border-white/20 rounded-full text-[9px] font-bold text-white uppercase tracking-widest">
+                                            <span class="text-sm leading-none">{pillar.emoji}</span>
+                                            {pillar.name}
+                                        </span>
+                                    )}
+                                    {!pillar && (
+                                        <span class="px-3 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-[9px] font-bold text-white uppercase tracking-widest">Protocolo</span>
+                                    )}
                                     {art.quiz && art.quiz.length > 0 && (
                                         <div class="flex items-center gap-1.5 px-3 py-1 bg-blue-500/20 backdrop-blur-md border border-blue-500/30 rounded-full text-[9px] font-bold text-blue-400 uppercase tracking-widest">
                                             <Zap size={10} fill="currentColor" /> Certificación
@@ -95,7 +133,8 @@ const description = "El conocimiento científico para dominar tu biología y tra
                             </div>
                         </div>
                     </article>
-                ))}
+                    );
+                })}
             </div>
 
             {/* CTA con SVG Pattern Inline para evitar el 404 */}
@@ -123,3 +162,43 @@ const description = "El conocimiento científico para dominar tu biología y tra
         to { opacity: 1; transform: translateY(0); }
     }
 </style>
+
+<script>
+    // SPEC-046: filtrado client-side por pilar.
+    // Evita re-fetch + sin recargar página. Toggle de chips arriba del grid.
+    (function () {
+        const filterRoot = document.getElementById('pillar-filter');
+        if (!filterRoot) return;
+        const buttons = filterRoot.querySelectorAll('button[data-pillar]');
+        const cards = document.querySelectorAll('.article-card');
+
+        const setActive = (pillarId: string) => {
+            buttons.forEach((b) => {
+                const btn = b as HTMLButtonElement;
+                const isActive = btn.dataset.pillar === pillarId;
+                btn.className = `text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border transition-all ${
+                    isActive
+                        ? 'bg-white text-black border-white'
+                        : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
+                }`;
+            });
+            cards.forEach((c) => {
+                const card = c as HTMLElement;
+                const cardPillar = card.dataset.pillar || 'sin-pilar';
+                if (pillarId === 'todos' || cardPillar === pillarId) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            filterRoot.dataset.active = pillarId;
+        };
+
+        buttons.forEach((b) =>
+            (b as HTMLButtonElement).addEventListener('click', () => {
+                const pid = (b as HTMLButtonElement).dataset.pillar || 'todos';
+                setActive(pid);
+            })
+        );
+    })();
+</script>

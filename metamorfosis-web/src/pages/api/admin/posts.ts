@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../../lib/firebaseAdmin';
 import { COLLECTIONS } from '../../../lib/constants/firestore';
+import { PILLAR_IDS, isValidPillarId } from '../../../lib/constants/pillars';
 import { isAuthenticatedFromCookie, parseCookies, enforceProductionSecurity } from '../../../lib/auth';
 import { logAdminAction, diffOf } from '../../../lib/auditLog';
 
@@ -90,6 +91,18 @@ export const POST: APIRoute = async ({ request }) => {
         const status: 'draft' | 'published' = body.status === 'published' ? 'published' : 'draft';
         const now = new Date().toISOString();
 
+        // SPEC-046: pillar — opcional en draft, OBLIGATORIO al publicar
+        const rawPillar = typeof body.pillar === 'string' ? body.pillar.trim() : null;
+        const pillar = rawPillar && isValidPillarId(rawPillar) ? rawPillar : null;
+        if (status === 'published' && !pillar) {
+            return new Response(
+                JSON.stringify({
+                    error: `Pilar obligatorio al publicar. Válidos: ${PILLAR_IDS.join(', ')}`,
+                }),
+                { status: 400, headers: { 'Content-Type': 'application/json' } }
+            );
+        }
+
         // SPEC-023: publishedAt manual desde el editor. Si no viene, default existente.
         let manualPublishedAt: string | null;
         try {
@@ -121,6 +134,8 @@ export const POST: APIRoute = async ({ request }) => {
             metadata: { title, slug },
             analytics: { views: 0, clicks: 0, conversions: 0 },
             status,
+            // SPEC-046: pilar oficial. Drafts pueden quedar en null.
+            pillar,
             createdAt: now,
             updatedAt: now,
             publishedAt: manualPublishedAt ?? (status === 'published' ? now : null),
@@ -161,6 +176,25 @@ export const PUT: APIRoute = async ({ request }) => {
 
         const now = new Date().toISOString();
         const update: Record<string, unknown> = { ...data, updatedAt: now };
+
+        // SPEC-046: validar pillar si viene + si pasa a published, exigirlo.
+        if (data.pillar !== undefined) {
+            const rawPillarUpd = typeof data.pillar === 'string' ? data.pillar.trim() : null;
+            update.pillar = rawPillarUpd && isValidPillarId(rawPillarUpd) ? rawPillarUpd : null;
+        }
+        if (data.status === 'published') {
+            // Si el body pasa a published, validar que tenga pillar (en body o en doc existente)
+            const existingDoc = (await db.collection(COLLECTIONS.POSTS).doc(id).get()).data() ?? {};
+            const finalPillar = (update.pillar as string | null | undefined) ?? (existingDoc as { pillar?: string }).pillar;
+            if (!finalPillar || !isValidPillarId(finalPillar)) {
+                return new Response(
+                    JSON.stringify({
+                        error: `Pilar obligatorio al publicar. Válidos: ${PILLAR_IDS.join(', ')}`,
+                    }),
+                    { status: 400, headers: { 'Content-Type': 'application/json' } }
+                );
+            }
+        }
 
         // SPEC-023: publishedAt manual del editor. Si viene, gana sobre
         // cualquier lógica automática. Si no viene, aplicamos la lógica

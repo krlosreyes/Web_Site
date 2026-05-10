@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { auth } from '../../lib/firebase';
 import { onAuthStateChanged, type User } from 'firebase/auth';
+import { FORUM_CATEGORIES, getPillar, pillarClasses } from '../../lib/constants/pillars';
 
 /**
  * Foro de comunidad funcional con persistencia Firestore (SPEC-033).
@@ -105,13 +106,16 @@ interface Reply {
     depth?: number;
 }
 
+// SPEC-046: categorías = 5 pilares + General. Lee de la fuente única.
+// 'todos' es virtual (filtro reset) y va siempre primero.
 const CATEGORIES = [
-    { id: 'todos', name: 'La Tribu', icon: <Icons.Users size={16} /> },
-    { id: 'ayuno', name: 'Ayuno', icon: <Icons.Timer size={16} /> },
-    { id: 'bio', name: 'Biohacking', icon: <Icons.Zap size={16} /> },
-    { id: 'longevity', name: 'Longevidad', icon: <Icons.Heart size={16} /> },
-    { id: 'mind', name: 'Cerebro', icon: <Icons.Brain size={16} /> },
-    { id: 'general', name: 'General', icon: <Icons.Message size={16} /> },
+    { id: 'todos', name: 'La Tribu', emoji: '✨', isSecondary: false },
+    ...FORUM_CATEGORIES.map((c) => ({
+        id: c.id,
+        name: c.name,
+        emoji: c.emoji,
+        isSecondary: !!c.isSecondary,
+    })),
 ];
 
 /** Formato relativo simple ("2h", "3d", "ahora"). */
@@ -189,24 +193,26 @@ const ForumEngine = () => {
         return () => unsub();
     }, []);
 
-    // ─── SPEC-040: deeplink desde un artículo (?createWithPost=slug&title=...) ───
+    // ─── SPEC-040 + SPEC-046: deeplink desde artículo con pilar preseleccionado ───
     useEffect(() => {
         if (typeof window === 'undefined') return;
         const params = new URLSearchParams(window.location.search);
         const slug = params.get('createWithPost');
         const articleTitle = params.get('title');
+        const pillarParam = params.get('pillar');
         if (slug) {
             setIsCreating(true);
             setNewTopic({
                 title: articleTitle ? `Sobre: ${articleTitle.slice(0, 150)}` : '',
                 content: '',
-                category: 'general',
+                // SPEC-046: si el artículo tiene pilar, lo usamos; si no, 'general'
+                category: pillarParam || 'general',
                 linkedPostSlug: slug,
             });
-            // Limpiar la URL para no re-disparar al refresh
             const url = new URL(window.location.href);
             url.searchParams.delete('createWithPost');
             url.searchParams.delete('title');
+            url.searchParams.delete('pillar');
             window.history.replaceState({}, '', url.toString());
         }
     }, []);
@@ -937,21 +943,36 @@ const ForumEngine = () => {
                 </a>
 
                 <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-[2rem]">
-                    <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-6 px-2">Categorías</h3>
+                    <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-6 px-2">Pilares</h3>
                     <div className="space-y-1">
-                        {CATEGORIES.map((cat) => (
-                            <button
-                                key={cat.id}
-                                onClick={() => setActiveCategory(cat.id)}
-                                className={`w-full flex items-center justify-between p-3 rounded-xl transition-all group ${activeCategory === cat.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-400 hover:bg-white/5'}`}
-                            >
-                                <span className="flex items-center gap-3 font-bold text-sm">
-                                    {cat.icon}
-                                    {cat.name}
-                                </span>
-                                <Icons.ChevronRight size={14} className={activeCategory === cat.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} />
-                            </button>
-                        ))}
+                        {CATEGORIES.map((cat, idx) => {
+                            const isSecondary = cat.isSecondary;
+                            // SPEC-046: separador visual antes del bloque secundario
+                            const showSeparator = isSecondary && idx > 0 && !CATEGORIES[idx - 1].isSecondary;
+                            return (
+                                <React.Fragment key={cat.id}>
+                                    {showSeparator && (
+                                        <div className="my-3 border-t border-white/5" aria-hidden="true"></div>
+                                    )}
+                                    <button
+                                        onClick={() => setActiveCategory(cat.id)}
+                                        className={`w-full flex items-center justify-between p-3 rounded-xl transition-all group ${
+                                            activeCategory === cat.id
+                                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                                                : isSecondary
+                                                    ? 'text-gray-500 hover:bg-white/5'
+                                                    : 'text-gray-400 hover:bg-white/5'
+                                        }`}
+                                    >
+                                        <span className="flex items-center gap-3 font-bold text-sm">
+                                            <span className="text-base leading-none">{cat.emoji}</span>
+                                            {cat.name}
+                                        </span>
+                                        <Icons.ChevronRight size={14} className={activeCategory === cat.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} />
+                                    </button>
+                                </React.Fragment>
+                            );
+                        })}
                     </div>
                 </div>
             </aside>
@@ -1009,7 +1030,7 @@ const ForumEngine = () => {
                             >
                                 {CATEGORIES.filter((c) => c.id !== 'todos').map((c) => (
                                     <option key={c.id} value={c.id} className="bg-gray-900">
-                                        {c.name}
+                                        {c.emoji} {c.name}
                                     </option>
                                 ))}
                             </select>

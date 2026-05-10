@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { FORUM_CATEGORIES, getPillar } from '../../lib/constants/pillars';
 
 /**
  * Visor de moderación del foro (SPEC-033). Lista todos los topics (incluso
@@ -88,6 +89,28 @@ const ForumModeration = () => {
             await fetchAll();
         } catch (err: any) {
             alert('Error: ' + (err?.message || 'desconocido'));
+        } finally {
+            setBusyId(null);
+        }
+    };
+
+    /** SPEC-046: re-categorizar topic legacy. */
+    const handleRecategorize = async (id: string, newCategory: string) => {
+        setBusyId(id);
+        try {
+            const res = await fetch('/api/admin/forum/recategorize', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topicId: id, category: newCategory }),
+            });
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                throw new Error(body?.error || `HTTP ${res.status}`);
+            }
+            await fetchAll();
+        } catch (err: any) {
+            alert('Error recategorizando: ' + (err?.message || 'desconocido'));
         } finally {
             setBusyId(null);
         }
@@ -217,9 +240,25 @@ const ForumModeration = () => {
                                     </td>
                                     <td className="px-4 py-3 text-xs">{t.authorName}</td>
                                     <td className="px-4 py-3">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-purple-300 bg-purple-500/10 border border-purple-500/30 px-2 py-1 rounded">
-                                            {t.category}
-                                        </span>
+                                        {/* SPEC-046: dropdown inline para re-categorizar topics legacy */}
+                                        <select
+                                            value={t.category}
+                                            onChange={(e) => handleRecategorize(t.id, e.target.value)}
+                                            disabled={busyId === t.id}
+                                            className="text-[10px] font-bold uppercase tracking-widest text-purple-300 bg-purple-500/10 border border-purple-500/30 rounded px-2 py-1 outline-none cursor-pointer disabled:opacity-50"
+                                        >
+                                            {/* Si la categoría actual no es válida (legacy), la mostramos para no perderla */}
+                                            {!FORUM_CATEGORIES.some((c) => c.id === t.category) && (
+                                                <option value={t.category} className="bg-gray-900">
+                                                    ⚠️ {t.category} (legacy)
+                                                </option>
+                                            )}
+                                            {FORUM_CATEGORIES.map((c) => (
+                                                <option key={c.id} value={c.id} className="bg-gray-900">
+                                                    {c.emoji} {c.name}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </td>
                                     <td className="px-4 py-3 text-right text-xs font-mono">
                                         <span className="text-blue-400">{t.replyCount || 0}</span>

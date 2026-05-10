@@ -9,13 +9,15 @@
 import type { APIRoute } from 'astro';
 import { db, auth } from '../../../lib/firebaseAdmin';
 import { COLLECTIONS } from '../../../lib/constants/firestore';
+import { VALID_FORUM_CATEGORY_IDS } from '../../../lib/constants/pillars';
 import { logAdminAction } from '../../../lib/auditLog';
 import { getDisplayName } from '../../../lib/userHelpers';
 
 export const prerender = false;
 
-const VALID_CATEGORIES = ['ayuno', 'bio', 'longevity', 'mind', 'general'] as const;
-type Category = (typeof VALID_CATEGORIES)[number];
+// SPEC-046: categorías válidas = 5 pilares + general
+const VALID_CATEGORIES = VALID_FORUM_CATEGORY_IDS;
+type Category = string;
 
 function jsonResponse(status: number, body: unknown): Response {
     return new Response(JSON.stringify(body), {
