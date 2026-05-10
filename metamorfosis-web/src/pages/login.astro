@@ -24,9 +24,31 @@ import Layout from '../layouts/Layout.astro';
         </button>
       </div>
 
-      <div id="merit-alert" class="hidden mb-6 p-4 rounded-2xl bg-red-600/10 border border-red-500/20 text-center">
-        <p class="text-[10px] font-black text-red-400 uppercase tracking-widest leading-relaxed">
-            Debes calcular tu IMR o leer un artículo para habilitar tu registro.
+      {/* SPEC-034: hint persistente con dos estados (no-elegible amber / elegible verde).
+          Reemplaza al alert rojo agresivo. CTAs directos a /quiz y /biblioteca. */}
+      <div id="onboarding-hint-pending" class="hidden mb-6 p-5 rounded-2xl bg-amber-500/8 border border-amber-500/30 text-left transition-all">
+        <p class="text-sm text-amber-100 leading-relaxed mb-1">
+            <span class="text-base">🌱</span> <strong>¿Primera vez por acá?</strong>
+        </p>
+        <p class="text-xs text-amber-100/80 leading-relaxed mb-4">
+            Para mantener la calidad de La Tribu, antes de crear tu cuenta necesitamos que vivas el contenido. Elegí cualquiera de los dos:
+        </p>
+        <div class="flex flex-col sm:flex-row gap-2">
+            <a href="/quiz" class="flex-1 text-center bg-blue-600/20 border border-blue-500/40 text-blue-200 hover:bg-blue-600/30 transition-all px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest">
+                🧬 Calcular mi IMR · 2 min
+            </a>
+            <a href="/biblioteca" class="flex-1 text-center bg-[#00C49A]/20 border border-[#00C49A]/40 text-[#00C49A] hover:bg-[#00C49A]/30 transition-all px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest">
+                📖 Artículo + test
+            </a>
+        </div>
+        <p class="text-[10px] text-amber-200/50 font-mono uppercase tracking-widest mt-3">
+            * El test al final del artículo es lo que habilita el registro
+        </p>
+      </div>
+
+      <div id="onboarding-hint-ready" class="hidden mb-6 p-4 rounded-2xl bg-[#00C49A]/8 border border-[#00C49A]/30 text-center transition-all">
+        <p class="text-xs text-[#00C49A] font-bold leading-relaxed">
+            ✅ Listo: ya podés crear tu cuenta.
         </p>
       </div>
 
@@ -71,7 +93,8 @@ import Layout from '../layouts/Layout.astro';
     const inputEmail = document.getElementById('input-email');
     const inputPass = document.getElementById('input-pass');
     const submitBtn = document.getElementById('submit-btn');
-    const meritAlert = document.getElementById('merit-alert');
+    const hintPending = document.getElementById('onboarding-hint-pending');
+    const hintReady = document.getElementById('onboarding-hint-ready');
     const lockIcon = document.getElementById('lock-icon');
 
     const QUIZ_STORAGE_KEY = 'imr_quiz_payload';
@@ -80,12 +103,25 @@ import Layout from '../layouts/Layout.astro';
     const hasRead = localStorage.getItem('imr_article_read') === 'true';
     const isEligible = hasIMR || hasRead;
 
+    // SPEC-034: mostrar el hint apropiado desde el primer paint
+    if (isEligible) {
+        hintReady?.classList.remove('hidden');
+    } else {
+        hintPending?.classList.remove('hidden');
+    }
+
     let mode = 'login';
 
     const setMode = (newMode) => {
         if (newMode === 'register' && !isEligible) {
-            meritAlert?.classList.remove('hidden');
-            setTimeout(() => meritAlert?.classList.add('hidden'), 5000);
+            // SPEC-034: pulse del hint en lugar de alert pop-up
+            if (hintPending) {
+                hintPending.classList.add('ring-2', 'ring-amber-400/70', 'shadow-lg', 'shadow-amber-500/20');
+                setTimeout(() => {
+                    hintPending.classList.remove('ring-2', 'ring-amber-400/70', 'shadow-lg', 'shadow-amber-500/20');
+                }, 1500);
+                hintPending.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
             return;
         }
         mode = newMode;
