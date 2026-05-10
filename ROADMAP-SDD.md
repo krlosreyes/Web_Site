@@ -88,6 +88,7 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 033 | Foro funcional con persistencia (La Tribu) | ✅ Cerrada (2026-05-10) | El foro era 100% mock: topics hardcoded, replies sin enviar, likes estáticos, todo se perdía al refresh | [SPEC-033](specs/SPEC-033-foro-funcional.md) |
 | 034 | Login con onboarding amigable y preciso | ✅ Cerrada (2026-05-10) | Copy decía "leer un artículo" pero solo leer no daba elegibilidad; tono rojo agresivo sin guía a la acción | [SPEC-034](specs/SPEC-034-login-onboarding-amigable.md) |
 | 035 | PostReactions con CTA al test (no a registro directo) | ✅ Cerrada (2026-05-10) | Anónimo veía "Registrate para reaccionar" → /login; saca al user del flow del artículo | [SPEC-035](specs/SPEC-035-postreactions-cta-test.md) |
+| 036 | Foro: nombre real del autor + delete topic + likes en replies | ✅ Cerrada (2026-05-10) | 3 bugs visibles del foro recién deployado | [SPEC-036](specs/SPEC-036-foro-fixes-y-likes-replies.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 

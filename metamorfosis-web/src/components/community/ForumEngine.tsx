@@ -91,6 +91,8 @@ interface Reply {
     authorColorIdx: number;
     status: string;
     createdAt: string;
+    /** SPEC-036: contador denormalizado de likes en la reply. */
+    likeCount?: number;
 }
 
 const CATEGORIES = [
@@ -141,6 +143,8 @@ const ForumEngine = () => {
     const [replyDraft, setReplyDraft] = useState('');
     const [submittingReply, setSubmittingReply] = useState(false);
     const [topicLiked, setTopicLiked] = useState(false);
+    /** SPEC-036: estado de likes del user actual en cada reply (replyId → bool). */
+    const [replyLikes, setReplyLikes] = useState<Record<string, boolean>>({});
 
     // ─── Auth listener ───
     useEffect(() => {
@@ -185,7 +189,7 @@ const ForumEngine = () => {
                 setSelectedTopic(data.topic);
                 setReplies(data.replies || []);
             }
-            // Trae el estado de like si está logueado
+            // Trae el estado de like del topic + likes de cada reply
             if (user) {
                 try {
                     const idToken = await user.getIdToken();
@@ -196,11 +200,33 @@ const ForumEngine = () => {
                         const ld = await lr.json();
                         setTopicLiked(!!ld.liked);
                     }
+                    // SPEC-036: estado de likes en cada reply
+                    if (data.success && Array.isArray(data.replies)) {
+                        const likesMap: Record<string, boolean> = {};
+                        await Promise.all(
+                            data.replies.map(async (r: Reply) => {
+                                try {
+                                    const rlr = await fetch(
+                                        `/api/forum/replies/like?topicId=${encodeURIComponent(id)}&replyId=${encodeURIComponent(r.id)}`,
+                                        { headers: { Authorization: `Bearer ${idToken}` } }
+                                    );
+                                    if (rlr.ok) {
+                                        const rld = await rlr.json();
+                                        likesMap[r.id] = !!rld.liked;
+                                    }
+                                } catch {
+                                    // ignorar
+                                }
+                            })
+                        );
+                        setReplyLikes(likesMap);
+                    }
                 } catch {
                     // no crítico
                 }
             } else {
                 setTopicLiked(false);
+                setReplyLikes({});
             }
         } catch (err) {
             console.error('[ForumEngine] fetchTopicDetail:', err);
@@ -381,6 +407,61 @@ const ForumEngine = () => {
         }
     };
 
+    /** SPEC-036: toggle like de una reply con optimistic update y rollback. */
+    const handleToggleReplyLike = async (replyId: string) => {
+        if (!user || !selectedTopicId) return;
+        const wasLiked = !!replyLikes[replyId];
+        const next = !wasLiked;
+
+        // Optimistic
+        setReplyLikes((prev) => ({ ...prev, [replyId]: next }));
+        setReplies((prev) =>
+            prev.map((r) =>
+                r.id === replyId
+                    ? { ...r, likeCount: Math.max(0, (r.likeCount ?? 0) + (next ? 1 : -1)) }
+                    : r
+            )
+        );
+
+        try {
+            const idToken = await user.getIdToken();
+            const res = await fetch('/api/forum/replies/like', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${idToken}`,
+                },
+                body: JSON.stringify({
+                    topicId: selectedTopicId,
+                    replyId,
+                    liked: next,
+                }),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            if (data.success) {
+                setReplyLikes((prev) => ({ ...prev, [replyId]: !!data.liked }));
+                if (typeof data.likeCount === 'number') {
+                    setReplies((prev) =>
+                        prev.map((r) => (r.id === replyId ? { ...r, likeCount: data.likeCount } : r))
+                    );
+                }
+            }
+        } catch (err) {
+            console.error('[ForumEngine] toggleReplyLike:', err);
+            // Rollback
+            setReplyLikes((prev) => ({ ...prev, [replyId]: wasLiked }));
+            setReplies((prev) =>
+                prev.map((r) =>
+                    r.id === replyId
+                        ? { ...r, likeCount: Math.max(0, (r.likeCount ?? 0) + (next ? -1 : 1)) }
+                        : r
+                )
+            );
+        }
+    };
+
     // ─── Render: loading auth ───
     if (authLoading) {
         return (
@@ -492,33 +573,48 @@ const ForumEngine = () => {
                                 {replies.length === 0 ? (
                                     <p className="text-gray-600 text-sm italic">Sé el primero en responder.</p>
                                 ) : (
-                                    replies.map((r) => (
-                                        <div key={r.id} className="flex gap-4 p-5 bg-white/[0.02] border border-white/5 rounded-2xl">
-                                            <Avatar
-                                                initial={r.authorInitial || r.authorName?.charAt(0).toUpperCase() || '?'}
-                                                colorIdx={r.authorColorIdx ?? 0}
-                                                size="sm"
-                                            />
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-3 mb-2 flex-wrap">
-                                                    <span className="text-white font-bold text-sm">{r.authorName}</span>
-                                                    <span className="text-[10px] text-gray-600 font-mono uppercase tracking-widest">
-                                                        Hace {relTime(r.createdAt)}
-                                                    </span>
-                                                    {user.uid === r.authorUid && (
-                                                        <button
-                                                            onClick={() => handleDeleteReply(r.id)}
-                                                            className="ml-auto text-[10px] text-red-500 hover:text-red-400 transition-colors"
-                                                            aria-label="Eliminar comentario"
-                                                        >
-                                                            <Icons.Trash size={12} />
-                                                        </button>
-                                                    )}
+                                    replies.map((r) => {
+                                        const liked = !!replyLikes[r.id];
+                                        return (
+                                            <div key={r.id} className="flex gap-4 p-5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                                                <Avatar
+                                                    initial={r.authorInitial || r.authorName?.charAt(0).toUpperCase() || '?'}
+                                                    colorIdx={r.authorColorIdx ?? 0}
+                                                    size="sm"
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                                        <span className="text-white font-bold text-sm">{r.authorName}</span>
+                                                        <span className="text-[10px] text-gray-600 font-mono uppercase tracking-widest">
+                                                            Hace {relTime(r.createdAt)}
+                                                        </span>
+                                                        {user.uid === r.authorUid && (
+                                                            <button
+                                                                onClick={() => handleDeleteReply(r.id)}
+                                                                className="ml-auto text-[10px] text-red-500 hover:text-red-400 transition-colors"
+                                                                aria-label="Eliminar comentario"
+                                                            >
+                                                                <Icons.Trash size={12} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap break-words mb-3">{r.content}</p>
+                                                    {/* SPEC-036: like en reply */}
+                                                    <button
+                                                        onClick={() => handleToggleReplyLike(r.id)}
+                                                        aria-pressed={liked}
+                                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[11px] font-bold transition-all
+                                                            ${liked
+                                                                ? 'bg-pink-500/15 border-pink-500/40 text-pink-300'
+                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:border-pink-500/30 hover:text-pink-300'}`}
+                                                    >
+                                                        <Icons.Heart size={12} className={liked ? 'fill-current' : ''} />
+                                                        <span className="tabular-nums">{r.likeCount ?? 0}</span>
+                                                    </button>
                                                 </div>
-                                                <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap break-words">{r.content}</p>
                                             </div>
-                                        </div>
-                                    ))
+                                        );
+                                    })
                                 )}
                             </div>
 

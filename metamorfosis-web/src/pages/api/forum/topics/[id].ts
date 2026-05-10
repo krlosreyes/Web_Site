@@ -1,12 +1,20 @@
 /**
  * GET    /api/forum/topics/[id]  — detalle de topic + replies activos. Incrementa views.
  * DELETE /api/forum/topics/[id]  — soft delete propio (auth ID token, valida authorUid).
+ *
+ * SPEC-036: este archivo reemplaza al viejo `[id]/index.ts`. Astro 6 + Node
+ * adapter prioriza `[id].ts` sobre `[id]/index.ts` cuando la URL no tiene
+ * trailing slash, lo que rompía el DELETE silenciosamente. El directorio
+ * `[id]/` sigue vivo para `[id]/replies.ts`, `[id]/like.ts`, etc.
+ *
+ * Carlos debe `git rm` el archivo viejo `[id]/index.ts` para evitar
+ * coexistencia confusa.
  */
 
 import type { APIRoute } from 'astro';
-import { db, auth, FieldValue } from '../../../../../lib/firebaseAdmin';
-import { COLLECTIONS } from '../../../../../lib/constants/firestore';
-import { logAdminAction } from '../../../../../lib/auditLog';
+import { db, auth, FieldValue } from '../../../../lib/firebaseAdmin';
+import { COLLECTIONS } from '../../../../lib/constants/firestore';
+import { logAdminAction } from '../../../../lib/auditLog';
 
 export const prerender = false;
 

@@ -10,6 +10,7 @@ import type { APIRoute } from 'astro';
 import { db, auth } from '../../../lib/firebaseAdmin';
 import { COLLECTIONS } from '../../../lib/constants/firestore';
 import { logAdminAction } from '../../../lib/auditLog';
+import { getDisplayName } from '../../../lib/userHelpers';
 
 export const prerender = false;
 
@@ -110,7 +111,10 @@ export const POST: APIRoute = async ({ request }) => {
     if (title.length < 3) return jsonResponse(400, { error: 'Título muy corto' });
     if (content.length < 5) return jsonResponse(400, { error: 'Contenido muy corto' });
 
-    const authorName = session.name?.trim() || 'Biohacker';
+    // SPEC-036: el ID token cacheado de cuentas nuevas no trae displayName.
+    // El helper cae a Firestore (users/{uid}.displayName) que SÍ se persiste
+    // explícito en SPEC-029b.
+    const authorName = await getDisplayName(session.uid, session.name);
     const initial = authorName.charAt(0).toUpperCase();
     const colorIdx = avatarColorIdx(session.uid);
     const now = new Date().toISOString();

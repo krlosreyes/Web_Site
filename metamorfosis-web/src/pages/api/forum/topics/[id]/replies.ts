@@ -9,6 +9,7 @@ import type { APIRoute } from 'astro';
 import { db, auth } from '../../../../../lib/firebaseAdmin';
 import { COLLECTIONS } from '../../../../../lib/constants/firestore';
 import { logAdminAction } from '../../../../../lib/auditLog';
+import { getDisplayName } from '../../../../../lib/userHelpers';
 
 export const prerender = false;
 
@@ -54,7 +55,8 @@ export const POST: APIRoute = async ({ params, request }) => {
     const content = String(body.content || '').trim().slice(0, 2000);
     if (content.length < 2) return jsonResponse(400, { error: 'Reply muy corta' });
 
-    const authorName = session.name?.trim() || 'Biohacker';
+    // SPEC-036: helper con fallback a users/{uid}.displayName para cuentas nuevas
+    const authorName = await getDisplayName(session.uid, session.name);
     const initial = authorName.charAt(0).toUpperCase();
     const colorIdx = avatarColorIdx(session.uid);
     const now = new Date().toISOString();
