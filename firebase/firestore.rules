@@ -53,6 +53,16 @@ service cloud.firestore {
       match /article_quizzes/{slug} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
       }
+
+      // SPEC-042: bookmarks de topics del foro. El endpoint
+      // /api/forum/topics/[id]/save usa Admin SDK, pero permitimos read
+      // al dueño desde el cliente para que pueda listar sus guardados sin
+      // pasar siempre por endpoint. Write bloqueado al cliente para
+      // mantener consistencia con la metadata cached y el audit log.
+      match /savedTopics/{topicId} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow write: if false;
+      }
     }
 
     // ===== metamorfosis_posts =====
