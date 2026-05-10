@@ -7,6 +7,7 @@ import {
     parseCookies,
     enforceProductionSecurity,
 } from '../../../lib/auth';
+import { logAdminAction, diffOf } from '../../../lib/auditLog';
 
 export const prerender = false;
 
@@ -241,6 +242,31 @@ export const PUT: APIRoute = async ({ request }) => {
         }
 
         await docRef.update(update);
+
+        // SPEC-018: log de auditoría con diff de los campos del body
+        const existingCrm = (docSnap.data() as { crm?: UserCrm })?.crm ?? {};
+        const beforeForDiff: Record<string, unknown> = {};
+        const afterForDiff: Record<string, unknown> = {};
+        if (body.status !== undefined) {
+            beforeForDiff.status = existingCrm.status ?? 'new';
+            afterForDiff.status = body.status;
+        }
+        if (body.notes !== undefined) {
+            beforeForDiff.notes = existingCrm.notes ?? '';
+            afterForDiff.notes = body.notes;
+        }
+        if (body.tags !== undefined) {
+            beforeForDiff.tags = existingCrm.tags ?? [];
+            afterForDiff.tags = body.tags;
+        }
+        await logAdminAction({
+            action: 'update_lead',
+            resource: 'lead',
+            resourceId: body.id,
+            changes: diffOf(beforeForDiff, afterForDiff),
+            request,
+        });
+
         return jsonResponse(200, { success: true });
     } catch (error) {
         console.error('[leads.PUT] Error:', error);

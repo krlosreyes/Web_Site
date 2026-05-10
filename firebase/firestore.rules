@@ -80,6 +80,16 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ===== admin_audit_log (SPEC-018) =====
+    // Audit log de mutaciones admin. Lectura/escritura SOLO desde Admin SDK
+    // (los handlers /api/admin/* lo escriben con el helper logAdminAction).
+    // El cliente Web SDK no debe poder leerlo aunque sea admin (defensa en
+    // profundidad: si la cookie admin se filtrara, el atacante no podría
+    // borrar el rastro desde el browser).
+    match /admin_audit_log/{doc} {
+      allow read, write: if false;
+    }
+
     // ===== Default deny =====
     // Cualquier path no enumerado arriba queda bloqueado.
     match /{document=**} {

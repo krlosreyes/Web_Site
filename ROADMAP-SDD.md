@@ -58,8 +58,8 @@ Decisión 2026-05-09: Carlos pidió "optimizar el dashboard administrativo" enfo
 | 014 | Imágenes a Cloud Storage (no base64) | ✅ Cerrada (2026-05-09) | Imágenes guardadas como base64 dentro del doc Firestore — riesgo de pasar el límite de 1MB y perfomance lento | [SPEC-014](specs/SPEC-014-images-cloud-storage.md) |
 | 015 | Drafts + preview en vivo + validación quiz | ✅ Cerrada (2026-05-09) | Sin drafts (cada save publica), sin preview del markdown renderizado, quiz puede publicarse vacío | [SPEC-015](specs/SPEC-015-drafts-preview-quiz-validation.md) |
 | 016 | LeadList CRM funcional (status, notas, tags) | ✅ Cerrada (2026-05-09) | Tabla estática con export CSV — sin gestión de pipeline de leads | [SPEC-016](specs/SPEC-016-leadlist-crm.md) |
-| 017 | Analítica IMR integrada al dashboard | 📝 Pendiente | Vive en página aparte, fricción de navegación | — |
-| 018 | Audit log de actividad admin | 📝 Pendiente | Sin trazabilidad de qué editó/borró cada admin | — |
+| 017 | Analítica IMR integrada al dashboard | ✅ Cerrada (2026-05-10) | Vive en página aparte, fricción de navegación | [SPEC-017](specs/SPEC-017-analitica-imr-en-dashboard.md) |
+| 018 | Audit log de actividad admin | ✅ Cerrada (2026-05-10) | Sin trazabilidad de qué editó/borró cada admin | [SPEC-018](specs/SPEC-018-audit-log.md) |
 | 019 | Stats con filtros temporales + tendencias | ✅ Cerrada (2026-05-10) | Solo totales fijos, sin rango ni evolución | [SPEC-019](specs/SPEC-019-stats-filtros-temporales.md) |
 
 ### Backlog (ex-Fase 3, postergado)
@@ -74,8 +74,9 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 
 | # | Spec | Estado | Problema | Trigger para abrir |
 |---|---|---|---|---|
-| 020 | Tests automatizados (motor IMR + auth + validadores admin) | 📝 Candidata | Solo "pruebas manuales"; refactors grandes podrían introducir regresiones silenciosas | Próxima refactor del motor IMR o de `auth.ts` |
+| 020 | Tests automatizados (motor IMR + auth) | ✅ Cerrada (2026-05-10) | Solo "pruebas manuales"; refactors grandes podrían introducir regresiones silenciosas | [SPEC-020](specs/SPEC-020-tests-automatizados.md) |
 | 021 | Pre-commit hook anti-credenciales | 📝 Candidata | SPEC-009 detectó retroactivamente; un hook lo previene a futuro | Si se suma colaborador al repo |
+| 022 | Limpieza técnica (console.log, mockup PDF, HTMLs obsoletos) | ✅ Cerrada (2026-05-10) | Restos de pre-proyecto y debug en el repo | [SPEC-022](specs/SPEC-022-limpieza-tecnica.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 
