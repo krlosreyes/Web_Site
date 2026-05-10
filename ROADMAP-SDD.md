@@ -84,6 +84,7 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 027 | SEO técnico (sitemap, robots, OG dinámicas, schema.org) | ✅ Cerrada (2026-05-10) | Sin sitemap, sin robots, OG image rota (default a `/og-image.jpg` inexistente) | [SPEC-027](specs/SPEC-027-seo-tecnico.md) |
 | 029 | Email transaccional de bienvenida (Resend) | ✅ Cerrada (2026-05-10) | Tras registro no llegaba ningún email; promesa de "lista de espera ElenaApp" sin confirmación | [SPEC-029](specs/SPEC-029-email-transaccional-bienvenida.md) |
 | 031 | Headings responsive sin desborde (audit completo) | ✅ Cerrada (2026-05-10) | "HOLA, METAMORFOSIS" se cortaba en mobile por `text-6xl` sin breakpoints; otros lugares con texto dinámico tenían riesgo similar | [SPEC-031](specs/SPEC-031-headings-responsive-no-desborde.md) |
+| 032 | Likes/Dislikes en artículos | ✅ Cerrada (2026-05-10) | Cero feedback estructurado del lector; sin proxies de calidad por artículo | [SPEC-032](specs/SPEC-032-likes-articulos.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 

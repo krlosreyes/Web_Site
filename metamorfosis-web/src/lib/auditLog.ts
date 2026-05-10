@@ -28,7 +28,8 @@ export type AuditAction =
     | 'cleanup'
     | 'login_admin'
     | 'logout_admin'
-    | 'send_welcome_email';
+    | 'send_welcome_email'
+    | 'react_post';
 
 export type AuditResource = 'post' | 'lead' | 'image' | 'system' | 'session';
 

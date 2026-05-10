@@ -63,6 +63,17 @@ service cloud.firestore {
     match /metamorfosis_posts/{post} {
       allow read: if true;
       allow write: if false;
+
+      // ===== reactions/{uid} (SPEC-032) =====
+      // Likes/dislikes por user. Read solo a logueados (no exponemos
+      // identidad de votantes a anónimos). Write SIEMPRE bloqueado al
+      // cliente: el endpoint /api/posts/[slug]/react usa Admin SDK con
+      // transaction atómica para mantener counters denormalizados
+      // sincronizados; permitir writes directos rompería la consistencia.
+      match /reactions/{uid} {
+        allow read: if request.auth != null;
+        allow write: if false;
+      }
     }
 
     // ===== waitlist_leads =====

@@ -4,6 +4,7 @@ import { db } from "../../lib/firebaseAdmin";
 import { COLLECTIONS } from "../../lib/constants/firestore";
 import { isValidSessionValue } from "../../lib/auth";
 import ArticleQuiz from "../../components/ArticleQuiz";
+import PostReactions from "../../components/blog/PostReactions";
 import { Clock, Calendar, BookOpen, Link as LinkIcon } from "lucide-astro";
 import { marked } from "marked";
 
@@ -188,8 +189,15 @@ const jsonLd = {
             </div>
         </div>
 
-        <!-- Footer Sections Container (Quiz, References, CTA) -->
+        <!-- Footer Sections Container (Reactions, Quiz, References, CTA) -->
         <div class="container mx-auto px-6 pb-24 max-w-3xl">
+            {/* SPEC-032: reacciones del artículo (👍/👎) */}
+            <PostReactions
+                client:visible
+                slug={slug}
+                initialReactions={article.reactions || { likes: 0, dislikes: 0 }}
+            />
+
             {/* Interactive Quiz */}
             {
                 article.quiz && article.quiz.length > 0 && (

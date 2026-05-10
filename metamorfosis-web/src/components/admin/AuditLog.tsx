@@ -16,7 +16,9 @@ type AuditAction =
     | 'upload_image'
     | 'cleanup'
     | 'login_admin'
-    | 'logout_admin';
+    | 'logout_admin'
+    | 'send_welcome_email'
+    | 'react_post';
 
 interface AuditEntry {
     id: string;
@@ -38,6 +40,8 @@ const ACTION_META: Record<AuditAction, { label: string; emoji: string; color: st
     cleanup: { label: 'Cleanup', emoji: '🧹', color: 'text-orange-300 border-orange-500/30 bg-orange-500/10' },
     login_admin: { label: 'Login', emoji: '🔓', color: 'text-gray-300 border-gray-500/30 bg-gray-500/10' },
     logout_admin: { label: 'Logout', emoji: '🔒', color: 'text-gray-400 border-gray-500/30 bg-gray-500/10' },
+    send_welcome_email: { label: 'Email bienvenida', emoji: '✉️', color: 'text-pink-300 border-pink-500/30 bg-pink-500/10' },
+    react_post: { label: 'Reacción artículo', emoji: '👍', color: 'text-cyan-300 border-cyan-500/30 bg-cyan-500/10' },
 };
 
 const FILTER_OPTIONS: Array<{ key: AuditAction | 'all'; label: string }> = [
