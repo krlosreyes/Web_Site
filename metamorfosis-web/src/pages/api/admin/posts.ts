@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { db } from '../../../lib/firebaseAdmin';
 import { COLLECTIONS } from '../../../lib/constants/firestore';
 import { isAuthenticatedFromCookie, parseCookies, enforceProductionSecurity } from '../../../lib/auth';
+import { logAdminAction, diffOf } from '../../../lib/auditLog';
 
 export const prerender = false;
 
@@ -95,6 +96,16 @@ export const POST: APIRoute = async ({ request }) => {
         };
 
         const docRef = await db.collection(COLLECTIONS.POSTS).add(newPost);
+
+        // SPEC-018: log de auditoría (best-effort)
+        await logAdminAction({
+            action: 'create_post',
+            resource: 'post',
+            resourceId: docRef.id,
+            changes: { title: { before: null, after: title }, status: { before: null, after: status } },
+            request,
+        });
+
         return new Response(JSON.stringify({ success: true, id: docRef.id, status }), { status: 201 });
     } catch (error) {
         console.error('[posts.POST] Error:', error);
@@ -120,12 +131,14 @@ export const PUT: APIRoute = async ({ request }) => {
         const now = new Date().toISOString();
         const update: Record<string, unknown> = { ...data, updatedAt: now };
 
+        // Snapshot previo para audit log + lógica de publishedAt
+        const docSnap = await db.collection(COLLECTIONS.POSTS).doc(id).get();
+        const existing = (docSnap.data() ?? {}) as Record<string, unknown>;
+
         // SPEC-015: si pasa a published por primera vez, marcar publishedAt.
         // Si ya tenía publishedAt, lo dejamos (no reseteamos al re-editar).
         if (data.status === 'published') {
-            const docSnap = await db.collection(COLLECTIONS.POSTS).doc(id).get();
-            const existing = docSnap.data() as { publishedAt?: string | null } | undefined;
-            if (!existing?.publishedAt) {
+            if (!(existing as { publishedAt?: string | null }).publishedAt) {
                 update.publishedAt = now;
             }
         } else if (data.status === 'draft') {
@@ -135,6 +148,22 @@ export const PUT: APIRoute = async ({ request }) => {
         }
 
         await db.collection(COLLECTIONS.POSTS).doc(id).update(update);
+
+        // SPEC-018: log de auditoría con diff de los campos modificados
+        await logAdminAction({
+            action: 'update_post',
+            resource: 'post',
+            resourceId: id,
+            changes: diffOf(
+                // before: solo los campos del body (no el doc entero) para que el diff sea relevante
+                Object.keys(data).reduce<Record<string, unknown>>((acc, k) => {
+                    acc[k] = existing[k];
+                    return acc;
+                }, {}),
+                data
+            ),
+            request,
+        });
 
         return new Response(JSON.stringify({ success: true }), { status: 200 });
     } catch (error) {
@@ -152,7 +181,21 @@ export const DELETE: APIRoute = async ({ url, request }) => {
         const id = url.searchParams.get('id');
         if (!id) return new Response(null, { status: 400 });
 
+        // Snapshot del title antes de borrar (para que el log tenga contexto)
+        const docSnap = await db.collection(COLLECTIONS.POSTS).doc(id).get();
+        const titleBefore = (docSnap.data() as { title?: string } | undefined)?.title ?? null;
+
         await db.collection(COLLECTIONS.POSTS).doc(id).delete();
+
+        // SPEC-018: log de auditoría
+        await logAdminAction({
+            action: 'delete_post',
+            resource: 'post',
+            resourceId: id,
+            changes: { title: { before: titleBefore, after: null } },
+            request,
+        });
+
         return new Response(JSON.stringify({ success: true }), { status: 200 });
     } catch (error) {
         return new Response(JSON.stringify({ error: 'Error al borrar' }), { status: 500 });

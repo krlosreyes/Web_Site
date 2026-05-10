@@ -17,6 +17,8 @@ export const COLLECTIONS = {
     WAITLIST_LEADS: 'waitlist_leads',
     /** Datos analíticos / pruebas del admin. */
     PRUEBAS: 'pruebas',
+    /** Audit log de mutaciones admin (SPEC-018). Solo Admin SDK escribe/lee. */
+    ADMIN_AUDIT_LOG: 'admin_audit_log',
 } as const;
 
 /** Subcolecciones bajo `users/{uid}`. */

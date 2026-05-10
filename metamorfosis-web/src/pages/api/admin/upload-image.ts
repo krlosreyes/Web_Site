@@ -24,6 +24,7 @@ import {
     parseCookies,
     enforceProductionSecurity,
 } from '../../../lib/auth';
+import { logAdminAction } from '../../../lib/auditLog';
 
 export const prerender = false;
 
@@ -119,6 +120,15 @@ export const POST: APIRoute = async ({ request }) => {
         await file.makePublic();
 
         const publicUrl = `https://storage.googleapis.com/${bucket.name}/${objectPath}`;
+
+        // SPEC-018: log de auditoría
+        await logAdminAction({
+            action: 'upload_image',
+            resource: 'image',
+            resourceId: objectPath,
+            changes: { bytes: { before: 0, after: buffer.length }, contentType: { before: null, after: contentType } },
+            request,
+        });
 
         return jsonResponse(200, {
             success: true,

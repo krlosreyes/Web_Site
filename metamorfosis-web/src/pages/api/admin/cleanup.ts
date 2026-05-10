@@ -6,6 +6,7 @@ import {
     parseCookies,
     enforceProductionSecurity,
 } from '../../../lib/auth';
+import { logAdminAction } from '../../../lib/auditLog';
 
 export const prerender = false;
 
@@ -40,6 +41,15 @@ export const POST: APIRoute = async ({ request }) => {
             }
         }
         if (deletedCount > 0) await batch.commit();
+
+        // SPEC-018: log de auditoría
+        await logAdminAction({
+            action: 'cleanup',
+            resource: 'system',
+            resourceId: null,
+            changes: { deletedCount: { before: 0, after: deletedCount } },
+            request,
+        });
 
         return new Response(JSON.stringify({ success: true, deletedCount }), {
             status: 200,
