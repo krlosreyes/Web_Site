@@ -36,7 +36,9 @@ export type AuditAction =
     | 'delete_forum_reply'
     | 'like_forum_topic'
     | 'admin_delete_forum_topic'
-    | 'admin_delete_forum_reply';
+    | 'admin_delete_forum_reply'
+    | 'pin_forum_topic'
+    | 'save_forum_topic';
 
 export type AuditResource = 'post' | 'lead' | 'image' | 'system' | 'session' | 'forum_topic' | 'forum_reply';
 

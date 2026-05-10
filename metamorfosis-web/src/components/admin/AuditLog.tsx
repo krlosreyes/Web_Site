@@ -25,7 +25,9 @@ type AuditAction =
     | 'delete_forum_reply'
     | 'like_forum_topic'
     | 'admin_delete_forum_topic'
-    | 'admin_delete_forum_reply';
+    | 'admin_delete_forum_reply'
+    | 'pin_forum_topic'
+    | 'save_forum_topic';
 
 interface AuditEntry {
     id: string;
@@ -56,6 +58,8 @@ const ACTION_META: Record<AuditAction, { label: string; emoji: string; color: st
     like_forum_topic: { label: 'Foro: like', emoji: '❤️', color: 'text-pink-400 border-pink-500/30 bg-pink-500/10' },
     admin_delete_forum_topic: { label: 'Admin: borrar topic', emoji: '🛡️', color: 'text-orange-300 border-orange-500/30 bg-orange-500/10' },
     admin_delete_forum_reply: { label: 'Admin: borrar reply', emoji: '🛡️', color: 'text-orange-200 border-orange-400/30 bg-orange-400/10' },
+    pin_forum_topic: { label: 'Foro: destacar topic', emoji: '📌', color: 'text-amber-300 border-amber-500/30 bg-amber-500/10' },
+    save_forum_topic: { label: 'Foro: guardar topic', emoji: '🔖', color: 'text-indigo-300 border-indigo-500/30 bg-indigo-500/10' },
 };
 
 const FILTER_OPTIONS: Array<{ key: AuditAction | 'all'; label: string }> = [

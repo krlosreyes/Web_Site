@@ -17,6 +17,8 @@ interface AdminTopic {
     views: number;
     status: string;
     createdAt: string;
+    /** SPEC-041 */
+    pinned?: boolean;
 }
 
 const ForumModeration = () => {
@@ -86,6 +88,28 @@ const ForumModeration = () => {
             await fetchAll();
         } catch (err: any) {
             alert('Error: ' + (err?.message || 'desconocido'));
+        } finally {
+            setBusyId(null);
+        }
+    };
+
+    /** SPEC-041: pin/unpin del topic. */
+    const handleTogglePin = async (id: string, currentPinned: boolean) => {
+        setBusyId(id);
+        try {
+            const res = await fetch('/api/admin/forum/pin', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topicId: id, pinned: !currentPinned }),
+            });
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                throw new Error(body?.error || `HTTP ${res.status}`);
+            }
+            await fetchAll();
+        } catch (err: any) {
+            alert('Error pin: ' + (err?.message || 'desconocido'));
         } finally {
             setBusyId(null);
         }
@@ -208,13 +232,28 @@ const ForumModeration = () => {
                                         {fmtDate(t.createdAt)}
                                     </td>
                                     <td className="px-4 py-3 text-right">
-                                        <button
-                                            onClick={() => handleForceDelete(t.id)}
-                                            disabled={busyId === t.id}
-                                            className="text-[10px] font-bold uppercase tracking-widest border border-red-500/30 px-2 py-1 rounded text-red-400 hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-wait"
-                                        >
-                                            {busyId === t.id ? '…' : 'Borrar'}
-                                        </button>
+                                        <div className="flex items-center justify-end gap-2">
+                                            {/* SPEC-041 */}
+                                            <button
+                                                onClick={() => handleTogglePin(t.id, !!t.pinned)}
+                                                disabled={busyId === t.id}
+                                                className={`text-[10px] font-bold uppercase tracking-widest border px-2 py-1 rounded disabled:opacity-50 disabled:cursor-wait ${
+                                                    t.pinned
+                                                        ? 'border-amber-500/40 text-amber-300 bg-amber-500/10 hover:bg-amber-500/20'
+                                                        : 'border-amber-500/30 text-amber-400 hover:bg-amber-500/10'
+                                                }`}
+                                                title={t.pinned ? 'Quitar destaque' : 'Destacar'}
+                                            >
+                                                {busyId === t.id ? '…' : t.pinned ? '📌 Quitar' : '📌 Destacar'}
+                                            </button>
+                                            <button
+                                                onClick={() => handleForceDelete(t.id)}
+                                                disabled={busyId === t.id}
+                                                className="text-[10px] font-bold uppercase tracking-widest border border-red-500/30 px-2 py-1 rounded text-red-400 hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-wait"
+                                            >
+                                                {busyId === t.id ? '…' : 'Borrar'}
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))
