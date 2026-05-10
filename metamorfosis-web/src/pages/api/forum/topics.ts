@@ -82,6 +82,15 @@ export const GET: APIRoute = async ({ url }) => {
                 const title = String((t as { title?: string }).title || '').toLowerCase();
                 const content = String((t as { content?: string }).content || '').toLowerCase();
                 return title.includes(search) || content.includes(search);
+            })
+            // SPEC-041: pinned primero, después por createdAt desc (mantiene orden original)
+            .sort((a, b) => {
+                const ap = (a as { pinned?: boolean }).pinned ? 1 : 0;
+                const bp = (b as { pinned?: boolean }).pinned ? 1 : 0;
+                if (ap !== bp) return bp - ap;
+                const ad = String((a as { createdAt?: string }).createdAt || '');
+                const bd = String((b as { createdAt?: string }).createdAt || '');
+                return bd.localeCompare(ad);
             });
 
         return jsonResponse(200, { success: true, topics });
@@ -95,7 +104,7 @@ export const POST: APIRoute = async ({ request }) => {
     const session = await authFromRequest(request);
     if (!session) return jsonResponse(401, { error: 'Unauthorized' });
 
-    let body: { title?: string; content?: string; category?: string };
+    let body: { title?: string; content?: string; category?: string; linkedPostSlug?: string };
     try {
         body = await request.json();
     } catch {
@@ -110,6 +119,33 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (title.length < 3) return jsonResponse(400, { error: 'Título muy corto' });
     if (content.length < 5) return jsonResponse(400, { error: 'Contenido muy corto' });
+
+    // SPEC-040: validar linkedPostSlug si viene. Tiene que existir y estar publicado.
+    let linkedPostSlug: string | null = null;
+    let linkedPostTitle: string | null = null;
+    const rawSlug = body.linkedPostSlug;
+    if (typeof rawSlug === 'string' && rawSlug.trim()) {
+        const slugClean = rawSlug.trim().slice(0, 200);
+        try {
+            const postsSnap = await db
+                .collection(COLLECTIONS.POSTS)
+                .where('slug', '==', slugClean)
+                .limit(1)
+                .get();
+            if (postsSnap.empty) {
+                return jsonResponse(400, { error: 'Artículo vinculado no encontrado' });
+            }
+            const postData = postsSnap.docs[0].data();
+            if (postData.status === 'draft') {
+                return jsonResponse(400, { error: 'No se puede vincular un draft' });
+            }
+            linkedPostSlug = slugClean;
+            linkedPostTitle = String(postData.title || '').slice(0, 200);
+        } catch (e) {
+            console.error('[forum.topics.POST] linkedPostSlug lookup failed:', e);
+            return jsonResponse(500, { error: 'Error validando artículo vinculado' });
+        }
+    }
 
     // SPEC-036: el ID token cacheado de cuentas nuevas no trae displayName.
     // El helper cae a Firestore (users/{uid}.displayName) que SÍ se persiste
@@ -135,6 +171,9 @@ export const POST: APIRoute = async ({ request }) => {
             status: 'active',
             createdAt: now,
             updatedAt: now,
+            // SPEC-040: vínculo opcional con artículo de la biblioteca
+            linkedPostSlug,
+            linkedPostTitle,
         });
 
         await logAdminAction({

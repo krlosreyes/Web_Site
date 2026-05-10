@@ -92,6 +92,9 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 037 | Reacciones instant feedback + diagnóstico delete topic | ✅ Cerrada (2026-05-10) | Reacciones lentas (esperaban round-trip antes del próximo click); delete topic seguía sin funcionar y el alert era opaco | [SPEC-037](specs/SPEC-037-reacciones-instant-y-delete-debug.md) |
 | 038 | Foro: replies anidadas (cascada 1.1.1) + delete topic solo admin | ✅ Cerrada (2026-05-10) | Replies eran flat (sin árbol); botón Eliminar del topic seguía sin funcionar | [SPEC-038](specs/SPEC-038-foro-replies-anidadas-y-delete-solo-admin.md) |
 | 039 | Foro: replies estilo Instagram (2 niveles + @autor, sin numeración) | ✅ Cerrada (2026-05-10) | Numeración 1.1.1.1 era solo referencia conceptual, no debía mostrarse; el árbol se veía plano por cap=2 | [SPEC-039](specs/SPEC-039-foro-replies-instagram-style.md) |
+| 040 | Foro: vincular topic ↔ artículo | ✅ Cerrada (2026-05-10) | Foro y artículos vivían aislados; sin puente para discutir contenido específico | [SPEC-040](specs/SPEC-040-foro-vincular-topic-articulo.md) |
+| 041 | Foro: pin / destacar topics (admin) | ✅ Cerrada (2026-05-10) | Admin no podía anclar topics importantes ni curar "Pregunta de la semana" | [SPEC-041](specs/SPEC-041-foro-pin-destacar.md) |
+| 042 | Foro: save / bookmark topics | ✅ Cerrada (2026-05-10) | Topics interesantes se perdían en el scroll, sin forma de volver a ellos | [SPEC-042](specs/SPEC-042-foro-save-bookmark.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 

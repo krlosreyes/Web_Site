@@ -33,6 +33,7 @@ const Icons = {
     Lock: (props: any) => <Icon d="M7 11V7a5 5 0 0110 0v4M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z" {...props} />,
     Trash: (props: any) => <Icon d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6" {...props} />,
     Eye: (props: any) => <Icon d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12zm11-3a3 3 0 100 6 3 3 0 000-6z" {...props} />,
+    Bookmark: (props: any) => <Icon d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" {...props} />,
 };
 
 // ─── Avatar ──────────────────────────────────────────────────────
@@ -80,6 +81,11 @@ interface Topic {
     views: number;
     status: string;
     createdAt: string;
+    /** SPEC-040: si está vinculado a un artículo de la biblioteca. */
+    linkedPostSlug?: string | null;
+    linkedPostTitle?: string | null;
+    /** SPEC-041: destacado por admin. */
+    pinned?: boolean;
 }
 
 interface Reply {
@@ -137,7 +143,12 @@ const ForumEngine = () => {
     const [activeCategory, setActiveCategory] = useState('todos');
 
     const [isCreating, setIsCreating] = useState(false);
-    const [newTopic, setNewTopic] = useState({ title: '', content: '', category: 'general' });
+    const [newTopic, setNewTopic] = useState<{
+        title: string;
+        content: string;
+        category: string;
+        linkedPostSlug?: string;
+    }>({ title: '', content: '', category: 'general' });
     const [submittingTopic, setSubmittingTopic] = useState(false);
 
     const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
@@ -151,14 +162,53 @@ const ForumEngine = () => {
     const [replyLikes, setReplyLikes] = useState<Record<string, boolean>>({});
     /** SPEC-038: id del reply al que se está respondiendo (null = responder al topic). */
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
+    /** SPEC-042: set de topicIds guardados por el user actual. */
+    const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
 
     // ─── Auth listener ───
     useEffect(() => {
-        const unsub = onAuthStateChanged(auth, (u) => {
+        const unsub = onAuthStateChanged(auth, async (u) => {
             setUser(u);
             setAuthLoading(false);
+            // SPEC-042: cargar topics guardados al loguear
+            if (u) {
+                try {
+                    const { getFirestore, collection, getDocs } = await import('firebase/firestore');
+                    const fdb = getFirestore();
+                    const snap = await getDocs(collection(fdb, 'users', u.uid, 'savedTopics'));
+                    const set = new Set<string>();
+                    snap.forEach((d) => set.add(d.id));
+                    setSavedSet(set);
+                } catch (err) {
+                    console.warn('[ForumEngine] cargar savedTopics:', err);
+                }
+            } else {
+                setSavedSet(new Set());
+            }
         });
         return () => unsub();
+    }, []);
+
+    // ─── SPEC-040: deeplink desde un artículo (?createWithPost=slug&title=...) ───
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const params = new URLSearchParams(window.location.search);
+        const slug = params.get('createWithPost');
+        const articleTitle = params.get('title');
+        if (slug) {
+            setIsCreating(true);
+            setNewTopic({
+                title: articleTitle ? `Sobre: ${articleTitle.slice(0, 150)}` : '',
+                content: '',
+                category: 'general',
+                linkedPostSlug: slug,
+            });
+            // Limpiar la URL para no re-disparar al refresh
+            const url = new URL(window.location.href);
+            url.searchParams.delete('createWithPost');
+            url.searchParams.delete('title');
+            window.history.replaceState({}, '', url.toString());
+        }
     }, []);
 
     // ─── Fetch topics ───
@@ -281,7 +331,15 @@ const ForumEngine = () => {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${idToken}`,
                 },
-                body: JSON.stringify(newTopic),
+                // SPEC-040: incluye linkedPostSlug si viene del deeplink
+                body: JSON.stringify({
+                    title: newTopic.title,
+                    content: newTopic.content,
+                    category: newTopic.category,
+                    ...(newTopic.linkedPostSlug
+                        ? { linkedPostSlug: newTopic.linkedPostSlug }
+                        : {}),
+                }),
             });
             if (!res.ok) {
                 const err = await res.json().catch(() => ({}));
@@ -488,6 +546,45 @@ const ForumEngine = () => {
         replyInFlightRef.current[replyId] = false;
     };
 
+    /** SPEC-042: toggle bookmark del topic. UI instant + write best-effort. */
+    const handleToggleSave = async (topicId: string, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (!user) return;
+        const wasSaved = savedSet.has(topicId);
+        const next = !wasSaved;
+
+        // UI instant
+        setSavedSet((prev) => {
+            const ns = new Set(prev);
+            if (next) ns.add(topicId);
+            else ns.delete(topicId);
+            return ns;
+        });
+
+        try {
+            const idToken = await user.getIdToken();
+            const res = await fetch(`/api/forum/topics/${encodeURIComponent(topicId)}/save`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${idToken}`,
+                },
+                body: JSON.stringify({ saved: next }),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        } catch (err) {
+            console.error('[ForumEngine] toggleSave failed:', err);
+            // Rollback
+            setSavedSet((prev) => {
+                const ns = new Set(prev);
+                if (wasSaved) ns.add(topicId);
+                else ns.delete(topicId);
+                return ns;
+            });
+        }
+    };
+
     /**
      * SPEC-038/039: aplana el árbol de replies en orden DFS por parentReplyId.
      * Cap visual a 1 nivel (estilo Instagram). Si una reply responde a otra
@@ -626,28 +723,54 @@ const ForumEngine = () => {
                             {/* SPEC-038: botón Eliminar del topic removido del UI público.
                                 Solo el admin puede eliminar hilos desde /admin → tab Foro. */}
                         </div>
-                        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-8 leading-tight break-words">
+                        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-4 leading-tight break-words">
                             {selectedTopic.title}
                         </h2>
+                        {/* SPEC-040: banner del artículo vinculado */}
+                        {selectedTopic.linkedPostSlug && (
+                            <a
+                                href={`/posts/${selectedTopic.linkedPostSlug}`}
+                                className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-xl bg-[#00C49A]/10 border border-[#00C49A]/30 hover:bg-[#00C49A]/20 transition-colors text-xs font-bold text-[#00C49A] uppercase tracking-widest break-words"
+                            >
+                                <span className="text-base">📖</span>
+                                Sobre: {selectedTopic.linkedPostTitle || selectedTopic.linkedPostSlug}
+                            </a>
+                        )}
                         <p className="text-gray-300 text-base md:text-lg leading-relaxed font-medium mb-10 whitespace-pre-wrap break-words">
                             {selectedTopic.content}
                         </p>
 
-                        {/* Like button */}
-                        <button
-                            onClick={handleToggleLike}
-                            aria-pressed={topicLiked}
-                            className={`mb-10 flex items-center gap-3 px-5 py-3 rounded-2xl border transition-all font-bold text-sm
-                                ${topicLiked
-                                    ? 'bg-pink-500/15 border-pink-500/50 text-pink-300'
-                                    : 'bg-white/5 border-white/10 text-gray-300 hover:border-pink-500/30'}`}
-                        >
-                            <Icons.Heart size={18} className={topicLiked ? 'fill-current' : ''} />
-                            <span className="tabular-nums">{selectedTopic.likeCount || 0}</span>
-                            <span className="text-[10px] uppercase tracking-widest opacity-70">
-                                {topicLiked ? 'Te gustó' : 'Me gusta'}
-                            </span>
-                        </button>
+                        {/* Like + Save buttons */}
+                        <div className="mb-10 flex flex-wrap items-center gap-3">
+                            <button
+                                onClick={handleToggleLike}
+                                aria-pressed={topicLiked}
+                                className={`flex items-center gap-3 px-5 py-3 rounded-2xl border transition-all font-bold text-sm active:scale-95
+                                    ${topicLiked
+                                        ? 'bg-pink-500/15 border-pink-500/50 text-pink-300'
+                                        : 'bg-white/5 border-white/10 text-gray-300 hover:border-pink-500/30'}`}
+                            >
+                                <Icons.Heart size={18} className={topicLiked ? 'fill-current' : ''} />
+                                <span className="tabular-nums">{selectedTopic.likeCount || 0}</span>
+                                <span className="text-[10px] uppercase tracking-widest opacity-70">
+                                    {topicLiked ? 'Te gustó' : 'Me gusta'}
+                                </span>
+                            </button>
+                            {/* SPEC-042: bookmark del topic */}
+                            <button
+                                onClick={() => handleToggleSave(selectedTopic.id)}
+                                aria-pressed={savedSet.has(selectedTopic.id)}
+                                className={`flex items-center gap-3 px-5 py-3 rounded-2xl border transition-all font-bold text-sm active:scale-95
+                                    ${savedSet.has(selectedTopic.id)
+                                        ? 'bg-indigo-500/15 border-indigo-500/50 text-indigo-300'
+                                        : 'bg-white/5 border-white/10 text-gray-300 hover:border-indigo-500/30'}`}
+                            >
+                                <Icons.Bookmark size={18} className={savedSet.has(selectedTopic.id) ? 'fill-current' : ''} />
+                                <span className="text-[10px] uppercase tracking-widest opacity-70">
+                                    {savedSet.has(selectedTopic.id) ? 'Guardado' : 'Guardar'}
+                                </span>
+                            </button>
+                        </div>
 
                         <div className="border-t border-white/5 pt-10">
                             <h5 className="text-xs font-black text-blue-400 uppercase tracking-widest mb-6">
@@ -855,6 +978,15 @@ const ForumEngine = () => {
 
                 {isCreating && (
                     <div className="bg-blue-600/5 border border-blue-500/20 p-6 md:p-10 rounded-[2.5rem] mb-6">
+                        {/* SPEC-040: badge si el topic se está creando vinculado a un artículo */}
+                        {newTopic.linkedPostSlug && (
+                            <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-xl bg-[#00C49A]/10 border border-[#00C49A]/30">
+                                <span className="text-lg">📖</span>
+                                <span className="text-xs text-[#00C49A] font-semibold flex-1 break-words">
+                                    Discutiendo el artículo <a href={`/posts/${newTopic.linkedPostSlug}`} className="underline hover:text-white">{newTopic.title.replace(/^Sobre:\s*/, '') || newTopic.linkedPostSlug}</a>
+                                </span>
+                            </div>
+                        )}
                         <form onSubmit={handleCreateTopic} className="space-y-6">
                             <input
                                 placeholder="Título del tema…"
@@ -924,11 +1056,24 @@ const ForumEngine = () => {
                                 <div
                                     key={topic.id}
                                     onClick={() => setSelectedTopicId(topic.id)}
-                                    className="group bg-white/[0.02] border border-white/5 p-6 md:p-8 rounded-[2rem] hover:bg-white/[0.05] hover:border-blue-500/30 transition-all cursor-pointer relative overflow-hidden"
+                                    className={`group bg-white/[0.02] border p-6 md:p-8 rounded-[2rem] hover:bg-white/[0.05] transition-all cursor-pointer relative overflow-hidden
+                                        ${topic.pinned
+                                            ? 'border-amber-500/40 hover:border-amber-500/60 shadow-lg shadow-amber-500/5'
+                                            : 'border-white/5 hover:border-blue-500/30'}`}
                                 >
+                                    {/* SPEC-041: marca lateral naranja si está destacado */}
+                                    {topic.pinned && (
+                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-400 to-amber-600"></div>
+                                    )}
                                     <div className="flex justify-between items-start gap-6">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-3 mb-4 flex-wrap">
+                                                {/* SPEC-041: badge "Destacado" */}
+                                                {topic.pinned && (
+                                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/30 flex items-center gap-1">
+                                                        📌 Destacado
+                                                    </span>
+                                                )}
                                                 {topic.tags?.map((tag) => (
                                                     <span
                                                         key={tag}
@@ -937,6 +1082,12 @@ const ForumEngine = () => {
                                                         {tag}
                                                     </span>
                                                 ))}
+                                                {/* SPEC-040: badge "📖 sobre artículo" */}
+                                                {topic.linkedPostSlug && (
+                                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#00C49A] bg-[#00C49A]/5 px-2.5 py-1 rounded border border-[#00C49A]/20 flex items-center gap-1">
+                                                        📖 Artículo
+                                                    </span>
+                                                )}
                                                 <span className="text-[10px] text-gray-500 font-bold">
                                                     Hace {relTime(topic.createdAt)}
                                                 </span>
@@ -970,7 +1121,24 @@ const ForumEngine = () => {
                                                 </span>
                                             </div>
                                         </div>
-                                        <Icons.ChevronRight size={28} className="text-gray-800 group-hover:text-blue-500 transition-all shrink-0" />
+                                        <div className="flex flex-col items-end gap-2 shrink-0">
+                                            {/* SPEC-042: bookmark en card de la lista */}
+                                            <button
+                                                onClick={(ev) => handleToggleSave(topic.id, ev)}
+                                                aria-pressed={savedSet.has(topic.id)}
+                                                aria-label={savedSet.has(topic.id) ? 'Quitar de guardados' : 'Guardar topic'}
+                                                className={`p-2 rounded-lg border transition-all active:scale-95
+                                                    ${savedSet.has(topic.id)
+                                                        ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
+                                                        : 'bg-white/5 border-white/10 text-gray-500 hover:border-indigo-500/30 hover:text-indigo-300'}`}
+                                            >
+                                                <Icons.Bookmark
+                                                    size={14}
+                                                    className={savedSet.has(topic.id) ? 'fill-current' : ''}
+                                                />
+                                            </button>
+                                            <Icons.ChevronRight size={20} className="text-gray-800 group-hover:text-blue-500 transition-all" />
+                                        </div>
                                     </div>
                                 </div>
                             ))
