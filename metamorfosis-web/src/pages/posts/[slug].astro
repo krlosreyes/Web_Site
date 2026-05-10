@@ -191,11 +191,14 @@ const jsonLd = {
 
         <!-- Footer Sections Container (Reactions, Quiz, References, CTA) -->
         <div class="container mx-auto px-6 pb-24 max-w-3xl">
-            {/* SPEC-032: reacciones del artículo (👍/👎) */}
+            {/* SPEC-032: reacciones del artículo (👍/👎)
+                SPEC-035: hasQuiz cambia el CTA del anónimo a "Contesta el test"
+                con scroll a #quiz-section, en lugar de mandar a /login. */}
             <PostReactions
                 client:visible
                 slug={slug}
                 initialReactions={article.reactions || { likes: 0, dislikes: 0 }}
+                hasQuiz={!!(article.quiz && article.quiz.length > 0)}
             />
 
             {/* Interactive Quiz */}

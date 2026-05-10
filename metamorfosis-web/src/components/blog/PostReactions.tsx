@@ -20,9 +20,12 @@ interface Counts {
 interface Props {
     slug: string;
     initialReactions?: Counts;
+    /** SPEC-035: si el artículo tiene quiz, anónimos reciben CTA al test
+     *  (en la misma página) en lugar de redirigir a /login. */
+    hasQuiz?: boolean;
 }
 
-const PostReactions: React.FC<Props> = ({ slug, initialReactions }) => {
+const PostReactions: React.FC<Props> = ({ slug, initialReactions, hasQuiz = false }) => {
     const [user, setUser] = useState<User | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
     const [counts, setCounts] = useState<Counts>(
@@ -171,8 +174,23 @@ const PostReactions: React.FC<Props> = ({ slug, initialReactions }) => {
                     </span>
                 </button>
 
-                {/* CTA registro para anónimos */}
-                {!authLoading && !user && (
+                {/* SPEC-035: CTA adaptativo para anónimos.
+                    - Con quiz: scroll suave al test (mismo flow del artículo).
+                    - Sin quiz: fallback a /login. */}
+                {!authLoading && !user && hasQuiz && (
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            const target = document.getElementById('quiz-section');
+                            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }}
+                        className="ml-2 flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600/10 border border-blue-500/30 text-blue-300 hover:bg-blue-600/20 hover:border-blue-500/50 transition-all text-xs font-bold uppercase tracking-widest cursor-pointer"
+                    >
+                        🧪 Contesta el test para reaccionar
+                    </button>
+                )}
+                {!authLoading && !user && !hasQuiz && (
                     <a
                         href="/login"
                         className="ml-2 flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600/10 border border-blue-500/30 text-blue-300 hover:bg-blue-600/20 hover:border-blue-500/50 transition-all text-xs font-bold uppercase tracking-widest"
