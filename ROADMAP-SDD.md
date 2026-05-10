@@ -32,7 +32,7 @@ Atacamos los **CRÍTICOS** en orden, después los **ALTOS**, después el resto. 
 
 | # | Spec | Estado | Problema | Archivo |
 |---|---|---|---|---|
-| 007 | Esconder UI admin a visitantes anónimos | 📝 Spec | Navbar/Footer exponen `/admin` a todos los visitantes | [SPEC-007](specs/SPEC-007-hide-admin-ui.md) |
+| 007 | Esconder UI admin a visitantes anónimos | ✅ Cerrada (2026-05-10) | Verificada de facto: Navbar y Footer ya gateaban con `{isAdmin && ...}` desde SPEC-003 | [SPEC-007](specs/SPEC-007-hide-admin-ui.md) |
 | 008 | Reglas de seguridad de Firestore | ✅ Cerrada (2026-05-09) | Sin rules explícitas, lectura/escritura libre desde el cliente | [SPEC-008](specs/SPEC-008-firestore-rules.md) |
 | 009 | Auditar git history por credenciales filtradas | ✅ Cerrada (2026-05-09) | `.env` y service account JSON pudieron commitearse en WIP | [SPEC-009](specs/SPEC-009-git-history-audit.md) |
 | 010 | Rotar `ADMIN_PASSWORD` | ✅ Cerrada (2026-05-09) | Password aparece en docs commiteados — confirmado por SPEC-009 | [SPEC-010](specs/SPEC-010-rotate-admin-password.md) |
@@ -82,6 +82,7 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 025 | Fecha pública del artículo refleja `publishedAt` | ✅ Cerrada (2026-05-10) | El frontend público mostraba `createdAt` y biblioteca ordenaba por `createdAt`, ignorando la fecha editable de SPEC-023 | [SPEC-025](specs/SPEC-025-fecha-publicacion-publica.md) |
 | 026 | Navbar no tapa contenido (dashboard + defensa global) | ✅ Cerrada (2026-05-10) | `dashboard.astro` con `pt-8` insuficiente; navbar de 80px tapaba el título del user | [SPEC-026](specs/SPEC-026-navbar-no-tapa-contenido.md) |
 | 027 | SEO técnico (sitemap, robots, OG dinámicas, schema.org) | ✅ Cerrada (2026-05-10) | Sin sitemap, sin robots, OG image rota (default a `/og-image.jpg` inexistente) | [SPEC-027](specs/SPEC-027-seo-tecnico.md) |
+| 028 | Analytics real con Umami cloud | ✅ Cerrada (2026-05-10) | Sin medición de tráfico orgánico → decisiones a ciegas | [SPEC-028](specs/SPEC-028-analytics-umami.md) |
 | 029 | Email transaccional de bienvenida (Resend) | ✅ Cerrada (2026-05-10) | Tras registro no llegaba ningún email; promesa de "lista de espera ElenaApp" sin confirmación | [SPEC-029](specs/SPEC-029-email-transaccional-bienvenida.md) |
 | 031 | Headings responsive sin desborde (audit completo) | ✅ Cerrada (2026-05-10) | "HOLA, METAMORFOSIS" se cortaba en mobile por `text-6xl` sin breakpoints; otros lugares con texto dinámico tenían riesgo similar | [SPEC-031](specs/SPEC-031-headings-responsive-no-desborde.md) |
 | 032 | Likes/Dislikes en artículos | ✅ Cerrada (2026-05-10) | Cero feedback estructurado del lector; sin proxies de calidad por artículo | [SPEC-032](specs/SPEC-032-likes-articulos.md) |
@@ -100,6 +101,8 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 047 | Landing del quiz: copy que invita | ✅ Cerrada (2026-05-10) | "PROTOCOLO SPEC-70.5" era jerga interna sin invitación al user | [SPEC-047](specs/SPEC-047-quiz-landing-copy.md) |
 | 048 | ElenaApp CTA con modal de waitlist (primeros 1000) | ✅ Cerrada (2026-05-10) | Botón "Abrir App" sacaba al user del sitio sin convertirlo a la waitlist | [SPEC-048](specs/SPEC-048-elenaapp-cta-waitlist-modal.md) |
 | 049 | Modal ElenaApp con Portal + centrado robusto | ✅ Cerrada (2026-05-10) | Modal SPEC-048 quedaba atrapado dentro del navbar (containing block del fixed roto) | [SPEC-049](specs/SPEC-049-elenaapp-modal-portal-centrado.md) |
+| 043 | Notificaciones in-app del foro | ✅ Cerrada (2026-05-10) | Sin notif, los users no volvían al sitio cuando alguien les respondía | [SPEC-043](specs/SPEC-043-notificaciones-foro.md) |
+| 044 | Mentions @usuario en el foro | ✅ Cerrada (2026-05-10) | No se podía invocar a un user específico a una conversación | [SPEC-044](specs/SPEC-044-mentions-foro.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 

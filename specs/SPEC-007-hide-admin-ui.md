@@ -1,9 +1,10 @@
 # SPEC-007 — Esconder UI admin a visitantes anónimos
 
-**Estado:** 📝 Spec
+**Estado:** ✅ Cerrada
 **Fase:** 2
 **Severidad:** ALTO (UX + seguridad menor)
 **Fecha de creación:** 2026-05-09
+**Cerrada:** 2026-05-10 (verificada en producción)
 **Autor:** Carlos Reyes
 **Depende de:** SPEC-003 (contrato auth admin) — ya cerrada
 
@@ -97,4 +98,17 @@ Cierra specs/SPEC-007-hide-admin-ui.md
 
 ## Resultado
 
-*(Pendiente de implementación.)*
+Cerrada de facto durante la implementación de SPEC-003 / SPEC-026 (2026-05-09 / 10). Verificación realizada el 2026-05-10:
+
+**Estado en producción:**
+- `Navbar.astro` líneas 48 y 165: el link `/admin/dashboard` vive dentro de `{isAdmin && (...)}` tanto en el desktop menu como en el mobile menu panel. Si la cookie admin no existe, el link no se renderiza.
+- `Footer.astro` línea 146: el bloque "Admin Entry" del bottom-bar también vive dentro de `{isAdmin && (...)}`.
+- `isAdmin` se calcula server-side leyendo la cookie HttpOnly `admin_session` con `isValidSessionValue`.
+
+**Smoke test verificado:**
+```sh
+$ curl -s https://metamorfosisvital.com.co/ | grep -c 'href="/admin'
+# 0 (anónimo no ve link)
+```
+
+Sin cambios de código necesarios — la implementación de SPEC-003 ya cubrió este caso. Solo se cierra formalmente.
