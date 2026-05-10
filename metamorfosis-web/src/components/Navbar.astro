@@ -9,6 +9,7 @@
 // se sigue resolviendo en el cliente con onAuthStateChanged, igual que antes.
 import { isValidSessionValue } from "../lib/auth";
 import ElenaAppCTA from "./ElenaAppCTA.tsx";
+import NotificationBell from "./NotificationBell.tsx";
 
 const sessionCookie = Astro.cookies.get("admin_session");
 const isAdmin = isValidSessionValue(sessionCookie?.value);
@@ -89,6 +90,8 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
                             >
                                 Cerrar Sesión
                             </button>
+                            {/* SPEC-043: campanita de notificaciones (solo si user logueado, decide internamente) */}
+                            <NotificationBell client:load />
                             {/* SPEC-048: pill ElenaApp con modal de waitlist */}
                             <ElenaAppCTA client:load />
                         </>

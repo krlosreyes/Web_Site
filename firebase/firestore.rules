@@ -63,6 +63,14 @@ service cloud.firestore {
         allow read: if request.auth != null && request.auth.uid == uid;
         allow write: if false;
       }
+
+      // SPEC-043: notificaciones in-app del foro. El endpoint
+      // /api/users/me/notifications (Admin SDK) crea/marca-read; el
+      // cliente solo lee su propia subcolección.
+      match /notifications/{notifId} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow write: if false;
+      }
     }
 
     // ===== metamorfosis_posts =====

@@ -10,6 +10,7 @@ import { db, auth } from '../../../../../lib/firebaseAdmin';
 import { COLLECTIONS } from '../../../../../lib/constants/firestore';
 import { logAdminAction } from '../../../../../lib/auditLog';
 import { getDisplayName } from '../../../../../lib/userHelpers';
+import { createNotification } from '../../../../../lib/notifications';
 
 export const prerender = false;
 
@@ -45,7 +46,11 @@ export const POST: APIRoute = async ({ params, request }) => {
     const session = await authFromRequest(request);
     if (!session) return jsonResponse(401, { error: 'Unauthorized' });
 
-    let body: { content?: string; parentReplyId?: string | null };
+    let body: {
+        content?: string;
+        parentReplyId?: string | null;
+        mentionUids?: string[];
+    };
     try {
         body = await request.json();
     } catch {
@@ -54,6 +59,16 @@ export const POST: APIRoute = async ({ params, request }) => {
 
     const content = String(body.content || '').trim().slice(0, 2000);
     if (content.length < 2) return jsonResponse(400, { error: 'Reply muy corta' });
+
+    // SPEC-044: mentions explícitos via picker. Limit 5, dedupe, sin self.
+    const rawMentions = Array.isArray(body.mentionUids) ? body.mentionUids : [];
+    const mentionUids = Array.from(
+        new Set(
+            rawMentions
+                .filter((u): u is string => typeof u === 'string' && u.trim().length > 0)
+                .filter((u) => u !== session.uid)
+        )
+    ).slice(0, 5);
 
     // SPEC-036: helper con fallback a users/{uid}.displayName para cuentas nuevas
     const authorName = await getDisplayName(session.uid, session.name);
@@ -110,6 +125,8 @@ export const POST: APIRoute = async ({ params, request }) => {
                 // SPEC-038: campos para árbol de replies anidados
                 parentReplyId: parentReplyId,
                 depth,
+                // SPEC-044: uids mencionados explícitamente via picker
+                mentionUids,
             });
             tx.update(topicRef, {
                 replyCount: currentCount + 1,
@@ -128,6 +145,74 @@ export const POST: APIRoute = async ({ params, request }) => {
             },
             request,
         });
+
+        // SPEC-043: notificaciones in-app (best-effort, no bloquean la respuesta).
+        try {
+            // Necesitamos el topic para topicTitle + authorUid del topic
+            const topicSnap = await topicRef.get();
+            const topicData = topicSnap.data() ?? {};
+            const topicTitle = String(topicData.title || '');
+
+            if (parentReplyId) {
+                // Reply a otra reply: notificar al author del parent reply
+                const parentSnap = await topicRef
+                    .collection('replies')
+                    .doc(parentReplyId)
+                    .get();
+                const parentAuthorUid = parentSnap.data()?.authorUid;
+                if (parentAuthorUid) {
+                    await createNotification({
+                        toUid: parentAuthorUid,
+                        type: 'reply_to_reply',
+                        fromUid: session.uid,
+                        fromName: authorName,
+                        topicId,
+                        replyId,
+                        topicTitle,
+                        snippet: content,
+                    });
+                }
+            } else {
+                // Reply al topic: notificar al author del topic
+                const topicAuthorUid = topicData.authorUid as string | undefined;
+                if (topicAuthorUid) {
+                    await createNotification({
+                        toUid: topicAuthorUid,
+                        type: 'reply_to_topic',
+                        fromUid: session.uid,
+                        fromName: authorName,
+                        topicId,
+                        replyId,
+                        topicTitle,
+                        snippet: content,
+                    });
+                }
+            }
+
+            // SPEC-044: notif tipo 'mention' por cada uid del picker.
+            // Excluimos al uid que ya recibió notif por reply_to_topic /
+            // reply_to_reply para no duplicar (caso: alguien responde
+            // mencionando al mismo author del parent).
+            const alreadyNotified = parentReplyId
+                ? (await topicRef.collection('replies').doc(parentReplyId).get()).data()?.authorUid
+                : topicData.authorUid;
+            for (const mUid of mentionUids) {
+                if (mUid === alreadyNotified) continue;
+                await createNotification({
+                    toUid: mUid,
+                    type: 'mention',
+                    fromUid: session.uid,
+                    fromName: authorName,
+                    topicId,
+                    replyId,
+                    topicTitle,
+                    snippet: content,
+                });
+            }
+        } catch (e) {
+            // Best-effort: no bloqueamos el reply si la notif falla
+            console.error('[forum.replies.POST] notification dispatch failed:', e);
+        }
 
         return jsonResponse(201, { success: true, id: replyId });
     } catch (error: any) {
