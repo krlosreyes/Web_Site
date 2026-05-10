@@ -94,6 +94,12 @@ probá esto otro":
   `grep -oE | wc -l` para contar ocurrencias reales.
 - **Build:** correr `npm run build` desde `metamorfosis-web/`, NO desde el
   root del repo.
+- **Páginas con `BaseLayout` deben reservar ≥80px de padding-top** en su
+  primer wrapper (`pt-24` o `pt-28` según diseño). El Navbar es `fixed
+  top-0 h-20` y NO empuja contenido. Excepción: páginas con hero a viewport
+  completo (`h-[60vh]+`) que esperan transparencia sobre la imagen. Si
+  agregás una página y olvidás esto, el primer renglón queda tapado por el
+  menú — no es bug del navbar, es contrato del layout.
 
 ## 5. Mapa de archivos clave
 

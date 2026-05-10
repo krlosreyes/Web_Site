@@ -15,8 +15,19 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* SPEC-026: el navbar es fixed h-20 (80px). scroll-padding-top hace que
+       cuando el browser navega a un anchor (#fragment), el target no quede
+       tapado por el navbar. Match exacto a la altura del navbar inicial. */
+    scroll-padding-top: 5rem;
   }
-  
+
+  /* Defensa adicional: cualquier elemento con id (anchor potencial) reserva
+     5rem de margin-top de scroll para que `scrollIntoView` y `#fragment`
+     dejen el target visible bajo el navbar. */
+  [id] {
+    scroll-margin-top: 5rem;
+  }
+
   body {
     @apply bg-bg-base text-text-primary font-body antialiased selection:bg-accent-blue selection:text-white;
     min-height: 100vh;
