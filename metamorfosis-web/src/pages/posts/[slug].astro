@@ -61,7 +61,10 @@ const formatDate = (dateString?: string): string | null => {
 const wordCount = cleanedContent.trim().split(/\s+/).filter(Boolean).length;
 const readingMinutes = Math.max(1, Math.round(wordCount / 200));
 
-const formattedDate = formatDate(article.createdAt);
+// SPEC-025: la fecha pública del artículo refleja `publishedAt` (editable
+// manualmente desde el admin via SPEC-023). Si el doc es legacy y solo tiene
+// `createdAt`, cae a esa para no perder la fecha original.
+const formattedDate = formatDate(article.publishedAt || article.createdAt);
 ---
 
 <BaseLayout

@@ -7,7 +7,11 @@ import { BookOpen, Award, Zap, ChevronRight } from "lucide-astro";
 export const prerender = false;
 
 const postsRef = db.collection(COLLECTIONS.POSTS);
-const snapshot = await postsRef.orderBy('createdAt', 'desc').get();
+// SPEC-025: orden in-memory por `publishedAt || createdAt` desc. Firestore
+// no permite `orderBy` con OR/fallback, así que traemos sin orden y lo
+// hacemos en JS. ISO 8601 ordena lexicográficamente igual que cronológicamente,
+// así que basta `localeCompare` sin parsear a Date.
+const snapshot = await postsRef.get();
 const allArticles = snapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data() as Record<string, unknown>,
@@ -15,10 +19,16 @@ const allArticles = snapshot.docs.map(doc => ({
 
 // SPEC-015: ocultar drafts del público. Artículos legacy sin campo `status`
 // se tratan como `published` (compatibilidad con docs anteriores a SPEC-015).
-const articles = allArticles.filter((art) => {
-    const status = (art as { status?: string }).status;
-    return status === undefined || status === 'published';
-});
+const articles = allArticles
+    .filter((art) => {
+        const status = (art as { status?: string }).status;
+        return status === undefined || status === 'published';
+    })
+    .sort((a, b) => {
+        const aDate = String((a as { publishedAt?: unknown }).publishedAt ?? (a as { createdAt?: unknown }).createdAt ?? '');
+        const bDate = String((b as { publishedAt?: unknown }).publishedAt ?? (b as { createdAt?: unknown }).createdAt ?? '');
+        return bDate.localeCompare(aDate);
+    });
 
 const title = "Biblioteca de Metamorfosis | Metamorfosis Real";
 const description = "El conocimiento científico para dominar tu biología y transformar tu vida.";
