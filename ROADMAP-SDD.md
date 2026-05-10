@@ -99,6 +99,7 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 046 | Pilares como taxonomía unificada (foro + artículos) | ✅ Cerrada (2026-05-10) | Foro tenía categorías inventadas; artículos sin categoría formal | [SPEC-046](specs/SPEC-046-pilares-categorias-unificadas.md) |
 | 047 | Landing del quiz: copy que invita | ✅ Cerrada (2026-05-10) | "PROTOCOLO SPEC-70.5" era jerga interna sin invitación al user | [SPEC-047](specs/SPEC-047-quiz-landing-copy.md) |
 | 048 | ElenaApp CTA con modal de waitlist (primeros 1000) | ✅ Cerrada (2026-05-10) | Botón "Abrir App" sacaba al user del sitio sin convertirlo a la waitlist | [SPEC-048](specs/SPEC-048-elenaapp-cta-waitlist-modal.md) |
+| 049 | Modal ElenaApp con Portal + centrado robusto | ✅ Cerrada (2026-05-10) | Modal SPEC-048 quedaba atrapado dentro del navbar (containing block del fixed roto) | [SPEC-049](specs/SPEC-049-elenaapp-modal-portal-centrado.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 

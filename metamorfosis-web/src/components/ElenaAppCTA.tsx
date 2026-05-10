@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { auth } from '../lib/firebase';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 
@@ -77,19 +78,22 @@ const ElenaAppCTA: React.FC = () => {
                 </span>
             </button>
 
-            {/* Modal */}
-            {open && (
+            {/* SPEC-049: Modal renderizado vía Portal en document.body para
+                escapar de cualquier ancestor con containing block (navbar fixed,
+                backdrop-filter, transform). Garantiza que `position: fixed`
+                sea relativo al viewport real. */}
+            {open && typeof document !== 'undefined' && createPortal(
                 <div
                     onClick={closeOnBackdrop}
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="elenaapp-modal-title"
-                    className="fixed inset-0 z-[200] flex items-stretch sm:items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+                    className="fixed inset-0 z-[200] flex items-stretch sm:items-center justify-center bg-black/80 backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-200"
                 >
                     <div
                         ref={dialogRef}
                         onClick={(e) => e.stopPropagation()}
-                        className="relative w-full sm:max-w-lg sm:rounded-3xl bg-gradient-to-br from-[#0c1422] via-[#0a1020] to-[#020617] border border-blue-500/20 shadow-2xl overflow-y-auto sm:my-8 sm:max-h-[90vh] animate-in slide-in-from-bottom-8 duration-300"
+                        className="relative w-full max-h-screen sm:max-h-[90vh] sm:max-w-lg sm:rounded-3xl bg-gradient-to-br from-[#0c1422] via-[#0a1020] to-[#020617] border border-blue-500/20 shadow-2xl overflow-y-auto animate-in slide-in-from-bottom-8 duration-300"
                     >
                         {/* Cerrar */}
                         <button
@@ -185,7 +189,8 @@ const ElenaAppCTA: React.FC = () => {
                             )}
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );
