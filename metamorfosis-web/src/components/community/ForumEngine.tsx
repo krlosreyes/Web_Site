@@ -168,6 +168,10 @@ const ForumEngine = () => {
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
     /** SPEC-042: set de topicIds guardados por el user actual. */
     const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
+    /** SPEC-044: uids mencionados via picker en el draft actual. */
+    const [mentionUids, setMentionUids] = useState<string[]>([]);
+    /** SPEC-044: dropdown del picker abierto. */
+    const [mentionPickerOpen, setMentionPickerOpen] = useState(false);
 
     // ─── Auth listener ───
     useEffect(() => {
@@ -413,6 +417,8 @@ const ForumEngine = () => {
                         content: replyDraft.trim(),
                         // SPEC-038: si replyingTo está set, el reply va anidado
                         parentReplyId: replyingTo,
+                        // SPEC-044: uids mencionados via picker
+                        mentionUids,
                     }),
                 }
             );
@@ -422,6 +428,7 @@ const ForumEngine = () => {
             }
             setReplyDraft('');
             setReplyingTo(null);
+            setMentionUids([]); // SPEC-044: limpiar tras envío exitoso
             await fetchTopicDetail(selectedTopicId);
         } catch (err: any) {
             console.error('[ForumEngine] submitReply:', err);
@@ -550,6 +557,62 @@ const ForumEngine = () => {
             }
         }
         replyInFlightRef.current[replyId] = false;
+    };
+
+    /**
+     * SPEC-044: lista de users mencionables en el thread actual (autor del
+     * topic + autores únicos de cada reply). Excluye al user actual.
+     */
+    const mentionableUsers = useMemo(() => {
+        const map = new Map<string, { uid: string; name: string; initial: string; colorIdx: number }>();
+        if (selectedTopic && selectedTopic.authorUid !== user?.uid) {
+            map.set(selectedTopic.authorUid, {
+                uid: selectedTopic.authorUid,
+                name: selectedTopic.authorName,
+                initial: selectedTopic.authorInitial,
+                colorIdx: selectedTopic.authorColorIdx,
+            });
+        }
+        replies.forEach((r) => {
+            if (r.authorUid !== user?.uid && !map.has(r.authorUid)) {
+                map.set(r.authorUid, {
+                    uid: r.authorUid,
+                    name: r.authorName,
+                    initial: r.authorInitial,
+                    colorIdx: r.authorColorIdx,
+                });
+            }
+        });
+        return Array.from(map.values());
+    }, [selectedTopic, replies, user?.uid]);
+
+    /** SPEC-044: insertar `@nombre ` al final del draft + registrar uid. */
+    const handlePickMention = (m: { uid: string; name: string }) => {
+        setReplyDraft((prev) => {
+            const sep = prev.length > 0 && !prev.endsWith(' ') ? ' ' : '';
+            return `${prev}${sep}@${m.name} `;
+        });
+        setMentionUids((prev) => (prev.includes(m.uid) ? prev : [...prev, m.uid]));
+        setMentionPickerOpen(false);
+    };
+
+    /**
+     * SPEC-044: renderiza contenido con @nombre wrappeado en azul.
+     * Regex match cualquier `@palabra` (letras, números, guion bajo, espacios
+     * en el primer match si hay nombre con espacio — limitado a 1 palabra
+     * por simplicidad).
+     */
+    const renderContentWithMentions = (text: string): React.ReactNode => {
+        const parts = text.split(/(@[\w-]+)/g);
+        return parts.map((part, i) =>
+            part.startsWith('@') ? (
+                <span key={i} className="text-blue-400 font-semibold">
+                    {part}
+                </span>
+            ) : (
+                <React.Fragment key={i}>{part}</React.Fragment>
+            )
+        );
     };
 
     /** SPEC-042: toggle bookmark del topic. UI instant + write best-effort. */
@@ -829,7 +892,8 @@ const ForumEngine = () => {
                                                                     @{mentionAuthor}
                                                                 </span>
                                                             )}
-                                                            {r.content}
+                                                            {/* SPEC-044: render mentions en azul dentro del contenido */}
+                                                            {renderContentWithMentions(r.content)}
                                                         </p>
                                                         <div className="flex items-center gap-2 flex-wrap">
                                                             {/* SPEC-036: like en reply */}
@@ -911,6 +975,35 @@ const ForumEngine = () => {
                                         rows={2}
                                         maxLength={2000}
                                     />
+                                    {/* SPEC-044: picker de mentions */}
+                                    <div className="relative shrink-0">
+                                        <button
+                                            type="button"
+                                            onClick={() => setMentionPickerOpen((o) => !o)}
+                                            disabled={mentionableUsers.length === 0}
+                                            className="bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed text-blue-300 w-12 h-12 rounded-xl border border-white/10 flex items-center justify-center text-base font-black hover:bg-blue-500/15 hover:border-blue-500/40 active:scale-95 transition-all"
+                                            aria-label="Mencionar a un usuario"
+                                            aria-expanded={mentionPickerOpen}
+                                            title={mentionableUsers.length === 0 ? 'Nadie a quién mencionar todavía' : 'Mencionar'}
+                                        >
+                                            @
+                                        </button>
+                                        {mentionPickerOpen && mentionableUsers.length > 0 && (
+                                            <div className="absolute right-0 bottom-14 w-56 max-h-64 overflow-y-auto bg-[#0a1020] border border-white/10 rounded-xl shadow-2xl z-30 p-1">
+                                                {mentionableUsers.map((m) => (
+                                                    <button
+                                                        key={m.uid}
+                                                        type="button"
+                                                        onClick={() => handlePickMention(m)}
+                                                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                                                    >
+                                                        <Avatar initial={m.initial || m.name.charAt(0).toUpperCase()} colorIdx={m.colorIdx ?? 0} size="sm" />
+                                                        <span className="text-sm text-gray-200 break-words">@{m.name}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                     <button
                                         onClick={handleSubmitReply}
                                         disabled={submittingReply || replyDraft.trim().length < 2}
