@@ -45,7 +45,7 @@ export const POST: APIRoute = async ({ params, request }) => {
     const session = await authFromRequest(request);
     if (!session) return jsonResponse(401, { error: 'Unauthorized' });
 
-    let body: { content?: string };
+    let body: { content?: string; parentReplyId?: string | null };
     try {
         body = await request.json();
     } catch {
@@ -61,9 +61,33 @@ export const POST: APIRoute = async ({ params, request }) => {
     const colorIdx = avatarColorIdx(session.uid);
     const now = new Date().toISOString();
 
+    // SPEC-038: replies anidadas. Si viene parentReplyId, validamos lookup +
+    // status + pertenencia al mismo topic. depth se calcula con cap en 2
+    // (3 niveles totales: 0, 1, 2) para mantener legibilidad mobile.
+    const rawParent = body.parentReplyId;
+    const parentReplyId: string | null =
+        typeof rawParent === 'string' && rawParent.trim() ? rawParent.trim() : null;
+
     try {
         const topicRef = db.collection(COLLECTIONS.FORUM_TOPICS).doc(topicId);
         const replyRef = topicRef.collection('replies').doc();
+
+        // SPEC-038: si hay parentReplyId, lookup + cálculo de depth.
+        let depth = 0;
+        if (parentReplyId) {
+            const parentSnap = await topicRef.collection('replies').doc(parentReplyId).get();
+            if (!parentSnap.exists) {
+                return jsonResponse(404, { error: 'Reply padre no encontrada' });
+            }
+            const parentData = parentSnap.data();
+            if (parentData?.status === 'deleted') {
+                return jsonResponse(400, { error: 'No se puede responder a una reply eliminada' });
+            }
+            // Cap a 2: si el padre está en el nivel máximo, el nuevo reply
+            // queda al mismo nivel (mantiene parentReplyId apuntando al
+            // padre real, pero visualmente se ve plano al nivel 2).
+            depth = Math.min(2, Number(parentData?.depth ?? 0) + 1);
+        }
 
         let replyId = '';
         await db.runTransaction(async (tx) => {
@@ -82,6 +106,9 @@ export const POST: APIRoute = async ({ params, request }) => {
                 authorColorIdx: colorIdx,
                 status: 'active',
                 createdAt: now,
+                // SPEC-038: campos para árbol de replies anidados
+                parentReplyId: parentReplyId,
+                depth,
             });
             tx.update(topicRef, {
                 replyCount: currentCount + 1,

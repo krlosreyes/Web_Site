@@ -93,6 +93,10 @@ interface Reply {
     createdAt: string;
     /** SPEC-036: contador denormalizado de likes en la reply. */
     likeCount?: number;
+    /** SPEC-038: id del reply padre, null si responde al topic. */
+    parentReplyId?: string | null;
+    /** SPEC-038: nivel de anidamiento (0..2). */
+    depth?: number;
 }
 
 const CATEGORIES = [
@@ -145,6 +149,8 @@ const ForumEngine = () => {
     const [topicLiked, setTopicLiked] = useState(false);
     /** SPEC-036: estado de likes del user actual en cada reply (replyId → bool). */
     const [replyLikes, setReplyLikes] = useState<Record<string, boolean>>({});
+    /** SPEC-038: id del reply al que se está respondiendo (null = responder al topic). */
+    const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
     // ─── Auth listener ───
     useEffect(() => {
@@ -339,7 +345,11 @@ const ForumEngine = () => {
                         'Content-Type': 'application/json',
                         Authorization: `Bearer ${idToken}`,
                     },
-                    body: JSON.stringify({ content: replyDraft.trim() }),
+                    body: JSON.stringify({
+                        content: replyDraft.trim(),
+                        // SPEC-038: si replyingTo está set, el reply va anidado
+                        parentReplyId: replyingTo,
+                    }),
                 }
             );
             if (!res.ok) {
@@ -347,6 +357,7 @@ const ForumEngine = () => {
                 throw new Error(err.error || `HTTP ${res.status}`);
             }
             setReplyDraft('');
+            setReplyingTo(null);
             await fetchTopicDetail(selectedTopicId);
         } catch (err: any) {
             console.error('[ForumEngine] submitReply:', err);
@@ -477,6 +488,36 @@ const ForumEngine = () => {
         replyInFlightRef.current[replyId] = false;
     };
 
+    /**
+     * SPEC-038: aplana el árbol de replies en orden de visualización
+     * (DFS por parentReplyId), con numeración tipo 1, 1.1, 1.1.1.
+     */
+    const flattenReplyTree = (
+        all: Reply[]
+    ): Array<{ reply: Reply; number: string; renderDepth: number }> => {
+        const byParent = new Map<string | null, Reply[]>();
+        all.forEach((r) => {
+            const key = (r.parentReplyId ?? null) as string | null;
+            const list = byParent.get(key) || [];
+            list.push(r);
+            byParent.set(key, list);
+        });
+        // Sort cada bucket por createdAt asc
+        byParent.forEach((list) => list.sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
+
+        const result: Array<{ reply: Reply; number: string; renderDepth: number }> = [];
+        const walk = (parentId: string | null, prefix: string, renderDepth: number) => {
+            const children = byParent.get(parentId) || [];
+            children.forEach((r, idx) => {
+                const num = prefix ? `${prefix}.${idx + 1}` : `${idx + 1}`;
+                result.push({ reply: r, number: num, renderDepth });
+                walk(r.id, num, Math.min(2, renderDepth + 1));
+            });
+        };
+        walk(null, '', 0);
+        return result;
+    };
+
     /** Click en corazón de reply: UI INSTANT, server background. */
     const handleToggleReplyLike = (replyId: string) => {
         if (!user || !selectedTopicId) return;
@@ -566,14 +607,8 @@ const ForumEngine = () => {
                                     Biohacker · Hace {relTime(selectedTopic.createdAt)} · {selectedTopic.views || 0} vistas
                                 </p>
                             </div>
-                            {user.uid === selectedTopic.authorUid && (
-                                <button
-                                    onClick={() => handleDeleteTopic(selectedTopic.id)}
-                                    className="text-[10px] font-bold uppercase tracking-widest text-red-400 hover:text-red-300 border border-red-500/30 hover:bg-red-500/10 px-3 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                                >
-                                    <Icons.Trash size={12} /> Eliminar
-                                </button>
-                            )}
+                            {/* SPEC-038: botón Eliminar del topic removido del UI público.
+                                Solo el admin puede eliminar hilos desde /admin → tab Foro. */}
                         </div>
                         <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-8 leading-tight break-words">
                             {selectedTopic.title}
@@ -603,49 +638,110 @@ const ForumEngine = () => {
                                 Respuestas ({replies.length})
                             </h5>
 
-                            {/* Lista de replies */}
-                            <div className="space-y-4 mb-8">
+                            {/* SPEC-038: lista de replies anidada con árbol DFS */}
+                            <div className="space-y-3 mb-8">
                                 {replies.length === 0 ? (
                                     <p className="text-gray-600 text-sm italic">Sé el primero en responder.</p>
                                 ) : (
-                                    replies.map((r) => {
+                                    flattenReplyTree(replies).map(({ reply: r, number, renderDepth }) => {
                                         const liked = !!replyLikes[r.id];
+                                        // Indentación responsive según depth (cap a 2)
+                                        const indentCls =
+                                            renderDepth === 0
+                                                ? ''
+                                                : renderDepth === 1
+                                                    ? 'sm:ml-8 ml-4 border-l-2 border-blue-500/15 pl-3 sm:pl-4'
+                                                    : 'sm:ml-16 ml-8 border-l-2 border-purple-500/15 pl-3 sm:pl-4';
                                         return (
-                                            <div key={r.id} className="flex gap-4 p-5 bg-white/[0.02] border border-white/5 rounded-2xl">
-                                                <Avatar
-                                                    initial={r.authorInitial || r.authorName?.charAt(0).toUpperCase() || '?'}
-                                                    colorIdx={r.authorColorIdx ?? 0}
-                                                    size="sm"
-                                                />
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-3 mb-2 flex-wrap">
-                                                        <span className="text-white font-bold text-sm">{r.authorName}</span>
-                                                        <span className="text-[10px] text-gray-600 font-mono uppercase tracking-widest">
-                                                            Hace {relTime(r.createdAt)}
-                                                        </span>
-                                                        {user.uid === r.authorUid && (
+                                            <div key={r.id} className={indentCls}>
+                                                <div className="flex gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+                                                    <Avatar
+                                                        initial={r.authorInitial || r.authorName?.charAt(0).toUpperCase() || '?'}
+                                                        colorIdx={r.authorColorIdx ?? 0}
+                                                        size="sm"
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                                            {/* SPEC-038: numeración tipo 1.1.1 */}
+                                                            <span className="text-[9px] font-mono text-gray-500 bg-white/5 border border-white/10 px-1.5 py-0.5 rounded uppercase tracking-widest">
+                                                                {number}
+                                                            </span>
+                                                            <span className="text-white font-bold text-sm break-words">{r.authorName}</span>
+                                                            <span className="text-[10px] text-gray-600 font-mono uppercase tracking-widest">
+                                                                Hace {relTime(r.createdAt)}
+                                                            </span>
+                                                            {user.uid === r.authorUid && (
+                                                                <button
+                                                                    onClick={() => handleDeleteReply(r.id)}
+                                                                    className="ml-auto text-[10px] text-red-500 hover:text-red-400 transition-colors"
+                                                                    aria-label="Eliminar comentario"
+                                                                >
+                                                                    <Icons.Trash size={12} />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap break-words mb-3">{r.content}</p>
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            {/* SPEC-036: like en reply */}
                                                             <button
-                                                                onClick={() => handleDeleteReply(r.id)}
-                                                                className="ml-auto text-[10px] text-red-500 hover:text-red-400 transition-colors"
-                                                                aria-label="Eliminar comentario"
+                                                                onClick={() => handleToggleReplyLike(r.id)}
+                                                                aria-pressed={liked}
+                                                                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[11px] font-bold transition-all active:scale-95
+                                                                    ${liked
+                                                                        ? 'bg-pink-500/15 border-pink-500/40 text-pink-300'
+                                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:border-pink-500/30 hover:text-pink-300'}`}
                                                             >
-                                                                <Icons.Trash size={12} />
+                                                                <Icons.Heart size={12} className={liked ? 'fill-current' : ''} />
+                                                                <span className="tabular-nums">{r.likeCount ?? 0}</span>
                                                             </button>
+                                                            {/* SPEC-038: botón Responder por reply */}
+                                                            <button
+                                                                onClick={() => {
+                                                                    setReplyingTo(replyingTo === r.id ? null : r.id);
+                                                                    setReplyDraft('');
+                                                                }}
+                                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[11px] font-bold transition-all active:scale-95
+                                                                    ${replyingTo === r.id
+                                                                        ? 'bg-blue-500/15 border-blue-500/40 text-blue-300'
+                                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:border-blue-500/30 hover:text-blue-300'}`}
+                                                                aria-pressed={replyingTo === r.id}
+                                                            >
+                                                                ↳ Responder
+                                                            </button>
+                                                        </div>
+
+                                                        {/* SPEC-038: form inline aparece SOLO bajo el reply seleccionado */}
+                                                        {replyingTo === r.id && (
+                                                            <div className="mt-3 bg-blue-500/5 border border-blue-500/20 rounded-xl p-3 flex gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                                                <textarea
+                                                                    value={replyDraft}
+                                                                    onChange={(e) => setReplyDraft(e.target.value)}
+                                                                    placeholder={`Respondiendo a ${r.authorName}…`}
+                                                                    className="flex-1 bg-transparent border-none outline-none text-white text-sm resize-none placeholder:text-gray-500"
+                                                                    rows={2}
+                                                                    maxLength={2000}
+                                                                    autoFocus
+                                                                />
+                                                                <div className="flex flex-col gap-1">
+                                                                    <button
+                                                                        onClick={handleSubmitReply}
+                                                                        disabled={submittingReply || replyDraft.trim().length < 2}
+                                                                        className="bg-blue-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white w-9 h-9 rounded-lg flex items-center justify-center shadow active:scale-95 transition-all"
+                                                                        aria-label="Enviar respuesta anidada"
+                                                                    >
+                                                                        <Icons.Send size={14} />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => { setReplyingTo(null); setReplyDraft(''); }}
+                                                                        className="text-gray-500 hover:text-white text-[10px] font-bold transition-colors"
+                                                                        aria-label="Cancelar"
+                                                                    >
+                                                                        ✕
+                                                                    </button>
+                                                                </div>
+                                                            </div>
                                                         )}
                                                     </div>
-                                                    <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap break-words mb-3">{r.content}</p>
-                                                    {/* SPEC-036: like en reply */}
-                                                    <button
-                                                        onClick={() => handleToggleReplyLike(r.id)}
-                                                        aria-pressed={liked}
-                                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[11px] font-bold transition-all
-                                                            ${liked
-                                                                ? 'bg-pink-500/15 border-pink-500/40 text-pink-300'
-                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:border-pink-500/30 hover:text-pink-300'}`}
-                                                    >
-                                                        <Icons.Heart size={12} className={liked ? 'fill-current' : ''} />
-                                                        <span className="tabular-nums">{r.likeCount ?? 0}</span>
-                                                    </button>
                                                 </div>
                                             </div>
                                         );
@@ -653,25 +749,28 @@ const ForumEngine = () => {
                                 )}
                             </div>
 
-                            {/* Form reply */}
-                            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex gap-3">
-                                <textarea
-                                    value={replyDraft}
-                                    onChange={(e) => setReplyDraft(e.target.value)}
-                                    placeholder="Comparte tu experiencia o duda…"
-                                    className="flex-1 bg-transparent border-none outline-none text-white text-sm resize-none placeholder:text-gray-600"
-                                    rows={2}
-                                    maxLength={2000}
-                                />
-                                <button
-                                    onClick={handleSubmitReply}
-                                    disabled={submittingReply || replyDraft.trim().length < 2}
-                                    className="bg-blue-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all shrink-0"
-                                    aria-label="Enviar respuesta"
-                                >
-                                    <Icons.Send size={18} />
-                                </button>
-                            </div>
+                            {/* SPEC-038: form principal solo activo cuando replyingTo === null
+                                (cuando hay un replyingTo set, el form inline cubre el caso). */}
+                            {replyingTo === null && (
+                                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex gap-3">
+                                    <textarea
+                                        value={replyDraft}
+                                        onChange={(e) => setReplyDraft(e.target.value)}
+                                        placeholder="Comparte tu experiencia o duda…"
+                                        className="flex-1 bg-transparent border-none outline-none text-white text-sm resize-none placeholder:text-gray-600"
+                                        rows={2}
+                                        maxLength={2000}
+                                    />
+                                    <button
+                                        onClick={handleSubmitReply}
+                                        disabled={submittingReply || replyDraft.trim().length < 2}
+                                        className="bg-blue-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all shrink-0"
+                                        aria-label="Enviar respuesta"
+                                    >
+                                        <Icons.Send size={18} />
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

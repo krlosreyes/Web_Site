@@ -90,6 +90,7 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 035 | PostReactions con CTA al test (no a registro directo) | ✅ Cerrada (2026-05-10) | Anónimo veía "Registrate para reaccionar" → /login; saca al user del flow del artículo | [SPEC-035](specs/SPEC-035-postreactions-cta-test.md) |
 | 036 | Foro: nombre real del autor + delete topic + likes en replies | ✅ Cerrada (2026-05-10) | 3 bugs visibles del foro recién deployado | [SPEC-036](specs/SPEC-036-foro-fixes-y-likes-replies.md) |
 | 037 | Reacciones instant feedback + diagnóstico delete topic | ✅ Cerrada (2026-05-10) | Reacciones lentas (esperaban round-trip antes del próximo click); delete topic seguía sin funcionar y el alert era opaco | [SPEC-037](specs/SPEC-037-reacciones-instant-y-delete-debug.md) |
+| 038 | Foro: replies anidadas (cascada 1.1.1) + delete topic solo admin | ✅ Cerrada (2026-05-10) | Replies eran flat (sin árbol); botón Eliminar del topic seguía sin funcionar | [SPEC-038](specs/SPEC-038-foro-replies-anidadas-y-delete-solo-admin.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 
