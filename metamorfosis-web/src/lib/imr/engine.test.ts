@@ -40,10 +40,13 @@ describe('bodyFatNavy', () => {
     });
 
     it('calcula bf para hombre delgado', () => {
-        // Hombre 180cm, waist 78, neck 38 → ~14% (rango fitness)
-        // 86.010*log10(40) - 70.041*log10(180) + 36.76 = ~13.7
+        // Hombre 180cm, waist 78, neck 38:
+        //   86.010 * log10(40) - 70.041 * log10(180) + 36.76
+        //   = 86.010 * 1.60206 - 70.041 * 2.25527 + 36.76
+        //   = 137.79 - 157.96 + 36.76 = 16.59
+        // (entre fitness ~14 y promedio ~20 según ACSM)
         const bf = bodyFatNavy({ heightCm: 180, waistCm: 78, neckCm: 38, gender: 'male' });
-        expectClose(bf, 13.7, 0.5);
+        expectClose(bf, 16.59, 0.5);
     });
 
     it('calcula bf para mujer con hipCm explícito', () => {
