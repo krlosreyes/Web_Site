@@ -246,19 +246,48 @@ const IMRQuiz = () => {
 
     if (step === 0) {
         return (
-            <div className="text-center py-20 animate-fade-in flex flex-col items-center">
-                <div className="mb-12">
-                   <h2 className="text-blue-400 text-xs font-black uppercase tracking-[0.6em] mb-4">Protocolo SPEC-70.5</h2>
-                   <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-[#00C49A] mx-auto"></div>
+            <div className="text-center py-12 sm:py-20 animate-fade-in flex flex-col items-center px-4">
+                {/* SPEC-047: chip eyebrow amigable, no jerga interna */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] mb-8">
+                    🧬 Diagnóstico gratuito · 2 minutos
                 </div>
+
+                {/* SPEC-047: pregunta hook + responsive (regla SPEC-031) */}
+                <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter leading-[1.05] mb-6 max-w-3xl break-words">
+                    ¿Qué edad tiene tu <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">metabolismo</span>?
+                </h1>
+
+                {/* SPEC-047: sub-copy con beneficio claro */}
+                <p className="text-gray-300 text-base sm:text-lg max-w-xl mx-auto mb-2 font-medium leading-relaxed">
+                    Tu cuerpo te está hablando. Vamos a traducirlo.
+                </p>
+                <p className="text-gray-400 text-sm sm:text-base max-w-xl mx-auto mb-12 leading-relaxed">
+                    Descubrí tu <strong className="text-white">Índice Metabólico Real (IMR)</strong> y recibí un reporte personalizado con los 5 pilares que tenés que ajustar para recuperar energía, claridad mental y composición corporal.
+                </p>
+
+                {/* CTA primario (mantenido visual, copy más imperativo y cálido) */}
                 <button onClick={() => setStep(1)} className="relative group outline-none">
                     <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full blur opacity-40 group-hover:opacity-100 transition duration-1000"></div>
-                    <div className="relative px-14 py-6 bg-gradient-to-r from-[#00C49A] to-teal-600 text-white text-2xl font-black rounded-full border border-blue-400/50 flex items-center gap-4 hover:scale-105 transition-all shadow-2xl">
-                        INICIAR ESCANEO IMR
+                    <div className="relative px-10 sm:px-14 py-5 sm:py-6 bg-gradient-to-r from-[#00C49A] to-teal-600 text-white text-lg sm:text-2xl font-black rounded-full border border-blue-400/50 flex items-center gap-4 hover:scale-105 transition-all shadow-2xl">
+                        INICIAR MI DIAGNÓSTICO
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                     </div>
                 </button>
-                <p className="mt-12 text-gray-500 text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Basado en Composición Visceral y Ritmos Circadianos</p>
+
+                {/* SPEC-047: trust signals abajo */}
+                <div className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:gap-4 max-w-xl">
+                    <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest">
+                        <span className="text-[#00C49A]">✓</span> Sin registro previo
+                    </span>
+                    <span className="text-gray-700">·</span>
+                    <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest">
+                        <span className="text-[#00C49A]">✓</span> Resultado al instante
+                    </span>
+                    <span className="text-gray-700">·</span>
+                    <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest">
+                        <span className="text-[#00C49A]">✓</span> Basado en evidencia
+                    </span>
+                </div>
             </div>
         );
     }
