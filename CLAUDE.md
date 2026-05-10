@@ -46,6 +46,10 @@ respetar el schema versionado (`SCHEMA_VERSION` en
 - **Reglas de Firestore:** vivien en `firebase/firestore.rules`. NO se deployan
   con el push: hay que publicarlas manualmente desde Firebase Console o con
   `firebase deploy --only firestore:rules`.
+- **Analytics:** Umami cloud (SPEC-028). Variable `PUBLIC_UMAMI_WEBSITE_ID` en
+  Hostinger env vars (formato `PUBLIC_*` requerido por Astro para que sea
+  accesible al cliente). El componente `UmamiScript.astro` excluye `/admin/*`
+  y solo se inyecta en `import.meta.env.PROD`.
 
 **Prohibido sin spec previa:**
 - Cambiar de Hostinger a otro hosting (Vercel/Netlify/etc.).

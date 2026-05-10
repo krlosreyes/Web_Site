@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import Navbar from "../components/Navbar.astro";
 import Footer from "../components/Footer.astro";
+import UmamiScript from "../components/UmamiScript.astro";
 
 interface Props {
     title: string;
@@ -69,6 +70,9 @@ const siteName = "Metamorfosis Real";
         <meta property="twitter:title" content={title} />
         <meta property="twitter:description" content={description} />
         <meta property="twitter:image" content={new URL(image, Astro.url)} />
+
+        <!-- SPEC-028: Analytics con Umami (excluye /admin/* y dev) -->
+        <UmamiScript />
 
         <!-- Google Fonts: Space Grotesk & Inter -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -1,0 +1,29 @@
+---
+/**
+ * UmamiScript — analytics real con Umami cloud (SPEC-028).
+ *
+ * Inyecta el script de tracking SOLO si:
+ *   - Estamos en producción (no contaminamos dev/preview con visitas).
+ *   - La env var PUBLIC_UMAMI_WEBSITE_ID está seteada.
+ *   - El path actual NO empieza con /admin (excluye tráfico interno).
+ *
+ * Setup: ver SPEC-028 para los pasos en Umami cloud + Hostinger env var.
+ *
+ * Privacy: Umami no setea cookies y no recolecta PII por default —
+ * no requiere banner GDPR/CCPA.
+ */
+const path = Astro.url.pathname;
+const isAdminPath = path.startsWith('/admin');
+const websiteId = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID;
+const enabled = import.meta.env.PROD && !!websiteId && !isAdminPath;
+---
+
+{
+    enabled && (
+        <script
+            defer
+            src="https://cloud.umami.is/script.js"
+            data-website-id={websiteId}
+        />
+    )
+}
