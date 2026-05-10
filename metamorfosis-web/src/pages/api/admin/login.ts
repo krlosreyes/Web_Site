@@ -95,9 +95,7 @@ export const POST: APIRoute = async ({ request }) => {
         resetRateLimit(clientIp);
         
         const sessionCookie = createSecureSessionCookie('firebase_auth');
-        
-        console.log(`[Auth] Successful login from IP: ${clientIp}`);
-        
+
         return new Response(
             JSON.stringify({
                 success: true,

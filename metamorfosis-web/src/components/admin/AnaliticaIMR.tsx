@@ -131,7 +131,6 @@ const AnaliticaIMR = () => {
                     return timeB - timeA;
                 });
 
-                console.log("🔥 Registros IMR Crudos Descargados:", users.length);
                 setData(users);
             } catch (err: any) {
                 console.error("Error fetching pruebas:", err);

@@ -23,9 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
         }
         
         const logoutCookie = createLogoutCookie();
-        
-        console.log('[Auth] Admin logout executed');
-        
+
         return new Response(
             JSON.stringify({
                 success: true,
