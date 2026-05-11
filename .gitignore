@@ -1,0 +1,68 @@
+# SPEC-050 — .gitignore del root del repo (defense in depth).
+#
+# El gitignore que cubre la app vive en `metamorfosis-web/.gitignore` (ese
+# es el que protege node_modules, .env, service-accounts, etc. dentro del
+# proyecto Astro). Este archivo en root protege contra leaks accidentales
+# de archivos sensibles que se creen FUERA de la subdir del proyecto
+# (ej. scripts adhoc, dumps de datos, exports, notas con credenciales).
+
+# ────────────── Sistema operativo ──────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ────────────── Editores / IDEs ──────────────
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.zed/
+
+# ────────────── Secretos genéricos ──────────────
+# Cualquier .env en cualquier nivel del repo
+.env
+.env.*
+!.env.example
+
+# Service-accounts y credenciales (Firebase, GCP, AWS, etc.)
+*-adminsdk-*.json
+service-account*.json
+serviceAccount*.json
+credentials.json
+gcp-key*.json
+aws-credentials*
+
+# Claves SSH / PGP que alguien pueda copiar al repo por error
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# ────────────── Logs y temporales ──────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.cache/
+tmp/
+temp/
+
+# ────────────── Outputs comunes ──────────────
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# ────────────── Dumps / exports ad hoc ──────────────
+# Archivos que típicamente se crean para debugging y NO van al repo
+*.dump
+*.sql
+dump-*.json
+export-*.csv
+backup-*.{json,sql,csv,zip,tar,gz}

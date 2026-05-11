@@ -108,6 +108,12 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 043 | Notificaciones in-app del foro | ✅ Cerrada (2026-05-10) | Sin notif, los users no volvían al sitio cuando alguien les respondía | [SPEC-043](specs/SPEC-043-notificaciones-foro.md) |
 | 044 | Mentions @usuario en el foro | ✅ Cerrada (2026-05-10) | No se podía invocar a un user específico a una conversación | [SPEC-044](specs/SPEC-044-mentions-foro.md) |
 
+### Fase 6 — PRE-LANZAMIENTO (2026-05-11)
+
+| # | Spec | Estado | Problema | Archivo |
+|---|---|---|---|---|
+| 050 | `.gitignore` blindado (defense in depth) | ✅ Cerrada (2026-05-11) | Root del repo sin `.gitignore` (el real vive en `metamorfosis-web/`) y `.DS_Store` del root quedó trackeado | [SPEC-050](specs/SPEC-050-gitignore-blindado.md) |
+
 ### Fase 4 — BAJOS (limpieza)
 
 `.quarantine_modules`, `last-update.txt`, `ArticleQuiz` duplicado, bundle Recharts.
