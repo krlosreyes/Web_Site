@@ -214,8 +214,13 @@ const jsonLd = {
             </div>
         </div>
 
-        <!-- Footer Sections Container (Reactions, Quiz, References, CTA) -->
-        <div class="container mx-auto px-6 pb-24 max-w-3xl">
+        <!-- Footer Sections Container (Reactions, Quiz, References, CTA)
+             SPEC-068: pt-12 md:pt-16 controla el espaciado entre el último
+             elemento del prose y la primera card de footer. Antes el gap
+             dependía del margin-bottom del último child del .prose (un <ol>
+             con my-20 dejaba 80px; un <p> mucho menos), produciendo
+             inconsistencia entre artículos. -->
+        <div class="container mx-auto px-6 pt-12 md:pt-16 pb-24 max-w-3xl">
             {/* SPEC-032: reacciones del artículo (👍/👎)
                 SPEC-035: hasQuiz cambia el CTA del anónimo a "Contesta el test"
                 con scroll a #quiz-section, en lugar de mandar a /login. */}
@@ -673,6 +678,24 @@ const jsonLd = {
     /* Scroll suave hacia los anchors de los H2 desde el TOC */
     html { scroll-behavior: smooth; }
     .prose h2[id] { scroll-margin-top: 100px; }
+
+    /* SPEC-068: coherencia del gap final entre artículos.
+       El último elemento del prose NUNCA debe aportar margin-bottom propio.
+       Si el artículo termina en <ol> (roadmap), <blockquote> (callout), <p>
+       o <table>, el espacio a las cards del footer lo da el container
+       exterior (pt-12 md:pt-16), no el margin natural del elemento.
+       Sin esta regla, un <ol my-20> deja 80px y un <p mb-10> deja 40px,
+       y el gap visual cambia de artículo a artículo. */
+    .prose > div > *:last-child,
+    .prose > *:last-child {
+        margin-bottom: 0 !important;
+    }
+    /* También el último child interno cuando el último child es un wrapper
+       (ej. <blockquote><p>...</p></blockquote>): el <blockquote> retiene su
+       margin solo porque está fuera del último-child directo. Cubrimos. */
+    .prose > div:last-child > *:last-child {
+        margin-bottom: 0 !important;
+    }
 
     @keyframes fadeInUp {
         from {
