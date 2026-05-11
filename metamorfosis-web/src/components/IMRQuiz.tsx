@@ -252,17 +252,27 @@ const IMRQuiz = () => {
                     🧬 Diagnóstico gratuito · 2 minutos
                 </div>
 
-                {/* SPEC-047: pregunta hook + responsive (regla SPEC-031) */}
-                <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter leading-[1.05] mb-6 max-w-3xl break-words">
+                {/* SPEC-047: pregunta hook + responsive.
+                    SPEC-061: escalado más conservador (text-3xl sm:4xl md:5xl
+                    lg:6xl) y tracking-tight (no tighter) — el escalado anterior
+                    cortaba la palabra en algunos viewports y daba sensación
+                    visual apretada. max-w-3xl + break-words como defensa. */}
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white italic uppercase tracking-tight leading-[1.1] mb-6 max-w-3xl break-words">
                     ¿Qué edad tiene tu <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">metabolismo</span>?
                 </h1>
 
-                {/* SPEC-047: sub-copy con beneficio claro */}
+                {/* SPEC-061: copy del sub-hook honesto. El anterior prometía
+                    "reporte personalizado con los 5 pilares para recuperar
+                    energía, claridad mental y composición corporal" pero el
+                    quiz solo entrega: IMR score + zona biológica + bloques
+                    E/M/C + edad metabólica. Sin reporte PDF, sin tracking de
+                    claridad mental. Ahora el copy refleja lo que realmente
+                    recibe el user. */}
                 <p className="text-gray-300 text-base sm:text-lg max-w-xl mx-auto mb-2 font-medium leading-relaxed">
                     Tu cuerpo te está hablando. Vamos a traducirlo.
                 </p>
                 <p className="text-gray-400 text-sm sm:text-base max-w-xl mx-auto mb-12 leading-relaxed">
-                    Descubre tu <strong className="text-white">Índice Metabólico Real (IMR)</strong> y recibe un reporte personalizado con los 5 pilares que tienes que ajustar para recuperar energía, claridad mental y composición corporal.
+                    Calcula tu <strong className="text-white">Índice Metabólico Real (IMR)</strong> en menos de 2 minutos. Descubre tu edad metabólica estimada y la zona biológica donde te encuentras hoy.
                 </p>
 
                 {/* CTA primario (mantenido visual, copy más imperativo y cálido) */}
