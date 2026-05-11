@@ -4,6 +4,7 @@ import { COLLECTIONS } from '../../../lib/constants/firestore';
 import { PILLAR_IDS, isValidPillarId } from '../../../lib/constants/pillars';
 import { isAuthenticatedFromCookie, parseCookies, enforceProductionSecurity } from '../../../lib/auth';
 import { logAdminAction, diffOf } from '../../../lib/auditLog';
+import { slugify } from '../../../lib/utils/slugify';
 
 /**
  * Parsea publishedAt del body (SPEC-023). Devuelve:
@@ -114,15 +115,11 @@ export const POST: APIRoute = async ({ request }) => {
             });
         }
 
-        // Slug ultra-seguro y truncado
-        let slug = title.toLowerCase()
-            .trim()
-            .replace(/\s+/g, '-')
-            .replace(/[^\w\-]+/g, '')
-            .replace(/\-\-+/g, '-')
-            .substring(0, 100);
-
-        if (slug.endsWith('-')) slug = slug.slice(0, -1);
+        // SPEC-062: slug con transliteración correcta del español (tildes y eñes
+        // se convierten a ASCII: 'sueño' → 'sueno', 'qué' → 'que'). El generador
+        // anterior usaba `replace(/[^\w\-]+/g, '')` que eliminaba esos caracteres
+        // mutilando las palabras del slug. Ver lib/utils/slugify.ts.
+        const slug = slugify(title);
 
         const newPost: Record<string, unknown> = {
             title,
