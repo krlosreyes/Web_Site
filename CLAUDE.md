@@ -113,13 +113,13 @@ probá esto otro":
   webp:method=6 orig.webp`. Pruebas con header-bg: 2 MB → 141 KB (-93%).
   Imágenes con LCP: declarar `preloadImage` en `BaseLayout` props para
   inyectar `<link rel="preload" as="image" fetchpriority="high">`.
-- **Fonts self-hosted (post-SPEC-030c):** Inter (400/500/600/700/800) y
-  Space Grotesk (500/700) viven en `metamorfosis-web/public/fonts/` como
-  WOFF2. NO agregar `<link>` a `fonts.googleapis.com` ni `fonts.gstatic.com`
-  en ningún layout — añade ~610ms al LCP por DNS+TLS+CSS+WOFF2 chain. Si
-  hace falta otro weight, descargarlo con el script en SPEC-030c y agregar
-  `@font-face` en `global.css`. Solo los 2 WOFF2 del LCP se preloadean en
-  `BaseLayout` (Space Grotesk 700 + Inter 400). El resto carga lazy.
+- **Fonts (post-SPEC-030c REVERTIDA):** Inter y Space Grotesk cargan desde
+  `fonts.googleapis.com` con pattern non-blocking (preload as=style +
+  media=print + noscript). Intentamos self-hostear (SPEC-030c) y bajó
+  Performance de 84 → 63 por error en el script de descarga (WOFF2 de
+  range wrong). Si en el futuro se retoma self-hosting: usar Google
+  Webfonts Helper manual (gwfh.mranftl.com), NO Python script, y verificar
+  visualmente + Lighthouse antes de declarar la spec cerrada.
 - **Páginas con `BaseLayout` deben reservar ≥80px de padding-top** en su
   primer wrapper (`pt-24` o `pt-28` según diseño). El Navbar es `fixed
   top-0 h-20` y NO empuja contenido. Excepción: páginas con hero a viewport

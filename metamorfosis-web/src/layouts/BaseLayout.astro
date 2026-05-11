@@ -110,27 +110,33 @@ const siteName = "Metamorfosis Real";
         <!-- SPEC-028: Analytics con Umami (excluye /admin/* y dev) -->
         <UmamiScript />
 
-        <!-- SPEC-030c: Self-hosted fonts (Inter + Space Grotesk).
-             Antes cargaban desde fonts.googleapis.com — 4 round trips (DNS,
-             TLS, CSS, WOFF2) que sumaban ~610ms al critical path del LCP.
-             Ahora WOFF2 viven en /public/fonts/ y se preloadean los dos
-             críticos para el hero (Space Grotesk 700 para el heading,
-             Inter 400 para el cuerpo). El resto se cargan lazy cuando los
-             pida un selector. @font-face vive en global.css. -->
+        <!-- Google Fonts: Space Grotesk & Inter
+             SPEC-030: pattern non-blocking (preload as=style + media=print
+             onload swap + noscript fallback). Intentamos self-hostear en
+             SPEC-030c pero el script de descarga falló (WOFF2 del range
+             wrong) y bajó Performance de 84 a 63. Revertido. Si en el
+             futuro queremos volver a self-hostear, ver SPEC-030c para qué
+             evitar (script Python debe filtrar @font-face por unicode-range
+             latin antes de descargar). -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
             rel="preload"
-            as="font"
-            type="font/woff2"
-            href="/fonts/space-grotesk-700.woff2"
-            crossorigin
+            as="style"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
         />
         <link
-            rel="preload"
-            as="font"
-            type="font/woff2"
-            href="/fonts/inter-400.woff2"
-            crossorigin
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+            rel="stylesheet"
+            media="print"
+            onload="this.media='all'"
         />
+        <noscript>
+            <link
+                href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+                rel="stylesheet"
+            />
+        </noscript>
     </head>
     <body class="bg-base text-primary">
         <!-- PERSISTENT GLOW -->

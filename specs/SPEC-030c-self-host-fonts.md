@@ -1,10 +1,70 @@
 # SPEC-030c — Self-host Google Fonts
 
-**Estado:** ✅ Cerrada
+**Estado:** ❌ FALLIDA / REVERTIDA
 **Fase:** Post-Fase 4 — performance / Core Web Vitals
-**Severidad:** MEDIO (último push de 84 → 90+)
+**Severidad:** MEDIO (intento de subir 84 → 90+, empeoró a 63)
 **Fecha de creación:** 2026-05-10
-**Cerrada:** 2026-05-10
+**Revertida:** 2026-05-10
+
+---
+
+## ⚠️ POSTMORTEM — Por qué falló
+
+Esta spec se cerró como ✅ pero al verificar el resultado, **Performance bajó
+de 84 → 63**. Revertida en el mismo día.
+
+**Causa raíz:** el script Python de descarga sobrescribía cada `.woff2`
+7 veces (Google Fonts CSS2 sirve un `@font-face` por unicode-range para
+cada weight: latin, latin-ext, cyrillic, cyrillic-ext, greek, greek-ext,
+vietnamese). El último range procesado quedaba como el archivo final,
+**y NO siempre era latin**. Los Inter resultantes pesaban 47K cuando el
+range latin típicamente pesa 18-22K, evidencia de que se guardó un range
+extendido (probablemente vietnamese o latin-ext con más glyphs).
+
+Consecuencias en producción:
+1. **Web fonts no se aplicaban al texto latino**: el browser pedía los WOFF2,
+   no encontraba la unicode-range latin, caía a system font.
+2. **280KB de fonts inútiles en critical path**: 7 archivos × 40-47K se
+   descargaban innecesariamente.
+3. **Render-blocking 80ms → 1,240ms**: los 7 `@font-face` inline en
+   `global.css` hicieron crecer el bundle CSS y bloquearon más.
+4. **Cache TTL=None en los WOFF2**: cada visit los re-bajaba.
+
+Verificación faltante antes de declarar éxito:
+- No abrí el sitio en browser para confirmar visualmente que las fonts
+  se aplicaban.
+- No chequé el peso de los WOFF2 vs el esperado para latin.
+- No corrí Lighthouse después de implementar — confié en que "build local
+  OK" significaba que funcionaría.
+
+**Lección:** declarar una spec ✅ requiere verificación end-to-end con
+métricas reales, no solo build local OK.
+
+## Decisión: revertir, NO arreglar en una segunda pasada
+
+Revertir es más limpio que intentar arreglar el script. SPEC-030b daba
+Performance 84 que es aceptable. El último 6+ puntos para llegar a 90 no
+justifica más complejidad ni más sesiones de iteración.
+
+Si en el futuro queremos retomar self-hosting:
+1. Usar Google Webfonts Helper (`gwfh.mranftl.com`) manualmente vía browser
+   — NO Python script — para garantizar WOFF2 del range latin correcto.
+2. Verificar peso de archivos: Inter latin ~18-22K, Space Grotesk latin ~12-15K.
+3. Probar visualmente que las fuentes se aplican antes de declarar éxito.
+4. Re-correr Lighthouse antes de cerrar la spec.
+
+## Cambios revertidos
+
+- `global.css`: eliminados los 7 `@font-face`.
+- `BaseLayout.astro`: restaurado el bloque de Google Fonts non-blocking
+  de SPEC-030 (preconnect + preload as=style + media=print onload swap +
+  noscript fallback).
+- `/public/fonts/`: 7 archivos WOFF2 borrados con `git rm`.
+- `CLAUDE.md`: removida la regla de fonts self-hosted (incorrecta).
+
+## Estado original (preservado para referencia)
+
+**Fecha original (sin postmortem):** 2026-05-10
 **Autor:** Carlos Reyes
 **Depende de:** SPEC-030 (preload images), SPEC-030b (defer Firebase)
 
