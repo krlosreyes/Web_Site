@@ -98,6 +98,15 @@ const siteName = "Metamorfosis Real";
             />
         )}
 
+        <!-- SPEC-030b: preconnects a los terceros que Firebase Auth y Umami
+             contactan al hidratarse. Lighthouse reportó ahorro estimado:
+             firebaseapp.com (310ms) + umami.dev (300ms). El handshake
+             DNS+TLS se hace en paralelo con el render, así cuando los
+             componentes idle se hidratan y necesitan estos hosts, la
+             conexión ya está caliente. -->
+        <link rel="preconnect" href="https://elena-app-2026-v1.firebaseapp.com" crossorigin />
+        <link rel="preconnect" href="https://api-gateway.umami.dev" crossorigin />
+
         <!-- SPEC-028: Analytics con Umami (excluye /admin/* y dev) -->
         <UmamiScript />
 

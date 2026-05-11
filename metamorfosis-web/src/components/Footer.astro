@@ -116,7 +116,8 @@ const SOCIAL_LINKS = {
                             >Política de Privacidad</a
                         >
                     </li>
-                    <li class="pt-2 text-xs text-gray-500 italic">
+                    <!-- SPEC-030b: text-gray-500 → text-gray-400 (WCAG AA sobre bg-gray-900: 3.3:1 → 6.4:1). -->
+                    <li class="pt-2 text-xs text-gray-400 italic">
                         metamorfosisvitaloficial@gmail.com
                     </li>
                 </ul>
@@ -127,19 +128,20 @@ const SOCIAL_LINKS = {
         <div
             class="w-full flex flex-col sm:flex-row items-center justify-between gap-2 py-4 border-t border-white/10 mt-8"
         >
-            <div class="text-xs text-[#4a637e]">
+            {/* SPEC-030b: text-[#4a637e] (~3.3:1 contrast) → text-gray-400 (6.4:1, WCAG AA). */}
+            <div class="text-xs text-gray-400">
                 © {new Date().getFullYear()} Metamorfosis Real. Todos los derechos
                 reservados.
             </div>
             <div class="flex items-center gap-4">
                 <a
                     href="/privacidad"
-                    class="text-xs text-[#4a637e] hover:text-[#007BFF] transition-colors duration-200 font-medium"
+                    class="text-xs text-gray-400 hover:text-[#007BFF] transition-colors duration-200 font-medium"
                     >Privacidad</a
                 >
                 <a
                     href="/terminos"
-                    class="text-xs text-[#4a637e] hover:text-[#007BFF] transition-colors duration-200 font-medium"
+                    class="text-xs text-gray-400 hover:text-[#007BFF] transition-colors duration-200 font-medium"
                     >Términos</a
                 >
                 {

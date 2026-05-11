@@ -25,8 +25,8 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
             <img
                 src="/logoSite.webp"
                 alt="Metamorfosis Real"
-                width="56"
-                height="56"
+                width="192"
+                height="192"
                 class="h-12 md:h-14 w-auto drop-shadow-[0_0_18px_rgba(59,130,246,0.55)] group-hover:drop-shadow-[0_0_22px_rgba(59,130,246,0.85)] group-hover:scale-110 transition-all duration-500"
             />
             <span
@@ -92,10 +92,13 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
                             >
                                 Cerrar Sesión
                             </button>
-                            {/* SPEC-043: campanita de notificaciones (solo si user logueado, decide internamente) */}
-                            <NotificationBell client:load />
-                            {/* SPEC-048: pill ElenaApp con modal de waitlist */}
-                            <ElenaAppCTA client:load />
+                            {/* SPEC-043: campanita de notificaciones (solo si user logueado, decide internamente).
+                                SPEC-030b: client:idle en vez de client:load para sacar Firebase del critical path —
+                                la bell hidrata cuando el browser está idle, no antes del LCP. */}
+                            <NotificationBell client:idle />
+                            {/* SPEC-048: pill ElenaApp con modal de waitlist.
+                                SPEC-030b: client:idle (no afecta UX, solo posterga ~100ms la hidratación). */}
+                            <ElenaAppCTA client:idle />
                         </>
                     )
                 }
@@ -214,7 +217,8 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
                             handler de mobile-menu-link, pero el modal se
                             abre por encima del navbar (z-[200]). */}
                         <div class="mt-2">
-                            <ElenaAppCTA client:load />
+                            {/* SPEC-030b: client:idle aquí también. */}
+                            <ElenaAppCTA client:idle />
                         </div>
                     </>
                 )
