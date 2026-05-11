@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { marked } from 'marked';
 import { PILLARS, isValidPillarId, type PillarId } from '../../lib/constants/pillars';
+import { normalizeArticleContent } from '../../lib/utils/normalizeArticleContent';
 
 interface Question {
     question: string;
@@ -261,7 +262,12 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
 
             try {
                 const rawContent = getTagContent('CONTENIDO');
-                if (rawContent) setContent(rawContent.trim());
+                // SPEC-063: normalizar párrafos. Si la IA generó un bloque sin
+                // saltos \n\n, el helper los inserta heurísticamente (cada 3
+                // oraciones = 1 párrafo) y separa las dos secciones obligatorias.
+                // Si el contenido ya viene bien formateado (con \n\n o ##
+                // headings), el helper no toca nada.
+                if (rawContent) setContent(normalizeArticleContent(rawContent));
             } catch (e) { console.warn('Error parsing CONTENIDO:', e); }
 
             try {
@@ -602,14 +608,14 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
                                     >
                                         "
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => {
                                             const textarea = document.getElementById('content-editor') as HTMLTextAreaElement;
                                             const start = textarea.selectionStart;
                                             const text = textarea.value;
                                             const lineStart = text.lastIndexOf('\n', start - 1) + 1;
                                             const isNumList = text.substring(lineStart, lineStart + 3) === '1. ';
-                                            
+
                                             let newText;
                                             if (isNumList) {
                                                 newText = text.substring(0, lineStart) + text.substring(lineStart + 3);
@@ -621,6 +627,16 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
                                         className="px-3 py-1 hover:bg-white/10 rounded text-xs font-bold text-white" title="Lista Numerada (Quitar/Poner)"
                                     >
                                         1.
+                                    </button>
+                                    {/* SPEC-063: aplicar normalización a contenido ya pegado.
+                                        Útil para artículos viejos que se cargan al editor y
+                                        vienen como bloque sin saltos. */}
+                                    <button
+                                        onClick={() => setContent(normalizeArticleContent(content))}
+                                        className="ml-2 px-3 py-1 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-400/30 text-amber-300 rounded text-xs font-bold whitespace-nowrap"
+                                        title="Inserta saltos de párrafo si el contenido vino pegado en un bloque"
+                                    >
+                                        ✨ Re-normalizar
                                     </button>
                                 </div>
                             </div>
