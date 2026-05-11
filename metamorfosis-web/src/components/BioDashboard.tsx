@@ -103,7 +103,7 @@ const BioDashboard = () => {
                         ...DEFAULT_STATS,
                         imr: parseInt(localScore, 10) || 0,
                         userName: localName || 'Biohacker',
-                        zona: localLabel || 'Análisis SPEC-70.5',
+                        zona: localLabel || 'Diagnóstico IMR',
                         blocks: { E: 0.5, M: 0.4, C: 0.6 },
                         isLoading: false,
                     });
@@ -194,7 +194,7 @@ const BioDashboard = () => {
                 <div className="bg-gradient-to-br from-blue-500/10 to-[#00C49A]/10 border border-blue-500/30 rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div>
                         <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Tu diagnóstico está vacío</h3>
-                        <p className="text-gray-400 text-sm">Haz el escaneo SPEC-70.5 (2 minutos) y desbloquea tu reporte completo.</p>
+                        <p className="text-gray-400 text-sm">Haz tu diagnóstico IMR (2 minutos) y desbloquea tu reporte completo.</p>
                     </div>
                     <a href="/quiz" className="bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-widest text-xs px-8 py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all whitespace-nowrap">
                         Iniciar Escaneo →
@@ -216,7 +216,7 @@ const BioDashboard = () => {
                     <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white italic uppercase tracking-tight leading-tight break-words pb-1">
                         Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">{stats.userName}</span>
                     </h1>
-                    <p className="mt-3 text-gray-500 text-[10px] font-black uppercase tracking-[0.4em]">Reporte de Diagnóstico SPEC-70.5</p>
+                    <p className="mt-3 text-gray-500 text-[10px] font-black uppercase tracking-[0.4em]">Tu reporte IMR</p>
                 </div>
                 <div className="bg-white/5 px-5 py-3 rounded-2xl border border-white/10 flex items-center gap-3 shrink-0 self-start md:self-center">
                     <span className="w-2 h-2 rounded-full bg-[#00C49A] animate-pulse shrink-0"></span>

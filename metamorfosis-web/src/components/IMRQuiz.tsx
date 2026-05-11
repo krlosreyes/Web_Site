@@ -478,7 +478,7 @@ const IMRQuiz = () => {
     return (
         <div className="max-w-xl w-full mx-auto py-12 px-10 bg-[#0c1f31]/60 backdrop-blur-2xl rounded-[3rem] border border-white/10 shadow-2xl text-center">
             <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-4 leading-none">Análisis Completado</h2>
-            <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-10">Vincula tu identidad para recibir el reporte SPEC-70.5</p>
+            <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-10">Vincula tu identidad para recibir tu reporte IMR</p>
             <form onSubmit={handleFinalRegister} className="space-y-4 text-left">
                 <input required type="text" placeholder="Tu nombre..." className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none focus:border-blue-500" value={regData.name} onChange={e => setRegData({...regData, name: e.target.value})} />
                 <input required type="email" placeholder="Email..." className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none focus:border-blue-500" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} />

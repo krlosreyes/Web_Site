@@ -1,109 +1,141 @@
 @import "tailwindcss";
 
-@theme {
-  --color-bg-base: #050a12;
-  --color-bg-surface: #0c1422;
-  --color-accent-blue: #007BFF;
-  --color-health-green: #10e5a0;
-  --color-text-primary: #f0f6ff;
-  --color-text-secondary: #8ba3c0;
+/* ============================================================
+   SPEC-071: Design system foundation — Metamorfosis Real
+   ------------------------------------------------------------
+   Tokens centralizados. Cualquier valor de color, tamaño, radius
+   o sombra usado en el sitio DEBE venir de acá. Si se necesita
+   uno nuevo, se agrega aquí primero y se usa desde Tailwind.
 
-  --font-heading: "Space Grotesk", sans-serif;
-  --font-body: "Inter", sans-serif;
+   Documentación de uso: ver docs/DESIGN-SYSTEM.md
+
+   Nota sobre clases utilitarias (.card, .pill, .btn-primary):
+   están documentadas en DESIGN-SYSTEM.md pero NO se definen
+   acá todavía — se van introduciendo en SPEC-072+ a medida que
+   los componentes las necesitan. Esto evita que Tailwind v4 falle
+   intentando procesar clases custom que aún no tienen consumidor.
+   ============================================================ */
+
+@theme {
+    /* ---------- COLOR SYSTEM ---------- */
+    /* Backgrounds */
+    --color-bg-base: #020617;
+    --color-bg-surface: #0c1422;
+    --color-bg-elevated: #1a2332;
+
+    /* Text */
+    --color-text-primary: #f1f5f9;
+    --color-text-secondary: #94a3b8;
+    --color-text-muted: #64748b;
+
+    /* Accent — UNO SOLO. Teal de salud / metabolismo. */
+    --color-accent: #00C49A;
+    --color-accent-strong: #00b389;
+
+    /* Status (zona biológica del IMR y similares) */
+    --color-status-good: #10b981;
+    --color-status-warn: #f59e0b;
+    --color-status-bad: #ef4444;
+
+    /* Legacy aliases — DEPRECATED, mantenidos para no romper código
+       existente. Migrar a `accent` / `status-*` en SPEC-072+. */
+    --color-accent-blue: #007BFF;
+    --color-health-green: #10e5a0;
+
+    /* ---------- TYPOGRAPHY ---------- */
+    --font-heading: "Space Grotesk", "Inter", sans-serif;
+    --font-body: "Inter", "Helvetica Neue", sans-serif;
+    --font-display: "Space Grotesk", "Inter", sans-serif;
+    --font-serif: "Playfair Display", "Georgia", serif;
 }
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
-    /* SPEC-026: el navbar es fixed h-20 (80px). scroll-padding-top hace que
-       cuando el browser navega a un anchor (#fragment), el target no quede
-       tapado por el navbar. Match exacto a la altura del navbar inicial. */
-    scroll-padding-top: 5rem;
-  }
+    html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 5rem;
+    }
 
-  /* Defensa adicional: cualquier elemento con id (anchor potencial) reserva
-     5rem de margin-top de scroll para que `scrollIntoView` y `#fragment`
-     dejen el target visible bajo el navbar. */
-  [id] {
-    scroll-margin-top: 5rem;
-  }
+    [id] {
+        scroll-margin-top: 5rem;
+    }
 
-  /* SPEC-031: defensa global anti-overflow horizontal en headings.
-     `overflow-wrap: anywhere` solo se activa cuando una palabra individual
-     es más ancha que el contenedor (caso típico: nombre de usuario largo
-     en text-6xl mobile, slug raro de artículo). En texto normal no afecta
-     el layout. Evita que cualquier heading dinámico nuevo desborde. */
-  h1, h2, h3, h4, h5, h6 {
-    overflow-wrap: anywhere;
-  }
+    /* SPEC-031: defensa global anti-overflow horizontal en headings. */
+    h1, h2, h3, h4, h5, h6 {
+        overflow-wrap: anywhere;
+    }
 
-  /* SPEC-070: defensa global anti-clipping de italic + bg-clip-text.
-     Cuando un texto en italic uppercase tiene un gradient aplicado con
-     bg-clip-text (patrón usado en headings de toda la app), la última
-     letra inclinada se "sale" del bounding-box del texto. Como bg-clip
-     recorta el background al bbox del texto, el slant queda fuera y la
-     letra final parece cortada en el borde superior derecho.
+    /* SPEC-070: defensa global anti-clipping de italic + bg-clip-text. */
+    .bg-clip-text {
+        padding-right: 0.12em;
+        padding-top: 0.05em;
+    }
 
-     Agregamos padding-right en em (escala con el tamaño del texto) para
-     que el slant tenga aire respiratorio sin afectar el ancho percibido.
-     0.12em ≈ ~7px en text-6xl (60px), invisible cuando NO hay italic,
-     suficiente cuando lo hay. Combinamos con padding-top de la mitad
-     porque el italic uppercase también puede crecer hacia arriba en
-     la letra final (especialmente "E", "F", "T" tienen serif imaginario
-     que sobresale del cap-height). */
-  .bg-clip-text {
-    padding-right: 0.12em;
-    padding-top: 0.05em;
-  }
+    body {
+        @apply bg-bg-base text-text-primary font-body antialiased;
+        min-height: 100vh;
+    }
 
-  body {
-    @apply bg-bg-base text-text-primary font-body antialiased selection:bg-accent-blue selection:text-white;
-    min-height: 100vh;
-  }
+    /* SPEC-071: selection color cambia de azul a teal para alinearse
+       con el acento único del nuevo sistema. */
+    ::selection {
+        background-color: var(--color-accent);
+        color: black;
+    }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-heading font-bold text-text-primary tracking-tight;
-  }
+    h1, h2, h3, h4, h5, h6 {
+        @apply font-heading font-bold text-text-primary tracking-tight;
+    }
 }
 
 @layer components {
-  .bg-glow {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    max-width: 800px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(0, 123, 255, 0.1) 0%, transparent 70%);
-    z-index: -1;
-    pointer-events: none;
-    filter: blur(100px);
-  }
+    /* Glow ambiental — solo en hero/landings. */
+    .bg-glow {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        max-width: 800px;
+        height: 600px;
+        background: radial-gradient(
+            circle,
+            rgba(0, 196, 154, 0.08) 0%,
+            transparent 70%
+        );
+        z-index: -1;
+        pointer-events: none;
+        filter: blur(100px);
+    }
 
-  /* Visually force short paragraphs for content. */
-  /* Instead of line-clamp (which breaks flow), we use a max-height or hint. */
-  /* But the user specifically said "forzar visualmente párrafos cortos (máximo 3 líneas de texto)". */
-  .content-reading p {
-    @apply mb-4 leading-relaxed text-text-secondary;
-    /* We can use a trick with max-height or simply styling it for readability */
-  }
-  
-  .glass {
-    @apply bg-bg-surface/60 backdrop-blur-md border border-text-primary/10 rounded-2xl;
-  }
+    /* Visually force short paragraphs for content. */
+    .content-reading p {
+        @apply mb-4 leading-relaxed text-text-secondary;
+    }
 
-  .btn-gradient {
-    @apply px-6 py-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_20px_rgba(0,123,255,0.5)];
-    background: linear-gradient(135deg, #007BFF 0%, #22d3ee 100%);
-    color: white;
-  }
+    /* DEPRECATED: las cards nuevas usan bg-bg-surface sólido + border,
+       no glass. Mantenido para no romper componentes vivos durante la
+       migración de SPEC-072+. */
+    .glass {
+        @apply bg-bg-surface/60 backdrop-blur-md border border-white/10 rounded-2xl;
+    }
 
-  .header-bg-image {
-    /* SPEC-030: webp (-93% peso vs el png-as-jpg original de 2MB). */
-    background-image: linear-gradient(to bottom, rgba(5, 10, 18, 0.7), rgba(5, 10, 18, 0.9)), url('/header-bg.webp');
-    background-size: cover;
-    background-position: center;
-    @apply relative overflow-hidden;
-  }
+    /* DEPRECATED: usar accent teal sólido en código nuevo. */
+    .btn-gradient {
+        @apply px-6 py-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105;
+        background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
+        color: var(--color-bg-base);
+    }
+
+    .header-bg-image {
+        /* SPEC-030: webp (-93% peso vs el png-as-jpg original de 2MB). */
+        background-image: linear-gradient(
+            to bottom,
+            rgba(2, 6, 23, 0.7),
+            rgba(2, 6, 23, 0.9)
+        ),
+        url("/header-bg.webp");
+        background-size: cover;
+        background-position: center;
+        @apply relative overflow-hidden;
+    }
 }
