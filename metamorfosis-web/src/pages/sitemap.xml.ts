@@ -28,8 +28,9 @@ const STATIC_PAGES: StaticPage[] = [
     { path: '/quiz', priority: 0.9, changefreq: 'monthly' },
     { path: '/comunidad', priority: 0.7, changefreq: 'monthly' },
     { path: '/sobre-mi', priority: 0.6, changefreq: 'yearly' },
-    { path: '/calculadora', priority: 0.5, changefreq: 'yearly' },
-    { path: '/protocolo', priority: 0.5, changefreq: 'monthly' },
+    // SPEC-051: removidas /calculadora (ahora redirect 301 a /quiz) y
+    // /protocolo (experimento descartado, página borrada). Google las
+    // descubrirá fuera del sitemap como 301/404 y dejará de indexarlas.
     { path: '/terminos', priority: 0.2, changefreq: 'yearly' },
     { path: '/privacidad', priority: 0.2, changefreq: 'yearly' },
 ];

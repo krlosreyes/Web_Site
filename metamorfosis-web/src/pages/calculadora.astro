@@ -1,15 +1,22 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import MetamorfosisCalculator from '../components/calculator/MetamorfosisCalculator';
-
+/**
+ * /calculadora → /quiz (redirect 301).
+ *
+ * SPEC-051: la URL `/calculadora` fue el primer experimento de un producto
+ * pago con ePayco (MetamorfosisCalculator.tsx) que no llegó a producción.
+ * Como estaba en el sitemap.xml, Google podría haberla indexado y users
+ * podrían tener la URL guardada o linkeada.
+ *
+ * Mantenemos el path vivo con redirect 301 permanente hacia /quiz, que es
+ * la herramienta de diagnóstico actual. Eso:
+ *   - preserva el SEO de los enlaces externos que apuntaran a /calculadora
+ *   - no rompe bookmarks viejos
+ *   - le dice a Google "mové el ranking de esta URL a /quiz"
+ *
+ * El componente `MetamorfosisCalculator.tsx`, el script de ePayco y el
+ * layout legacy `Layout.astro` se borran en el mismo commit — quedan
+ * huérfanos al sacar esta página.
+ */
+export const prerender = false;
+return Astro.redirect('/quiz', 301);
 ---
-
-<Layout title="Calculadora de Longevidad PRO | Metamorfosis">
-    <main>
-        {/* Usamos client:load para que el componente React y Framer Motion se hidraten inmediatamente */}
-        <MetamorfosisCalculator client:load />
-    </main>
-
-    {/* ePayco Script Inclusion */}
-    <script is:inline type="text/javascript" src="https://checkout.epayco.co/checkout.js"></script>
-</Layout>
