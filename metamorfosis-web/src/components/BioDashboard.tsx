@@ -147,143 +147,139 @@ const BioDashboard = () => {
                      el correo de bienvenida fundador no llegó, los beneficios
                      siguen visibles en el dashboard. */}
             {stats.founderNumber !== null && !stats.isLoading && (
-                <div className="relative overflow-hidden bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-[#00C49A]/10 border border-amber-400/30 rounded-[2rem] p-8">
-                    <div className="absolute -top-12 -right-12 w-48 h-48 bg-amber-400/10 blur-[80px] rounded-full pointer-events-none"></div>
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
-                        <div className="flex-shrink-0">
-                            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-300 mb-2">
-                                🎁 Acceso fundador
+                <div className="bg-bg-surface border border-amber-500/20 rounded-xl p-5 md:p-6 flex flex-col md:flex-row md:items-center gap-5">
+                    {/* Lado izquierdo — número fundador compacto */}
+                    <div className="flex items-center gap-4 shrink-0 md:border-r md:border-white/[0.06] md:pr-6">
+                        <div className="w-12 h-12 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-2xl shrink-0">
+                            🎁
+                        </div>
+                        <div>
+                            <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-400 mb-0.5">
+                                Acceso fundador
                             </div>
-                            <div className="text-5xl sm:text-6xl font-black text-white italic tracking-tighter leading-none">
-                                #<span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-[#00C49A]">{stats.founderNumber}</span>
-                            </div>
-                            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mt-2">
-                                de los primeros 1000
+                            <div className="text-2xl font-bold text-text-primary leading-none">
+                                #{stats.founderNumber} <span className="text-text-muted text-sm font-medium">/ 1000</span>
                             </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <h3 className="text-white font-black text-lg uppercase tracking-tighter italic leading-tight mb-4 break-words">
-                                Beneficios garantizados al lanzamiento de <span className="text-[#00C49A]">ElenaApp</span>
-                            </h3>
-                            <ul className="space-y-3">
-                                <li className="flex items-start gap-3">
-                                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-400/15 border border-amber-400/30 flex items-center justify-center text-amber-300 text-xs font-black mt-0.5">1</span>
-                                    <div className="min-w-0">
-                                        <div className="text-white text-sm font-bold">Precio fundador permanente</div>
-                                        <div className="text-gray-400 text-xs">Descuento de por vida en la suscripción anual de ElenaApp.</div>
-                                    </div>
-                                </li>
-                                <li className="flex items-start gap-3">
-                                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#00C49A]/15 border border-[#00C49A]/30 flex items-center justify-center text-[#00C49A] text-xs font-black mt-0.5">2</span>
-                                    <div className="min-w-0">
-                                        <div className="text-white text-sm font-bold">Beneficios sorpresa</div>
-                                        <div className="text-gray-400 text-xs">Se revelan el día del lanzamiento de ElenaApp.</div>
-                                    </div>
-                                </li>
-                            </ul>
-                            <p className="mt-4 text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-                                Sin acción requerida — al iniciar sesión en ElenaApp te identificaremos con tu correo.
-                            </p>
-                        </div>
+                    </div>
+
+                    {/* Lado derecho — beneficios en línea, no en lista vertical */}
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm text-text-secondary leading-relaxed">
+                            <span className="text-text-primary font-semibold">Precio fundador permanente</span> en la suscripción anual de ElenaApp + <span className="text-text-primary font-semibold">beneficios sorpresa</span> que se revelan el día del lanzamiento.
+                        </p>
+                        <p className="mt-2 text-[11px] text-text-muted uppercase tracking-wider">
+                            Sin acción requerida — te identificamos por tu correo
+                        </p>
                     </div>
                 </div>
             )}
 
             {/* Banner cuando no hay diagnóstico aún */}
             {stats.needsOnboarding && !stats.isLoading && (
-                <div className="bg-gradient-to-br from-blue-500/10 to-[#00C49A]/10 border border-blue-500/30 rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div>
-                        <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Tu diagnóstico está vacío</h3>
-                        <p className="text-gray-400 text-sm">Haz tu diagnóstico IMR (2 minutos) y desbloquea tu reporte completo.</p>
+                <div className="bg-bg-surface border border-accent/20 rounded-xl p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-5">
+                    <div className="flex items-center gap-4 min-w-0">
+                        <div className="w-12 h-12 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent shrink-0">
+                            <Icons.Estructura />
+                        </div>
+                        <div className="min-w-0">
+                            <h3 className="text-base font-semibold text-text-primary mb-1">Tu diagnóstico está vacío</h3>
+                            <p className="text-sm text-text-secondary leading-relaxed">Haz tu diagnóstico IMR en 2 minutos y desbloquea tu reporte completo.</p>
+                        </div>
                     </div>
-                    <a href="/quiz" className="bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-widest text-xs px-8 py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all whitespace-nowrap">
-                        Iniciar Escaneo →
+                    <a href="/quiz" className="bg-accent hover:bg-accent-strong text-bg-base font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap shrink-0">
+                        Iniciar diagnóstico →
                     </a>
                 </div>
             )}
 
-            {/* Header
-                SPEC-069: items-center en lugar de items-end para que el badge
-                de estado no quede descolgado en la esquina inferior derecha.
-                Y agregamos un label "Estado" arriba del valor (zona biológica)
-                para que el badge tenga contexto, no flote solo. */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-white/5 pb-8">
-                {/* SPEC-031: min-w-0 + flex-1 permite que el h1 se achique cuando
-                    el nombre es largo, sin desbordar el viewport en mobile.
-                    SPEC-069: leading-tight (no leading-none) + pb-1 para evitar
-                    que el italic recorte los descender de letras como J/g/y. */}
+            {/* SPEC-072: header proporcionado al dashboard (no es el hero
+                principal del sitio, así que NO usamos italic+uppercase+gradient
+                grande — esa decoración queda reservada al Hero de la home).
+                Saludo en text-3xl Inter sans, nombre en color accent sólido. */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 border-b border-white/[0.06] pb-6">
                 <div className="min-w-0 flex-1">
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white italic uppercase tracking-tight leading-tight break-words pb-1">
-                        Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">{stats.userName}</span>
+                    <h1 className="text-3xl md:text-4xl font-semibold text-text-primary tracking-tight break-words">
+                        Hola, <span className="text-accent">{stats.userName}</span>
                     </h1>
-                    <p className="mt-3 text-gray-500 text-[10px] font-black uppercase tracking-[0.4em]">Tu reporte IMR</p>
+                    <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.2em] text-text-muted">Tu reporte IMR</p>
                 </div>
-                <div className="bg-white/5 px-5 py-3 rounded-2xl border border-white/10 flex items-center gap-3 shrink-0 self-start md:self-center">
-                    <span className="w-2 h-2 rounded-full bg-[#00C49A] animate-pulse shrink-0"></span>
-                    <div className="flex flex-col leading-none gap-1">
-                        <span className="text-[8px] font-bold text-gray-500 uppercase tracking-[0.3em]">Estado</span>
-                        <span className="text-[11px] font-black text-white uppercase tracking-widest">{stats.zona}</span>
+                {/* Badge de estado con label */}
+                <div className="inline-flex items-center gap-3 bg-bg-surface border border-white/[0.06] px-4 py-2.5 rounded-lg shrink-0 self-start md:self-center">
+                    <span
+                        className="w-2 h-2 rounded-full shrink-0 animate-pulse"
+                        style={{ backgroundColor: imrColor }}
+                    ></span>
+                    <div className="flex flex-col leading-tight">
+                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Estado</span>
+                        <span className="text-xs font-semibold text-text-primary">{stats.zona}</span>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                {/* IMR Main Circle Card */}
-                <div className="lg:col-span-5 h-full">
-                    <div className="bg-[#0c1f31]/40 backdrop-blur-xl border border-white/10 rounded-[3rem] p-10 text-center relative overflow-hidden shadow-2xl h-full flex flex-col justify-center">
-                        <div className="absolute top-0 left-0 w-full h-1.5" style={{ backgroundColor: imrColor }}></div>
-                        <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] mb-10">Puntaje Global IMR</h3>
-                        
-                        <div className="relative w-60 h-60 mx-auto mb-10">
-                            <svg className="w-full h-full -rotate-90">
-                                <circle cx="120" cy="120" r="108" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-white/5" />
-                                <circle cx="120" cy="120" r="108" stroke={imrColor} strokeWidth="10" fill="transparent" 
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* IMR Main Card — SPEC-072: rounded-2xl (no rounded-[3rem]),
+                    sin backdrop-blur ni shadow-2xl, círculo más proporcionado
+                    (200px), tipografía limpia sin italic en stats. */}
+                <div className="lg:col-span-5">
+                    <div className="bg-bg-surface border border-white/[0.06] rounded-2xl p-6 md:p-8 text-center relative overflow-hidden">
+                        {/* Línea superior de color según zona */}
+                        <div className="absolute top-0 left-0 w-full h-1" style={{ backgroundColor: imrColor }}></div>
+
+                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.25em] mb-6">Puntaje IMR</p>
+
+                        {/* Gauge circular — 200px (de 240px), centrado */}
+                        <div className="relative w-[200px] h-[200px] mx-auto mb-6">
+                            <svg className="w-full h-full -rotate-90" viewBox="0 0 240 240">
+                                <circle cx="120" cy="120" r="108" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-white/[0.04]" />
+                                <circle cx="120" cy="120" r="108" stroke={imrColor} strokeWidth="10" fill="transparent"
                                     strokeDasharray={678}
                                     strokeDashoffset={678 - (678 * stats.imr) / 100}
                                     strokeLinecap="round"
                                 />
                             </svg>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-6xl font-black text-white italic tracking-tighter" style={{ color: imrColor }}>{stats.imr}</span>
-                                <span className="text-gray-500 font-bold uppercase text-[10px] tracking-widest mt-1">/ 100</span>
+                                <span className="text-5xl font-bold tracking-tight" style={{ color: imrColor }}>{stats.imr}</span>
+                                <span className="text-text-muted text-[10px] font-semibold uppercase tracking-wider mt-1">/ 100</span>
                             </div>
                         </div>
 
-                        <p className="text-sm font-medium text-gray-400 max-w-[250px] mx-auto leading-relaxed mb-10">
-                            {stats.imr < 40 ? 'Tu metabolismo necesita ajustes estructurales profundos.' : 
-                             stats.imr < 60 ? 'Estás en zona de transición. Hay fundamentos por corregir.' : 
+                        <p className="text-sm text-text-secondary max-w-[280px] mx-auto leading-relaxed mb-8">
+                            {stats.imr < 40 ? 'Tu metabolismo necesita ajustes estructurales profundos.' :
+                             stats.imr < 60 ? 'Estás en zona de transición. Hay fundamentos por corregir.' :
                              'Tu metabolismo opera con alta eficiencia.'}
                         </p>
 
-                        <div className="grid grid-cols-3 gap-3">
+                        {/* Grid pilares — cards compactas rounded-lg, sin italic */}
+                        <div className="grid grid-cols-3 gap-2">
                             {blocksMapping.map((b: any) => (
-                                <div key={b.key} className="bg-black/40 p-3 rounded-2xl border border-white/5 flex flex-col items-center gap-1 group">
-                                    <div className="text-[#00C49A] opacity-60 scale-90">{b.icon}</div>
-                                    <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest">{b.label}</div>
-                                    <div className="text-lg font-black text-white italic">{Math.round((stats.blocks?.[b.key as 'E' | 'M' | 'C'] || 0) * 100)}%</div>
+                                <div key={b.key} className="bg-bg-base/60 p-3 rounded-lg border border-white/[0.04] flex flex-col items-center gap-1.5">
+                                    <div className="text-accent">{b.icon}</div>
+                                    <div className="text-[9px] font-bold text-text-muted uppercase tracking-wider">{b.label}</div>
+                                    <div className="text-base font-bold text-text-primary">{Math.round((stats.blocks?.[b.key as 'E' | 'M' | 'C'] || 0) * 100)}%</div>
                                 </div>
                             ))}
                         </div>
 
                         {/* Composición corporal estimada (SPEC-006) */}
                         {(stats.bodyFatPct !== null || stats.leanMassPct !== null || stats.metabolicAge !== null) && (
-                            <div className="grid grid-cols-3 gap-3 mt-3">
+                            <div className="grid grid-cols-3 gap-2 mt-2">
                                 {stats.bodyFatPct !== null && (
-                                    <div className="bg-black/40 p-3 rounded-2xl border border-white/5 flex flex-col items-center gap-1">
-                                        <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest">% Grasa</div>
-                                        <div className="text-lg font-black text-white italic">{Math.round(stats.bodyFatPct)}%</div>
+                                    <div className="bg-bg-base/60 p-3 rounded-lg border border-white/[0.04] flex flex-col items-center gap-1.5">
+                                        <div className="text-[9px] font-bold text-text-muted uppercase tracking-wider">% Grasa</div>
+                                        <div className="text-base font-bold text-text-primary">{Math.round(stats.bodyFatPct)}%</div>
                                     </div>
                                 )}
                                 {stats.leanMassPct !== null && (
-                                    <div className="bg-black/40 p-3 rounded-2xl border border-white/5 flex flex-col items-center gap-1">
-                                        <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Masa Magra</div>
-                                        <div className="text-lg font-black text-white italic">{Math.round(stats.leanMassPct)}%</div>
+                                    <div className="bg-bg-base/60 p-3 rounded-lg border border-white/[0.04] flex flex-col items-center gap-1.5">
+                                        <div className="text-[9px] font-bold text-text-muted uppercase tracking-wider">Masa magra</div>
+                                        <div className="text-base font-bold text-text-primary">{Math.round(stats.leanMassPct)}%</div>
                                     </div>
                                 )}
                                 {stats.metabolicAge !== null && (
-                                    <div className="bg-black/40 p-3 rounded-2xl border border-white/5 flex flex-col items-center gap-1">
-                                        <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Edad Metab.</div>
-                                        <div className="text-lg font-black text-white italic">{stats.metabolicAge}<span className="text-xs text-gray-500 ml-1">a</span></div>
+                                    <div className="bg-bg-base/60 p-3 rounded-lg border border-white/[0.04] flex flex-col items-center gap-1.5">
+                                        <div className="text-[9px] font-bold text-text-muted uppercase tracking-wider">Edad metab.</div>
+                                        <div className="text-base font-bold text-text-primary">{stats.metabolicAge}<span className="text-xs text-text-muted ml-0.5">a</span></div>
                                     </div>
                                 )}
                             </div>
@@ -291,91 +287,82 @@ const BioDashboard = () => {
                     </div>
                 </div>
 
-                {/* Right Column: Pillars & Actions
-                    SPEC-069: quitamos h-full + justify-between. Antes las 3 cards
-                    de la derecha se estiraban con espacio enorme entre sí para
-                    "llenar" la altura de la columna izquierda (que es más alta
-                    por el círculo IMR + grid de stats). Ahora las cards quedan
-                    apiladas naturalmente con gap consistente — la columna
-                    derecha es más corta y queda alineada arriba (items-start
-                    del grid padre). */}
-                <div className="lg:col-span-7 flex flex-col gap-6">
+                {/* Columna derecha — cards apiladas con gap consistente. */}
+                <div className="lg:col-span-7 flex flex-col gap-5">
 
-                    
-                    {/* CARD 1: ELENA APP - COMPACTA */}
-                    <div className="bg-gradient-to-br from-[#00C49A]/10 to-transparent border border-[#00C49A]/20 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
-                        <div className="flex items-center gap-6">
-                            <div className="w-14 h-14 bg-[#00C49A]/20 rounded-2xl flex items-center justify-center text-[#00C49A] border border-[#00C49A]/20 shrink-0">
+                    {/* CARD 1: ELENA APP */}
+                    <div className="bg-bg-surface border border-accent/20 rounded-xl p-5 md:p-6">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 bg-accent/10 border border-accent/20 rounded-lg flex items-center justify-center text-accent shrink-0">
                                 <Icons.Rocket />
                             </div>
-                            <div>
-                                <h4 className="text-white font-black text-lg uppercase tracking-tighter italic leading-none mb-2">Elena App: Lista de Espera</h4>
-                                <p className="text-gray-400 text-sm leading-snug">
-                                    Ya estás en lista de espera para conocer <span className="text-white font-bold italic">Elena App</span>, la herramienta que te ayudará a elevar tu IMR y mejorar tu metabolismo.
+                            <div className="min-w-0">
+                                <h4 className="text-text-primary font-semibold text-base mb-1">ElenaApp · Lista de espera</h4>
+                                <p className="text-text-secondary text-sm leading-relaxed">
+                                    Estás en lista de espera para conocer <span className="text-text-primary font-medium">ElenaApp</span>, la herramienta que te ayudará a elevar tu IMR.
                                 </p>
                             </div>
                         </div>
                     </div>
 
                     {/* CARD 2: COMUNIDAD */}
-                    <a href="/comunidad" className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 group hover:border-blue-400/40 transition-all shadow-2xl flex items-center justify-between">
-                        <div className="flex items-center gap-6">
-                            <div className="w-12 h-12 bg-blue-400/10 rounded-2xl flex items-center justify-center text-blue-400 group-hover:bg-blue-400 group-hover:text-black transition-all">
+                    <a
+                        href="/comunidad"
+                        className="bg-bg-surface border border-white/[0.06] rounded-xl p-5 md:p-6 group hover:border-accent/30 transition-colors flex items-center justify-between gap-4"
+                    >
+                        <div className="flex items-center gap-4 min-w-0">
+                            <div className="w-10 h-10 bg-accent/10 border border-accent/20 rounded-lg flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-bg-base transition-colors shrink-0">
                                 <Icons.ArrowRight />
                             </div>
-                            <div>
-                                <h4 className="text-white font-black text-2xl uppercase tracking-tighter italic leading-none">La <span className="text-blue-400">Tribu</span> Biohacker</h4>
-                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em]">Acceso a Foros y Comunidad</p>
+                            <div className="min-w-0">
+                                <h4 className="text-text-primary font-semibold text-base">La Tribu Biohacker</h4>
+                                <p className="text-[11px] text-text-muted font-bold uppercase tracking-[0.18em] mt-0.5">Foros y comunidad</p>
                             </div>
                         </div>
-                        <div className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] group-hover:bg-blue-500 transition-all shadow-lg">
-                            Entrar Ahora
+                        <div className="px-4 py-2 bg-accent text-bg-base rounded-lg font-semibold text-xs whitespace-nowrap shrink-0 group-hover:bg-accent-strong transition-colors">
+                            Entrar
                         </div>
                     </a>
 
-                    {/* CARD 3: RESULTADOS DE EVALUACIONES (BIBLIOTECA) */}
-                    <div className="bg-[#0c1f31]/40 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
-                        <div className="flex items-center justify-between mb-6">
-                            <h4 className="text-white font-black text-lg uppercase tracking-tighter italic leading-none">
-                                Dominio Teórico
-                            </h4>
-                            <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-500/30">
-                                {bestQuizzes.length} Módulos
+                    {/* CARD 3: DOMINIO TEÓRICO (resultados de quizzes) */}
+                    <div className="bg-bg-surface border border-white/[0.06] rounded-xl p-5 md:p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-text-primary font-semibold text-base">Dominio teórico</h4>
+                            <span className="inline-flex items-center px-2.5 py-1 bg-accent/10 text-accent rounded-md text-[11px] font-semibold border border-accent/20">
+                                {bestQuizzes.length} {bestQuizzes.length === 1 ? 'módulo' : 'módulos'}
                             </span>
                         </div>
-                        
+
                         {bestQuizzes.length > 0 ? (
-                            <div className="space-y-3">
+                            <div className="space-y-2.5">
                                 {bestQuizzes.slice(0, 2).map((quiz: any, i: number) => (
-                                    <div key={i} className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
-                                        <div className="flex items-center gap-4">
+                                    <div key={i} className="flex items-center justify-between gap-4 p-3.5 bg-bg-base/60 rounded-lg border border-white/[0.04] hover:border-white/[0.1] transition-colors">
+                                        <div className="flex items-center gap-3 min-w-0">
                                             {quiz.score >= 70 ? (
-                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm border bg-[#00C49A]/10 text-[#00C49A] border-[#00C49A]/30">
+                                                <div className="w-9 h-9 rounded-lg flex items-center justify-center font-semibold text-sm bg-status-good/10 text-status-good border border-status-good/20 shrink-0">
                                                     ✓
                                                 </div>
                                             ) : (
-                                                <a href={`/posts/${quiz.articleId}`} className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm border bg-yellow-500/10 text-yellow-500 border-yellow-500/30 hover:bg-yellow-500 hover:text-black transition-colors" title="Reintentar Módulo">
+                                                <a
+                                                    href={`/posts/${quiz.articleId}`}
+                                                    className="w-9 h-9 rounded-lg flex items-center justify-center font-semibold text-sm bg-status-warn/10 text-status-warn border border-status-warn/20 hover:bg-status-warn hover:text-bg-base transition-colors shrink-0"
+                                                    title="Reintentar módulo"
+                                                >
                                                     ↻
                                                 </a>
                                             )}
                                             <div className="flex flex-col min-w-0 flex-1">
-                                                <span className="text-[9px] text-gray-500 font-black uppercase tracking-[0.2em] mb-1">Pilar Evaluado</span>
-                                                {/* SPEC-069: line-clamp-2 + break-words deja que el título
-                                                    ocupe hasta dos líneas en vez de cortarlo con "..." a la mitad.
-                                                    Para títulos largos como "El código de la obesidad..." se ve
-                                                    completo. */}
-                                                <span className="text-gray-300 text-xs font-bold uppercase tracking-wider leading-snug line-clamp-2 break-words">{quiz.articleId.replace(/-/g, ' ')}</span>
+                                                <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider mb-0.5">Pilar evaluado</span>
+                                                <span className="text-text-secondary text-xs font-medium leading-snug line-clamp-2 break-words">{quiz.articleId.replace(/-/g, ' ')}</span>
                                             </div>
                                         </div>
-                                        <div className="flex flex-col items-end gap-1">
-                                            <div className="flex flex-col items-end">
-                                                <span className="text-[9px] text-gray-500 font-black uppercase tracking-[0.2em] mb-1">Score</span>
-                                                <span className={`text-xl font-black italic leading-none ${quiz.score >= 70 ? 'text-[#00C49A]' : 'text-yellow-500'}`}>
-                                                    {quiz.score}%
-                                                </span>
-                                            </div>
+                                        <div className="flex flex-col items-end shrink-0">
+                                            <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider mb-0.5">Score</span>
+                                            <span className={`text-lg font-bold leading-none ${quiz.score >= 70 ? 'text-status-good' : 'text-status-warn'}`}>
+                                                {quiz.score}%
+                                            </span>
                                             {quiz.score < 70 && (
-                                                <a href={`/posts/${quiz.articleId}`} className="text-[9px] text-yellow-500 font-black uppercase tracking-widest hover:text-yellow-400 mt-1">
+                                                <a href={`/posts/${quiz.articleId}`} className="text-[10px] text-status-warn font-semibold hover:text-status-warn/80 mt-1">
                                                     Reintentar →
                                                 </a>
                                             )}
@@ -384,10 +371,13 @@ const BioDashboard = () => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center p-8 bg-black/40 rounded-2xl border border-white/5">
-                                <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-4">No hay evaluaciones recientes</p>
-                                <a href="/biblioteca" className="inline-block px-6 py-3 bg-white/5 text-gray-300 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 hover:text-white transition-all">
-                                    Explorar Biblioteca Teórica →
+                            <div className="text-center py-6 bg-bg-base/60 rounded-lg border border-white/[0.04]">
+                                <p className="text-text-muted text-xs mb-3">Aún no has completado evaluaciones</p>
+                                <a
+                                    href="/biblioteca"
+                                    className="inline-block px-4 py-2 bg-white/[0.04] text-text-secondary rounded-lg text-xs font-medium hover:bg-white/[0.08] hover:text-text-primary transition-colors"
+                                >
+                                    Explorar biblioteca →
                                 </a>
                             </div>
                         )}

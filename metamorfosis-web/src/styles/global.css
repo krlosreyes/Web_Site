@@ -47,6 +47,9 @@
     --font-body: "Inter", "Helvetica Neue", sans-serif;
     --font-display: "Space Grotesk", "Inter", sans-serif;
     --font-serif: "Playfair Display", "Georgia", serif;
+
+    /* Nota: para metadata/eyebrows usamos `text-[11px]` arbitrary value en
+       JSX (más confiable que custom token en Tailwind v4). */
 }
 
 @layer base {
