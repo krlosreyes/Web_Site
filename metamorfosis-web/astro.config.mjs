@@ -9,6 +9,14 @@ import node from '@astrojs/node';
 // Ver specs/SPEC-001-ssr-deploy-strategy.md
 // https://astro.build/config
 export default defineConfig({
+  // SPEC-052b: URL canónica del sitio. Usada por `Astro.site` para
+  // construir URLs absolutas (canonical, OG image, OG url, sitemap, etc.).
+  // Sin esto, `Astro.url` cae a `http://localhost:4321/` en SSR cuando el
+  // request header `Host` no se propaga bien a través del reverse proxy de
+  // Hostinger HCDN, rompiendo previews de redes sociales (FB/LinkedIn
+  // intentan fetchear localhost y fallan silenciosamente).
+  site: 'https://metamorfosisvital.com.co',
+
   output: 'server',
 
   adapter: node({

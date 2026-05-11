@@ -70,8 +70,12 @@ const publishedAtIso = article.publishedAt || article.createdAt || null;
 const updatedAtIso = article.updatedAt || null;
 const formattedDate = formatDate(publishedAtIso);
 
-// SPEC-027: SEO técnico — OG image del artículo + JSON-LD schema.org
-const ogImage = (article.images && article.images[0]) || '/header-bg.jpg';
+// SPEC-027: SEO técnico — OG image del artículo + JSON-LD schema.org.
+// SPEC-052: fallback default cambió de header-bg.jpg (2 MB) a og-image.jpg
+// (41 KB, branded). Solo se usa cuando el artículo no tiene su propia
+// imagen en `article.images`; si tiene, esa gana (artículo individual
+// merece su preview específico).
+const ogImage = (article.images && article.images[0]) || '/og-image.jpg';
 const articleDescription = (article.content || '').substring(0, 160);
 
 const jsonLd = {
@@ -79,7 +83,9 @@ const jsonLd = {
     '@type': 'Article',
     headline: processedTitle,
     description: articleDescription,
-    image: ogImage.startsWith('http') ? ogImage : new URL(ogImage, Astro.url).toString(),
+    // SPEC-052b: URLs absolutas desde Astro.site (no Astro.url) para
+    // que JSON-LD apunte al dominio real, no a localhost:4321/.
+    image: ogImage.startsWith('http') ? ogImage : new URL(ogImage, Astro.site!).toString(),
     datePublished: publishedAtIso,
     dateModified: updatedAtIso || publishedAtIso,
     author: {
@@ -92,12 +98,12 @@ const jsonLd = {
         name: 'Metamorfosis Real',
         logo: {
             '@type': 'ImageObject',
-            url: new URL('/logoSite.png', Astro.url).toString(),
+            url: new URL('/logoSite.png', Astro.site!).toString(),
         },
     },
     mainEntityOfPage: {
         '@type': 'WebPage',
-        '@id': Astro.url.toString(),
+        '@id': new URL(Astro.url.pathname, Astro.site!).toString(),
     },
 };
 ---
