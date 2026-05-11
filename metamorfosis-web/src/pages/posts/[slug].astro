@@ -8,6 +8,7 @@ import ArticleQuiz from "../../components/ArticleQuiz";
 import PostReactions from "../../components/blog/PostReactions";
 import { Clock, Calendar, BookOpen, Link as LinkIcon } from "lucide-astro";
 import { marked } from "marked";
+import { enrichArticleHtml } from "../../lib/utils/enrichArticleHtml";
 
 export const prerender = false;
 
@@ -47,7 +48,11 @@ const cleanText = (text: string, prefix: string) => {
 
 const cleanedContent = cleanText(article.content || "", "CONTENIDO");
 const processedTitle = cleanText(article.title || "", "TÍTULO");
-const processedContent = marked.parse(cleanedContent);
+// SPEC-065: enriquece el HTML de marked con callouts diferenciados,
+// IDs en H2, listas ✅/❌ y TOC auto-generado (≥3 H2). Si el contenido
+// no usa los prefijos especiales, el output es el mismo que antes.
+const rawHtml = marked.parse(cleanedContent) as string;
+const { html: processedContent } = enrichArticleHtml(rawHtml);
 
 const formatDate = (dateString?: string): string | null => {
     if (!dateString) return null;
@@ -529,6 +534,145 @@ const jsonLd = {
     .prose a {
         @apply text-blue-400 no-underline border-b border-blue-400/30 hover:border-blue-400 transition-all;
     }
+
+    /* ============================================================
+       SPEC-065: Componentes editoriales avanzados (HubSpot-level)
+       ============================================================ */
+
+    /* --- Callouts diferenciados por tipo ---
+       El helper enrichArticleHtml asigna estas clases al <blockquote>
+       según el prefijo. Cada tipo tiene su color de border-left + acento.
+       Si NO hay clase (blockquote crudo), se mantiene el estilo
+       "CLAVE DEL PROTOCOLO" default definido más arriba. */
+
+    .prose blockquote.callout-fast,
+    .prose blockquote.callout-key,
+    .prose blockquote.callout-perf,
+    .prose blockquote.callout-transition,
+    .prose blockquote.callout-impl {
+        @apply bg-white/[0.04] backdrop-blur-md rounded-r-xl rounded-l-none p-6 md:p-8 my-12 not-italic shadow-lg text-left;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-left: 5px solid currentColor;
+    }
+    .prose blockquote.callout-fast::before,
+    .prose blockquote.callout-key::before,
+    .prose blockquote.callout-perf::before,
+    .prose blockquote.callout-transition::before,
+    .prose blockquote.callout-impl::before {
+        content: none; /* override del badge "CLAVE DEL PROTOCOLO" */
+    }
+    .prose blockquote.callout-fast p,
+    .prose blockquote.callout-key p,
+    .prose blockquote.callout-perf p,
+    .prose blockquote.callout-transition p,
+    .prose blockquote.callout-impl p {
+        @apply !text-base md:!text-lg !leading-relaxed !text-gray-200 !font-normal !m-0 !text-left !not-italic;
+        font-family: "Inter", sans-serif !important;
+        background: none !important;
+        -webkit-text-fill-color: #e5e7eb !important;
+        text-transform: none !important;
+    }
+    .prose blockquote.callout-fast p strong:first-child,
+    .prose blockquote.callout-key p strong:first-child,
+    .prose blockquote.callout-perf p strong:first-child,
+    .prose blockquote.callout-transition p strong:first-child,
+    .prose blockquote.callout-impl p strong:first-child {
+        @apply block uppercase tracking-[0.2em] text-[10px] font-black mb-2;
+    }
+
+    /* Respuesta rápida — naranja (resumen TL;DR) */
+    .prose blockquote.callout-fast { color: #F59E0B; }
+    .prose blockquote.callout-fast p strong:first-child { color: #F59E0B !important; }
+    /* Dato clave — azul (estadística importante) */
+    .prose blockquote.callout-key { color: #3B82F6; }
+    .prose blockquote.callout-key p strong:first-child { color: #3B82F6 !important; }
+    /* Rendimiento comprobado — verde Metamorfosis (caso real / evidencia) */
+    .prose blockquote.callout-perf { color: #00C49A; }
+    .prose blockquote.callout-perf p strong:first-child { color: #00C49A !important; }
+    /* Transición recomendada — amber (paso siguiente / progresión) */
+    .prose blockquote.callout-transition { color: #FBBF24; }
+    .prose blockquote.callout-transition p strong:first-child { color: #FBBF24 !important; }
+    /* Dato de implementación — morado (instrucción práctica) */
+    .prose blockquote.callout-impl { color: #A78BFA; }
+    .prose blockquote.callout-impl p strong:first-child { color: #A78BFA !important; }
+
+    /* --- Tablas (estilo Metamorfosis: header dark + acento teal) --- */
+    .prose table {
+        @apply w-full my-16 border-collapse text-sm md:text-base font-sans;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .prose thead {
+        background: linear-gradient(135deg, #0c1422 0%, #020617 100%);
+    }
+    .prose thead th {
+        @apply text-white font-black uppercase tracking-[0.15em] text-[11px] md:text-xs p-4 text-left;
+        border-bottom: 2px solid #00C49A;
+    }
+    .prose tbody tr {
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .prose tbody tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.04);
+    }
+    .prose tbody tr:hover {
+        background: rgba(0, 196, 154, 0.06);
+    }
+    .prose tbody td {
+        @apply text-gray-300 p-4 leading-relaxed;
+        font-family: "Inter", sans-serif !important;
+    }
+    .prose tbody tr td:first-child {
+        @apply text-white font-bold;
+    }
+
+    /* --- Listas ✅/❌ ---
+       Override del grid de cards genérico cuando el li tiene check-yes/no.
+       El padding se reduce, el ::before del ✦ se reemplaza por el ícono. */
+    .prose ul li.check-yes,
+    .prose ul li.check-no {
+        @apply !bg-transparent !border-0 !p-2 !rounded-none !flex !items-start !gap-3 !font-normal !text-base !text-gray-200 !leading-relaxed;
+        font-family: "Inter", sans-serif !important;
+    }
+    .prose ul li.check-yes::before,
+    .prose ul li.check-no::before {
+        content: none; /* anula el ✦ del default */
+    }
+    /* El emoji ya está en el contenido del li — no necesitamos pseudo-element */
+
+    /* --- Índice de contenidos (TOC) auto-generado --- */
+    .prose .article-toc {
+        @apply my-12 p-6 md:p-8 rounded-2xl;
+        background: linear-gradient(135deg, rgba(0, 196, 154, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .prose .article-toc-label {
+        @apply text-[10px] font-black uppercase tracking-[0.3em] text-[#00C49A] mb-4;
+        font-family: "Inter", sans-serif;
+    }
+    .prose .article-toc-list {
+        /* anular el roadmap numerado de .prose ol */
+        @apply !bg-transparent !border-0 !p-0 !my-0 !shadow-none !list-none;
+        counter-reset: toc-counter;
+    }
+    .prose .article-toc-list li {
+        @apply !flex !items-center !gap-3 !py-2 !border-0 !m-0;
+        counter-increment: toc-counter;
+    }
+    .prose .article-toc-list li::before {
+        content: counter(toc-counter, decimal-leading-zero);
+        @apply !w-auto !h-auto !rounded-none !bg-transparent !text-[#00C49A] !shadow-none flex-shrink-0 text-xs font-black tracking-wider;
+        background: none !important;
+    }
+    .prose .article-toc-list li a {
+        @apply !text-gray-300 !border-0 !font-medium hover:!text-[#00C49A] transition-colors;
+        font-family: "Inter", sans-serif;
+    }
+
+    /* Scroll suave hacia los anchors de los H2 desde el TOC */
+    html { scroll-behavior: smooth; }
+    .prose h2[id] { scroll-margin-top: 100px; }
 
     @keyframes fadeInUp {
         from {
