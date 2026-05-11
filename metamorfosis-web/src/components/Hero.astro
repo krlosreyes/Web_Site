@@ -14,7 +14,10 @@ import { ArrowRight } from 'lucide-astro';
 
   {/* Content */}
   <div class="container mx-auto max-w-6xl relative z-10">
-    <div class="max-w-2xl text-left">
+    {/* SPEC-053: container responsive. En mobile max-w-2xl es OK porque el
+        H1 wrappea natural. En tablet/desktop necesitamos más ancho para que
+        cada frase del H1 quepa en una sola línea (con whitespace-nowrap). */}
+    <div class="max-w-2xl md:max-w-3xl lg:max-w-4xl text-left">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-blue/10 border border-accent-blue/20 text-accent-blue text-xs font-bold uppercase tracking-widest mb-6">
         <span class="relative flex h-2 w-2">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-blue opacity-75"></span>
@@ -23,13 +26,16 @@ import { ArrowRight } from 'lucide-astro';
         Ecosistema Metamorfosis Real
       </div>
 
-      {/* SPEC-053: copy refresh. Antes "Transforma tu Metabolismo con Ciencia Real".
-          Nuevo enfoque: el user es el protagonista — nosotros damos las herramientas,
-          él crea los hábitos. Más empoderador, menos publicitario.
-          Subtítulo emocional: "vida solo hay una y todo cuenta" — refuerza
-          que cada decisión metabólica importa. */}
-      <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-bold text-text-primary mb-8 leading-[1.05] tracking-tight break-words">
-        Te damos las herramientas<br/><span class="bg-clip-text text-transparent bg-gradient-to-r from-accent-blue to-cyan-400">Tú creas los hábitos.</span>
+      {/* SPEC-053: copy refresh + responsive del H1.
+          Copy: el user es el protagonista — "te damos las herramientas, tú creas
+          los hábitos". Subtítulo emocional.
+          Responsive: en mobile cada frase wrappea naturalmente en 2-3 líneas
+          (text-4xl, sin nowrap). Desde md (tablet portrait, 768px+) cada frase
+          se fuerza a UNA línea con `md:whitespace-nowrap` y font escalado para
+          que quepa: text-5xl en md, text-6xl en lg. text-7xl quedó fuera
+          intencionalmente — 25 chars en text-7xl no caben en max-w-4xl. */}
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold text-text-primary mb-8 leading-[1.05] tracking-tight break-words">
+        <span class="md:whitespace-nowrap">Te damos las herramientas</span><br/><span class="md:whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-accent-blue to-cyan-400">Tú creas los hábitos.</span>
       </h1>
 
       <p class="text-xl text-text-secondary max-w-xl mb-10 leading-relaxed">

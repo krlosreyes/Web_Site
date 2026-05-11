@@ -32,15 +32,53 @@ la idea (user protagonista) con frases más cortas y emocionales. El subtítulo
 "Vida solo hay una y todo cuenta" refuerza urgencia y reusa el copy de la
 OG image branded (SPEC-052) para consistencia de mensaje cross-canal.
 
-## Ajuste responsive bonus
+## Layout responsive del H1
 
-El copy nuevo del H1 es ligeramente más largo (25 chars "Te damos las
-herramientas" vs 13 chars "Transforma tu"). El H1 original tenía
-`text-5xl md:text-7xl`, lo cual sería marginal en mobile con el copy
-nuevo. Aplicado el patrón de SPEC-031:
+**Requerimiento del owner:** cada frase del H1 debe quedar en UNA línea en
+desktop/tablet. En mobile, distribución natural en 2 líneas por frase.
 
-- Clase actualizada: `text-4xl sm:text-5xl md:text-6xl lg:text-7xl`
-- Agregado `break-words` como defense in depth.
+### Análisis
+
+Frases finales del H1:
+- "Te damos las herramientas" — 25 chars
+- "Tú creas los hábitos." — 21 chars
+
+Cálculo de ancho requerido con `text-7xl` (72px, Tailwind):
+- 25 chars × 72px × 0.55 (factor Poppins bold) ≈ **990px**
+- max-w-2xl (672px) y max-w-3xl (768px) NO caben → wrap forzado.
+
+Con `text-6xl` (60px):
+- 25 chars × 60px × 0.55 ≈ **825px**
+- max-w-3xl (768px) NO cabe; max-w-4xl (896px) **cabe** ✓
+
+### Solución
+
+Combinación de dos ajustes:
+
+1. **Container más ancho desde tablet:**
+   `max-w-2xl md:max-w-3xl lg:max-w-4xl`
+   (672 → 768 → 896 px progresivo)
+
+2. **`md:whitespace-nowrap` en cada span de frase** para forzar una línea
+   desde `md:` (768px+, tablet portrait).
+
+3. **Font scale max limitado a `lg:text-6xl`** (no escalar a `text-7xl`).
+   25 chars en text-7xl no caben en max-w-4xl sin overflow; text-6xl es
+   el tope que permite "1 línea por frase" sin romper layout.
+
+Clase H1 final: `text-4xl sm:text-5xl lg:text-6xl ... break-words`.
+
+### Comportamiento esperado
+
+| Breakpoint | Container | Font H1 | Comportamiento del H1 |
+|---|---|---|---|
+| mobile (≤639) | max-w-2xl (672) | text-4xl (36px) | Wrap natural, ~2 líneas por frase |
+| sm (640-767) | max-w-2xl (672) | text-5xl (48px) | Wrap natural, mayoría en 1-2 líneas |
+| md (768-1023) | max-w-3xl (768) | text-5xl (48px) | `nowrap` activo, cada frase en 1 línea |
+| lg+ (1024+) | max-w-4xl (896) | text-6xl (60px) | `nowrap` activo, cada frase en 1 línea |
+
+`break-words` se mantiene como defense in depth (SPEC-031): si por algún
+motivo el nowrap no aplica (browser raro, viewport extremo), evita overflow.
 
 ## Plan de ejecución
 
