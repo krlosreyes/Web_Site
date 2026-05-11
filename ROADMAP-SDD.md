@@ -113,6 +113,7 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | # | Spec | Estado | Problema | Archivo |
 |---|---|---|---|---|
 | 050 | `.gitignore` blindado (defense in depth) | ✅ Cerrada (2026-05-11) | Root del repo sin `.gitignore` (el real vive en `metamorfosis-web/`) y `.DS_Store` del root quedó trackeado | [SPEC-050](specs/SPEC-050-gitignore-blindado.md) |
+| 051 | Limpieza páginas zombie + sitemap fix | ✅ Cerrada (2026-05-11) | 4 páginas legacy (`/dashboard-7d`, `/diagnostico`, `/protocolo`, `/calculadora`) sin links internos, 2 en sitemap → Google las indexaba como entry points obsoletos con tema light pre-SPEC-013 | [SPEC-051](specs/SPEC-051-limpieza-paginas-zombie.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 
