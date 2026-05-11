@@ -202,19 +202,28 @@ const BioDashboard = () => {
                 </div>
             )}
 
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-8">
+            {/* Header
+                SPEC-069: items-center en lugar de items-end para que el badge
+                de estado no quede descolgado en la esquina inferior derecha.
+                Y agregamos un label "Estado" arriba del valor (zona biológica)
+                para que el badge tenga contexto, no flote solo. */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-white/5 pb-8">
                 {/* SPEC-031: min-w-0 + flex-1 permite que el h1 se achique cuando
-                    el nombre es largo, sin desbordar el viewport en mobile. */}
+                    el nombre es largo, sin desbordar el viewport en mobile.
+                    SPEC-069: leading-tight (no leading-none) + pb-1 para evitar
+                    que el italic recorte los descender de letras como J/g/y. */}
                 <div className="min-w-0 flex-1">
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white italic uppercase tracking-tight leading-none break-words">
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white italic uppercase tracking-tight leading-tight break-words pb-1">
                         Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">{stats.userName}</span>
                     </h1>
-                    <p className="mt-4 text-gray-500 text-[10px] font-black uppercase tracking-[0.4em]">Reporte de Diagnóstico SPEC-70.5</p>
+                    <p className="mt-3 text-gray-500 text-[10px] font-black uppercase tracking-[0.4em]">Reporte de Diagnóstico SPEC-70.5</p>
                 </div>
-                <div className="bg-white/5 px-6 py-3 rounded-2xl border border-white/10 flex items-center gap-3">
-                    <span className="w-2 h-2 rounded-full bg-[#00C49A] animate-pulse"></span>
-                    <span className="text-[10px] font-black text-white uppercase tracking-widest">{stats.zona}</span>
+                <div className="bg-white/5 px-5 py-3 rounded-2xl border border-white/10 flex items-center gap-3 shrink-0 self-start md:self-center">
+                    <span className="w-2 h-2 rounded-full bg-[#00C49A] animate-pulse shrink-0"></span>
+                    <div className="flex flex-col leading-none gap-1">
+                        <span className="text-[8px] font-bold text-gray-500 uppercase tracking-[0.3em]">Estado</span>
+                        <span className="text-[11px] font-black text-white uppercase tracking-widest">{stats.zona}</span>
+                    </div>
                 </div>
             </div>
 
@@ -282,8 +291,16 @@ const BioDashboard = () => {
                     </div>
                 </div>
 
-                {/* Right Column: Pillars & Actions */}
-                <div className="lg:col-span-7 flex flex-col gap-8 h-full justify-between">
+                {/* Right Column: Pillars & Actions
+                    SPEC-069: quitamos h-full + justify-between. Antes las 3 cards
+                    de la derecha se estiraban con espacio enorme entre sí para
+                    "llenar" la altura de la columna izquierda (que es más alta
+                    por el círculo IMR + grid de stats). Ahora las cards quedan
+                    apiladas naturalmente con gap consistente — la columna
+                    derecha es más corta y queda alineada arriba (items-start
+                    del grid padre). */}
+                <div className="lg:col-span-7 flex flex-col gap-6">
+
                     
                     {/* CARD 1: ELENA APP - COMPACTA */}
                     <div className="bg-gradient-to-br from-[#00C49A]/10 to-transparent border border-[#00C49A]/20 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
@@ -341,9 +358,13 @@ const BioDashboard = () => {
                                                     ↻
                                                 </a>
                                             )}
-                                            <div className="flex flex-col">
-                                                <span className="text-[9px] text-gray-500 font-black uppercase tracking-[0.2em]">Pilar Evaluado</span>
-                                                <span className="text-gray-300 text-xs font-bold uppercase tracking-widest max-w-[200px] truncate">{quiz.articleId.replace(/-/g, ' ')}</span>
+                                            <div className="flex flex-col min-w-0 flex-1">
+                                                <span className="text-[9px] text-gray-500 font-black uppercase tracking-[0.2em] mb-1">Pilar Evaluado</span>
+                                                {/* SPEC-069: line-clamp-2 + break-words deja que el título
+                                                    ocupe hasta dos líneas en vez de cortarlo con "..." a la mitad.
+                                                    Para títulos largos como "El código de la obesidad..." se ve
+                                                    completo. */}
+                                                <span className="text-gray-300 text-xs font-bold uppercase tracking-wider leading-snug line-clamp-2 break-words">{quiz.articleId.replace(/-/g, ' ')}</span>
                                             </div>
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
