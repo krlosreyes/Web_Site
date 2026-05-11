@@ -246,18 +246,49 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
                 alert('Por favor, pega contenido antes de procesar.');
                 return;
             }
-            
-            // Dividir por etiquetas explícitas [TAG] (v5.0)
-            const parts = text.split(/\[(TITULO|CONTENIDO|IMAGENES|REFERENCIAS|QUIZ)\]/i);
-            
+
+            // SPEC-067: parser tolerante a variantes de los marcadores que las
+            // IAs producen frecuentemente:
+            //   - [TÍTULO] con tilde (NotebookLM lo agrega solo)
+            //   - **[TITULO]** envuelto en negrita
+            //   - [TITULO]: con dos puntos al final
+            //   - case-insensitive (que ya estaba)
+            // Normalizamos el texto reemplazando todas las variantes a la forma
+            // canónica [TAG] (sin tilde, sin negrita, sin dos puntos) antes
+            // del split. Eso simplifica el resto del flow.
+            const TAG_VARIANTS: Array<[RegExp, string]> = [
+                // [TÍTULO] / [TITULO] / [Titulo] / **[TITULO]** / [TITULO]:
+                [/\*{0,2}\s*\[\s*T[IÍ]TULO\s*\]\s*:?\s*\*{0,2}/gi, '[TITULO]'],
+                [/\*{0,2}\s*\[\s*CONTENIDO\s*\]\s*:?\s*\*{0,2}/gi, '[CONTENIDO]'],
+                [/\*{0,2}\s*\[\s*IM[AÁ]GENES\s*\]\s*:?\s*\*{0,2}/gi, '[IMAGENES]'],
+                [/\*{0,2}\s*\[\s*REFERENCIAS\s*\]\s*:?\s*\*{0,2}/gi, '[REFERENCIAS]'],
+                [/\*{0,2}\s*\[\s*QUIZ\s*\]\s*:?\s*\*{0,2}/gi, '[QUIZ]'],
+            ];
+            let normalized = text;
+            for (const [re, canonical] of TAG_VARIANTS) {
+                normalized = normalized.replace(re, canonical);
+            }
+
+            // Dividir por etiquetas explícitas [TAG] (v5.0 + SPEC-067 tolerante)
+            const parts = normalized.split(/\[(TITULO|CONTENIDO|IMAGENES|REFERENCIAS|QUIZ)\]/);
+
             const getTagContent = (tag: string) => {
                 const index = parts.findIndex(p => p?.toUpperCase() === tag);
                 return index !== -1 && parts[index + 1] ? parts[index + 1].trim() : '';
             };
 
+            // Detectar si encontramos AL MENOS los dos marcadores críticos
+            const hasTitleMarker = parts.some(p => p?.toUpperCase() === 'TITULO');
+            const hasContentMarker = parts.some(p => p?.toUpperCase() === 'CONTENIDO');
+            let parsedTitle = '';
+            let parsedContent = '';
+
             try {
                 const rawTitle = getTagContent('TITULO');
-                if (rawTitle) setTitle(rawTitle.replace(/^#\s*|\*\*/g, '').trim());
+                if (rawTitle) {
+                    parsedTitle = rawTitle.replace(/^#\s*|\*\*/g, '').trim();
+                    setTitle(parsedTitle);
+                }
             } catch (e) { console.warn('Error parsing TITULO:', e); }
 
             try {
@@ -267,8 +298,35 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
                 // oraciones = 1 párrafo) y separa las dos secciones obligatorias.
                 // Si el contenido ya viene bien formateado (con \n\n o ##
                 // headings), el helper no toca nada.
-                if (rawContent) setContent(normalizeArticleContent(rawContent));
+                if (rawContent) {
+                    parsedContent = normalizeArticleContent(rawContent);
+                    setContent(parsedContent);
+                }
             } catch (e) { console.warn('Error parsing CONTENIDO:', e); }
+
+            // SPEC-067: fallback si no hay marcadores. Tratar la primera línea
+            // / primer heading como título, todo lo demás como contenido.
+            if (!hasTitleMarker && !hasContentMarker) {
+                const lines = normalized.split('\n');
+                let titleLine = '';
+                let contentStart = 0;
+                for (let i = 0; i < lines.length; i++) {
+                    const l = lines[i].trim();
+                    if (!l) continue;
+                    titleLine = l.replace(/^#+\s*/, '').replace(/^\*\*|\*\*$/g, '').trim();
+                    contentStart = i + 1;
+                    break;
+                }
+                if (titleLine) {
+                    parsedTitle = titleLine;
+                    setTitle(titleLine);
+                }
+                const rest = lines.slice(contentStart).join('\n').trim();
+                if (rest) {
+                    parsedContent = normalizeArticleContent(rest);
+                    setContent(parsedContent);
+                }
+            }
 
             try {
                 const rawImages = getTagContent('IMAGENES');
@@ -288,6 +346,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
                 }
             } catch (e) { console.warn('Error parsing REFERENCIAS:', e); }
 
+            let quizParsed = false;
             try {
                 const rawQuiz = getTagContent('QUIZ');
                 if (rawQuiz) {
@@ -296,16 +355,34 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
                         const parsed = JSON.parse(jsonMatch[0]);
                         if (Array.isArray(parsed)) {
                             setQuiz(parsed);
+                            quizParsed = parsed.length > 0;
                         }
                     }
                 }
             } catch (e) { console.warn('Error parsing QUIZ JSON:', e); }
 
+            // SPEC-067: feedback visible si el output no trae lo que esperamos.
+            // Antes el botón quedaba en silencio cuando algo faltaba; ahora
+            // levantamos el problema para que el usuario lo arregle a mano o
+            // re-pida a la IA con instrucción correctiva.
+            const warnings: string[] = [];
+            if (!parsedTitle) warnings.push('• No se detectó título. Edítalo a mano arriba.');
+            if (!parsedContent) warnings.push('• No se detectó contenido. Pega el cuerpo en el campo "Contenido".');
+            if (!quizParsed) warnings.push('• No se detectó quiz válido (JSON con preguntas). Añade preguntas con "+ Añadir Pregunta" o pide a la IA un bloque [QUIZ] con JSON.');
+
             setSmartText('');
             setShowManual(true);
+
+            if (warnings.length > 0) {
+                alert(
+                    'Procesado con advertencias:\n\n' +
+                    warnings.join('\n') +
+                    '\n\nPuedes completar manualmente o volver a pedir a la IA respetando el formato [TITULO]/[CONTENIDO]/[IMAGENES]/[REFERENCIAS]/[QUIZ].'
+                );
+            }
         } catch (e: any) {
             console.error('Error en handleSmartPaste:', e);
-            alert('Error al procesar el formato v5.0: ' + e.message);
+            alert('Error al procesar el contenido: ' + e.message);
         }
     };
 
