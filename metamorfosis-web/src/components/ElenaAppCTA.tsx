@@ -201,11 +201,12 @@ const ElenaAppCTA: React.FC = () => {
                             >
                                 <span className="block text-3xl sm:text-4xl">Sé fundador</span>
                                 <span className="block mt-2 text-sm sm:text-base font-bold tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">
-                                    de los primeros 1000
+                                    Uno de los primeros 1000
                                 </span>
                             </h2>
                             <p className="text-gray-300 text-sm sm:text-base font-medium leading-relaxed max-w-md mx-auto">
-                                ElenaApp está casi lista. Reserva tu lugar y obtén beneficios exclusivos que no se repetirán.
+                                ElenaApp está casi lista.<br />
+                                Reserva tu lugar y obtén beneficios exclusivos.
                             </p>
                         </div>
 
@@ -227,7 +228,7 @@ const ElenaAppCTA: React.FC = () => {
                                     <span className="text-2xl shrink-0 leading-none">🔒</span>
                                     <div className="min-w-0">
                                         <p className="text-blue-300 font-black text-sm uppercase tracking-widest mb-1">
-                                            3 Beneficios Sorpresa
+                                            Beneficios Sorpresa
                                         </p>
                                         <p className="text-gray-400 text-xs leading-relaxed">
                                             Se revelan el día del lanzamiento. Vas a querer estar adentro.

@@ -176,8 +176,8 @@ const BioDashboard = () => {
                                 <li className="flex items-start gap-3">
                                     <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#00C49A]/15 border border-[#00C49A]/30 flex items-center justify-center text-[#00C49A] text-xs font-black mt-0.5">2</span>
                                     <div className="min-w-0">
-                                        <div className="text-white text-sm font-bold">Un beneficio sorpresa</div>
-                                        <div className="text-gray-400 text-xs">Se revela el día del lanzamiento de ElenaApp.</div>
+                                        <div className="text-white text-sm font-bold">Beneficios sorpresa</div>
+                                        <div className="text-gray-400 text-xs">Se revelan el día del lanzamiento de ElenaApp.</div>
                                     </div>
                                 </li>
                             </ul>

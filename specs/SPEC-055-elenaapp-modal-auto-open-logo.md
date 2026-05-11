@@ -71,15 +71,16 @@ Solución: dos líneas con jerarquía clara.
 | Línea | Tamaño | Color | Texto |
 |---|---|---|---|
 | 1 | `text-3xl sm:text-4xl` font-black italic | blanco | **"Sé fundador"** |
-| 2 | `text-sm sm:text-base` font-bold tracking-wide | gradient azul→teal | "de los primeros 1000" |
+| 2 | `text-sm sm:text-base` font-bold tracking-wide | gradient azul→teal | "Uno de los primeros 1000" |
 
 Beneficios:
 - **"Sé fundador"** (11 chars) cabe en cualquier viewport sin tracking apretado.
-- Posiciona al user como protagonista, no como "uno de 1000".
-- La segunda línea preserva el sentido de escasez con el número.
+- Posiciona al user como protagonista activo.
+- La segunda línea **"Uno de los primeros 1000"** preserva el sentido de
+  escasez con el número y refuerza la identidad de pertenencia.
 - Consistencia cross-canal: email dice "Eres fundador #N", badge dashboard
   dice "Eres fundador #42 de los primeros 1000". Ahora el modal dice "Sé
-  fundador / de los primeros 1000" — mismo lenguaje en todos los puntos.
+  fundador / Uno de los primeros 1000" — mismo lenguaje en todos los puntos.
 
 ### Persistencia: localStorage vs sessionStorage
 

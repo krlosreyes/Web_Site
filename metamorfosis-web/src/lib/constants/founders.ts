@@ -2,8 +2,8 @@
  * Constantes del cohorte de fundadores (SPEC-056).
  *
  * Los primeros N usuarios registrados son "fundadores": reciben beneficios
- * permanentes en la suscripción anual de ElenaApp + 1 beneficio sorpresa
- * que se revela el día del lanzamiento. Después del cap N, los nuevos
+ * permanentes en la suscripción anual de ElenaApp + beneficios sorpresa
+ * que se revelan el día del lanzamiento. Después del cap N, los nuevos
  * usuarios son usuarios normales sin estos beneficios.
  *
  * El cap se aplica de forma atómica en `POST /api/users/onboard` via

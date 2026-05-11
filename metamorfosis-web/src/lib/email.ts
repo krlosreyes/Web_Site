@@ -163,7 +163,7 @@ Bienvenido al ecosistema de Metamorfosis Real. Eres uno de los primeros 1000 que
 🎁 BENEFICIOS GARANTIZADOS AL LANZAMIENTO DE ELENAAPP
 
 1. Precio fundador permanente: descuento de por vida en la suscripción anual de ElenaApp.
-2. Un beneficio sorpresa: se revela el día del lanzamiento de ElenaApp.
+2. Beneficios sorpresa: se revelan el día del lanzamiento de ElenaApp.
 
 No tienes que hacer nada — cuando ElenaApp se lance, ingresas con tu mismo correo y la app te identifica automáticamente como fundador.
 
@@ -199,8 +199,8 @@ Metamorfosis Real`;
         <tr><td style="height:8px;line-height:8px;">&nbsp;</td></tr>
         <tr>
           <td style="padding:16px 18px;background:rgba(0,196,154,0.06);border:1px solid rgba(0,196,154,0.25);border-radius:12px;">
-            <div style="font-size:14px;font-weight:700;color:#00C49A;margin-bottom:4px;">2. Un beneficio sorpresa</div>
-            <div style="font-size:13px;color:#cbd5e1;line-height:1.5;">Se revela el día del lanzamiento de ElenaApp.</div>
+            <div style="font-size:14px;font-weight:700;color:#00C49A;margin-bottom:4px;">2. Beneficios sorpresa</div>
+            <div style="font-size:13px;color:#cbd5e1;line-height:1.5;">Se revelan el día del lanzamiento de ElenaApp.</div>
           </td>
         </tr>
       </table>
