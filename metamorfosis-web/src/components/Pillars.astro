@@ -1,5 +1,63 @@
 ---
 import { Timer, Apple, Droplets, Moon, Dumbbell } from "lucide-astro";
+
+/**
+ * SPEC-059: cards de pilares centradas y linkeables.
+ *
+ * Cada card es un <a> que navega a `/biblioteca?pilar={id}` — el filtro
+ * de la biblioteca lee el query param y aplica el filtro automáticamente
+ * (SPEC-046 + SPEC-059).
+ *
+ * Mapeo display → id canónico (lib/constants/pillars.ts):
+ *   - "Ayuno Intermitente"  → `ayuno`
+ *   - "Alimentación"        → `nutricion`
+ *   - "Hidratación"         → `hidratacion`
+ *   - "Sueño"               → `sueno`
+ *   - "Ejercicio"           → `ejercicio`
+ *
+ * El display copy se mantiene tal cual (más amigable que los IDs) — los
+ * IDs viven en URL/Firestore para taxonomía cross-feature consistente.
+ */
+
+interface PillarCard {
+    id: 'ayuno' | 'nutricion' | 'hidratacion' | 'sueno' | 'ejercicio';
+    title: string;
+    description: string;
+    Icon: typeof Timer;
+}
+
+const CARDS: PillarCard[] = [
+    {
+        id: 'ayuno',
+        title: 'Ayuno Intermitente',
+        description: 'Sincroniza tu metabolismo y activa la autofagia para una reparación celular profunda.',
+        Icon: Timer,
+    },
+    {
+        id: 'nutricion',
+        title: 'Alimentación',
+        description: 'Nutre tu biología con alimentos densos que estabilicen tu energía y hormonas.',
+        Icon: Apple,
+    },
+    {
+        id: 'hidratacion',
+        title: 'Hidratación',
+        description: 'Optimiza el equilibrio mineral y la conductividad celular para un rendimiento máximo.',
+        Icon: Droplets,
+    },
+    {
+        id: 'sueno',
+        title: 'Sueño',
+        description: 'Domina tu ritmo circadiano para una recuperación cognitiva y hormonal absoluta.',
+        Icon: Moon,
+    },
+    {
+        id: 'ejercicio',
+        title: 'Ejercicio',
+        description: 'Construye fuerza y resiliencia metabólica a través del movimiento estratégico.',
+        Icon: Dumbbell,
+    },
+];
 ---
 
 <section id="pilares" class="py-24 px-6 bg-bg-surface/30">
@@ -15,87 +73,27 @@ import { Timer, Apple, Droplets, Moon, Dumbbell } from "lucide-astro";
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-      {/* Ayuno Intermitente */}
-      <div
-        class="glass p-8 group hover:-translate-y-2 transition-transform duration-500 hover:shadow-xl hover:shadow-accent-blue/10"
-      >
-        <div
-          class="w-16 h-16 rounded-2xl bg-accent-blue/10 flex items-center justify-center text-accent-blue mb-6 group-hover:scale-105 transition-transform"
+      {CARDS.map(({ id, title, description, Icon }) => (
+        <a
+          href={`/biblioteca?pilar=${id}`}
+          aria-label={`Ver artículos sobre ${title}`}
+          class="glass p-8 group hover:-translate-y-2 transition-all duration-500 hover:shadow-xl hover:shadow-accent-blue/10 hover:border-accent-blue/30 focus:outline-none focus:ring-2 focus:ring-accent-blue/40 cursor-pointer"
         >
-          <Timer size={32} />
-        </div>
-        <h3 class="text-xl font-bold mb-3 text-text-primary">
-          Ayuno Intermitente
-        </h3>
-        <p class="text-sm text-text-secondary leading-relaxed">
-          Sincroniza tu metabolismo y activa la autofagia para una reparación
-          celular profunda.
-        </p>
-      </div>
-
-      {/* Alimentación */}
-      <div
-        class="glass p-8 group hover:-translate-y-2 transition-transform duration-500 hover:shadow-xl hover:shadow-accent-blue/10"
-      >
-        <div
-          class="w-16 h-16 rounded-2xl bg-accent-blue/10 flex items-center justify-center text-accent-blue mb-6 group-hover:scale-105 transition-transform"
-        >
-          <Apple size={32} />
-        </div>
-        <h3 class="text-xl font-bold mb-3 text-text-primary">Alimentación</h3>
-        <p class="text-sm text-text-secondary leading-relaxed">
-          Nutre tu biología con alimentos densos que estabilicen tu energía y
-          hormonas.
-        </p>
-      </div>
-
-      {/* Hidratación */}
-      <div
-        class="glass p-8 group hover:-translate-y-2 transition-transform duration-500 hover:shadow-xl hover:shadow-accent-blue/10"
-      >
-        <div
-          class="w-16 h-16 rounded-2xl bg-accent-blue/10 flex items-center justify-center text-accent-blue mb-6 group-hover:scale-105 transition-transform"
-        >
-          <Droplets size={32} />
-        </div>
-        <h3 class="text-xl font-bold mb-3 text-text-primary">Hidratación</h3>
-        <p class="text-sm text-text-secondary leading-relaxed">
-          Optimiza el equilibrio mineral y la conductividad celular para un
-          rendimiento máximo.
-        </p>
-      </div>
-
-      {/* Sueño */}
-      <div
-        class="glass p-8 group hover:-translate-y-2 transition-transform duration-500 hover:shadow-xl hover:shadow-accent-blue/10"
-      >
-        <div
-          class="w-16 h-16 rounded-2xl bg-accent-blue/10 flex items-center justify-center text-accent-blue mb-6 group-hover:scale-105 transition-transform"
-        >
-          <Moon size={32} />
-        </div>
-        <h3 class="text-xl font-bold mb-3 text-text-primary">Sueño</h3>
-        <p class="text-sm text-text-secondary leading-relaxed">
-          Domina tu ritmo circadiano para una recuperación cognitiva y hormonal
-          absoluta.
-        </p>
-      </div>
-
-      {/* Ejercicio */}
-      <div
-        class="glass p-8 group hover:-translate-y-2 transition-transform duration-500 hover:shadow-xl hover:shadow-accent-blue/10"
-      >
-        <div
-          class="w-16 h-16 rounded-2xl bg-accent-blue/10 flex items-center justify-center text-accent-blue mb-6 group-hover:scale-105 transition-transform"
-        >
-          <Dumbbell size={32} />
-        </div>
-        <h3 class="text-xl font-bold mb-3 text-text-primary">Ejercicio</h3>
-        <p class="text-sm text-text-secondary leading-relaxed">
-          Construye fuerza y resiliencia metabólica a través del movimiento
-          estratégico.
-        </p>
-      </div>
+          {/* SPEC-059: mx-auto centra el icon container horizontalmente
+              en todas las resoluciones, sin importar el ancho de la card. */}
+          <div
+            class="w-16 h-16 rounded-2xl bg-accent-blue/10 flex items-center justify-center text-accent-blue mb-6 mx-auto group-hover:scale-105 transition-transform"
+          >
+            <Icon size={32} />
+          </div>
+          <h3 class="text-xl font-bold mb-3 text-text-primary">
+            {title}
+          </h3>
+          <p class="text-sm text-text-secondary leading-relaxed">
+            {description}
+          </p>
+        </a>
+      ))}
     </div>
   </div>
 </section>

@@ -2,8 +2,14 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { db } from "../lib/firebaseAdmin";
 import { COLLECTIONS } from "../lib/constants/firestore";
-import { PILLARS, getPillar } from "../lib/constants/pillars";
+import { PILLARS, getPillar, isValidPillarId } from "../lib/constants/pillars";
 import { BookOpen, Award, Zap, ChevronRight } from "lucide-astro";
+
+// SPEC-059: la home (Pillars.astro) linkea acá con ?pilar={id} para
+// preseleccionar el filtro. Si el query param no es un pilar válido,
+// caemos a 'todos' (default original de SPEC-046).
+const requestedPillar = Astro.url.searchParams.get('pilar');
+const initialPillar = isValidPillarId(requestedPillar) ? requestedPillar! : 'todos';
 
 export const prerender = false;
 
@@ -55,26 +61,41 @@ const description = "El conocimiento científico para dominar tu biología y tra
                 </p>
             </div>
 
-            <!-- SPEC-046: filtros por pilar (client-side, sin re-fetch) -->
+            <!-- SPEC-046: filtros por pilar (client-side, sin re-fetch)
+                 SPEC-059: pilar inicial viene del query param ?pilar= si está
+                 presente y es válido. data-active y las clases activas se
+                 setean server-side para que NO haya flicker entre el SSR
+                 y la hidratación client-side del script de abajo. -->
             <div class="max-w-4xl mx-auto mb-12">
-                <div id="pillar-filter" class="flex flex-wrap gap-2 justify-center" data-active="todos">
+                <div id="pillar-filter" class="flex flex-wrap gap-2 justify-center" data-active={initialPillar}>
                     <button
                         type="button"
                         data-pillar="todos"
-                        class="text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border transition-all bg-white text-black border-white"
+                        class={`text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border transition-all ${
+                            initialPillar === 'todos'
+                                ? 'bg-white text-black border-white'
+                                : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
+                        }`}
                     >
                         ✨ Todos
                     </button>
-                    {PILLARS.map((p) => (
-                        <button
-                            type="button"
-                            data-pillar={p.id}
-                            class="text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border transition-all bg-white/5 text-gray-300 border-white/10 hover:bg-white/10"
-                        >
-                            <span class="mr-1">{p.emoji}</span>
-                            {p.name}
-                        </button>
-                    ))}
+                    {PILLARS.map((p) => {
+                        const isActive = initialPillar === p.id;
+                        return (
+                            <button
+                                type="button"
+                                data-pillar={p.id}
+                                class={`text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border transition-all ${
+                                    isActive
+                                        ? 'bg-white text-black border-white'
+                                        : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
+                                }`}
+                            >
+                                <span class="mr-1">{p.emoji}</span>
+                                {p.name}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
@@ -82,10 +103,18 @@ const description = "El conocimiento científico para dominar tu biología y tra
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-10" id="articles-grid">
                 {articles.map((art: any) => {
                     const pillar = getPillar(art.pillar);
+                    // SPEC-059: oculta server-side las cards que no matchean
+                    // con `initialPillar` para evitar flicker antes de que el
+                    // script de filtrado client-side se hidrate.
+                    const cardPillar = (art as { pillar?: string }).pillar || 'sin-pilar';
+                    const isHiddenInitially =
+                        initialPillar !== 'todos' && cardPillar !== initialPillar;
                     return (
                     <article
-                        class="article-card group relative flex flex-col h-full"
-                        data-pillar={art.pillar || 'sin-pilar'}
+                        class={`article-card group relative flex flex-col h-full ${
+                            isHiddenInitially ? 'hidden' : ''
+                        }`}
+                        data-pillar={cardPillar}
                     >
                         <div class="relative flex flex-col h-full bg-[#0c1422] border border-white/5 rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:border-blue-500/30 hover:-translate-y-2">
                             <div class="relative aspect-video overflow-hidden">
@@ -185,13 +214,27 @@ const description = "El conocimiento científico para dominar tu biología y tra
             cards.forEach((c) => {
                 const card = c as HTMLElement;
                 const cardPillar = card.dataset.pillar || 'sin-pilar';
+                // SPEC-059: usar classList.hidden en vez de style.display
+                // para coincidir con el render server-side de initialPillar.
                 if (pillarId === 'todos' || cardPillar === pillarId) {
-                    card.style.display = '';
+                    card.classList.remove('hidden');
                 } else {
-                    card.style.display = 'none';
+                    card.classList.add('hidden');
                 }
             });
             filterRoot.dataset.active = pillarId;
+
+            // SPEC-059: sincronizar query param sin recargar (history API).
+            // Útil para que el user pueda compartir el link con el filtro
+            // ya aplicado y al hacer back/forward del browser, el filtro
+            // se preserve.
+            const url = new URL(window.location.href);
+            if (pillarId === 'todos') {
+                url.searchParams.delete('pilar');
+            } else {
+                url.searchParams.set('pilar', pillarId);
+            }
+            window.history.replaceState({}, '', url.toString());
         };
 
         buttons.forEach((b) =>
