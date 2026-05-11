@@ -37,6 +37,25 @@
     overflow-wrap: anywhere;
   }
 
+  /* SPEC-070: defensa global anti-clipping de italic + bg-clip-text.
+     Cuando un texto en italic uppercase tiene un gradient aplicado con
+     bg-clip-text (patrón usado en headings de toda la app), la última
+     letra inclinada se "sale" del bounding-box del texto. Como bg-clip
+     recorta el background al bbox del texto, el slant queda fuera y la
+     letra final parece cortada en el borde superior derecho.
+
+     Agregamos padding-right en em (escala con el tamaño del texto) para
+     que el slant tenga aire respiratorio sin afectar el ancho percibido.
+     0.12em ≈ ~7px en text-6xl (60px), invisible cuando NO hay italic,
+     suficiente cuando lo hay. Combinamos con padding-top de la mitad
+     porque el italic uppercase también puede crecer hacia arriba en
+     la letra final (especialmente "E", "F", "T" tienen serif imaginario
+     que sobresale del cap-height). */
+  .bg-clip-text {
+    padding-right: 0.12em;
+    padding-top: 0.05em;
+  }
+
   body {
     @apply bg-bg-base text-text-primary font-body antialiased selection:bg-accent-blue selection:text-white;
     min-height: 100vh;
