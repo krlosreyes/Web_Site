@@ -12,7 +12,7 @@
 
 ## Contexto
 
-Dos cambios al `ElenaAppCTA`:
+Tres cambios al `ElenaAppCTA`:
 
 ### Cambio 1: imagen del modal
 
@@ -58,6 +58,28 @@ Cuando el user **cierra el modal** (ESC, ✕, click-outside), se marca
 `localStorage.elenaapp_cta_dismissed = '1'` → nunca vuelve a auto-abrir.
 Si después clickea el botón del navbar, sí abre (acción intencional).
 Si lo cierra otra vez, marca dismissed igual (idempotent).
+
+### Cambio 3: copy del título del modal en 2 líneas
+
+El título original era `Sé de los primeros 1000` en una sola línea con
+`text-2xl sm:text-3xl tracking-tighter font-black`. En viewports angostos
+(iPhone SE, modal con padding) el número de 4 chars con tracking apretado
+se cortaba — el `0` final salía del container.
+
+Solución: dos líneas con jerarquía clara.
+
+| Línea | Tamaño | Color | Texto |
+|---|---|---|---|
+| 1 | `text-3xl sm:text-4xl` font-black italic | blanco | **"Sé fundador"** |
+| 2 | `text-sm sm:text-base` font-bold tracking-wide | gradient azul→teal | "de los primeros 1000" |
+
+Beneficios:
+- **"Sé fundador"** (11 chars) cabe en cualquier viewport sin tracking apretado.
+- Posiciona al user como protagonista, no como "uno de 1000".
+- La segunda línea preserva el sentido de escasez con el número.
+- Consistencia cross-canal: email dice "Eres fundador #N", badge dashboard
+  dice "Eres fundador #42 de los primeros 1000". Ahora el modal dice "Sé
+  fundador / de los primeros 1000" — mismo lenguaje en todos los puntos.
 
 ### Persistencia: localStorage vs sessionStorage
 

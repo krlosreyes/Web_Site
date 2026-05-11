@@ -188,11 +188,21 @@ const ElenaAppCTA: React.FC = () => {
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/15 border border-yellow-400/30 text-yellow-300 text-[10px] font-black uppercase tracking-[0.3em] mb-4">
                                 🚀 Acceso anticipado
                             </div>
+                            {/* SPEC-055: copy del título en 2 líneas.
+                                Antes: "Sé de los primeros 1000" en una sola línea —
+                                el número 4-char con tracking-tighter se cortaba en
+                                viewports angostos. Ahora "SÉ FUNDADOR" arriba (grande,
+                                blanco) + "de los primeros 1000" abajo (chico, gradient
+                                azul→teal). Más vendedor + posiciona al user como
+                                protagonista + consistente con email + badge dashboard. */}
                             <h2
                                 id="elenaapp-modal-title"
-                                className="text-2xl sm:text-3xl font-black text-white italic uppercase tracking-tighter leading-tight mb-3 break-words"
+                                className="font-heading font-black text-white italic uppercase tracking-tighter leading-none mb-3 break-words"
                             >
-                                Sé de los <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">primeros 1000</span>
+                                <span className="block text-3xl sm:text-4xl">Sé fundador</span>
+                                <span className="block mt-2 text-sm sm:text-base font-bold tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">
+                                    de los primeros 1000
+                                </span>
                             </h2>
                             <p className="text-gray-300 text-sm sm:text-base font-medium leading-relaxed max-w-md mx-auto">
                                 ElenaApp está casi lista. Reserva tu lugar y obtén beneficios exclusivos que no se repetirán.
