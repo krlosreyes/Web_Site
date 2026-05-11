@@ -114,6 +114,9 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 |---|---|---|---|---|
 | 050 | `.gitignore` blindado (defense in depth) | ✅ Cerrada (2026-05-11) | Root del repo sin `.gitignore` (el real vive en `metamorfosis-web/`) y `.DS_Store` del root quedó trackeado | [SPEC-050](specs/SPEC-050-gitignore-blindado.md) |
 | 051 | Limpieza páginas zombie + sitemap fix | ✅ Cerrada (2026-05-11) | 4 páginas legacy (`/dashboard-7d`, `/diagnostico`, `/protocolo`, `/calculadora`) sin links internos, 2 en sitemap → Google las indexaba como entry points obsoletos con tema light pre-SPEC-013 | [SPEC-051](specs/SPEC-051-limpieza-paginas-zombie.md) |
+| 052 | OG image branded dedicada | ✅ Cerrada (2026-05-11) | Default OG era `header-bg.jpg` (2 MB) — scrapers de LinkedIn/FB legacy fallaban o tardaban; ningún branding visible en el preview de redes | [SPEC-052](specs/SPEC-052-og-image-branded.md) |
+| 052b | Fix OG URLs absolutas (Astro.site, no Astro.url) | ✅ Cerrada (2026-05-11) | og:image/url se renderizaban con `http://localhost:4321/` en prod porque astro.config.mjs no tenía `site:` — Astro.url cae a localhost cuando reverse proxy de Hostinger no propaga Host header. Rompía TODOS los previews de redes | [SPEC-052b](specs/SPEC-052b-fix-og-urls-absolutas.md) |
+| 053 | Hero copy refresh (vos diseñás tu salud) | ✅ Cerrada (2026-05-11) | Copy "Transforma tu Metabolismo con Ciencia Real" + descripción técnica → tono más empoderador donde el user es protagonista | [SPEC-053](specs/SPEC-053-hero-copy-refresh.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 

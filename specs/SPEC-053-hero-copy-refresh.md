@@ -23,15 +23,21 @@ su salud, Metamorfosis Real le da las herramientas.
 | Elemento | Antes | Después |
 |---|---|---|
 | Pill superior | "Ecosistema de Salud de Alta Autoridad" | **"Ecosistema Metamorfosis Real"** |
-| H1 línea 1 + 2 | "Transforma tu / Metabolismo" | **"Nosotros te damos las herramientas"** |
-| H1 línea 3 (gradient azul) | "con Ciencia Real" | **"Tú diseñas tu salud."** |
-| Subtítulo | "No es una dieta más. Es una reingeniería biológica basada en datos clínicos, optimización hormonal y el poder de ElenaApp." | **"No es una dieta, es el manual de instrucciones que tu cuerpo siempre necesitó."** |
+| H1 línea 1 | "Transforma tu Metabolismo" | **"Te damos las herramientas"** |
+| H1 línea 2 (gradient azul) | "con Ciencia Real" | **"Tú creas los hábitos."** |
+| Subtítulo | "No es una dieta más. Es una reingeniería biológica basada en datos clínicos, optimización hormonal y el poder de ElenaApp." | **"Vida solo hay una y todo cuenta."** |
+
+**Nota:** durante iteración se ajustó el copy 2 veces — versión final preserva
+la idea (user protagonista) con frases más cortas y emocionales. El subtítulo
+"Vida solo hay una y todo cuenta" refuerza urgencia y reusa el copy de la
+OG image branded (SPEC-052) para consistencia de mensaje cross-canal.
 
 ## Ajuste responsive bonus
 
-El copy nuevo del H1 es más largo (34 chars vs 13 chars del anterior).
-El H1 original tenía `text-5xl md:text-7xl`, lo cual sería marginal en
-mobile con el copy nuevo. Aplicado el patrón de SPEC-031:
+El copy nuevo del H1 es ligeramente más largo (25 chars "Te damos las
+herramientas" vs 13 chars "Transforma tu"). El H1 original tenía
+`text-5xl md:text-7xl`, lo cual sería marginal en mobile con el copy
+nuevo. Aplicado el patrón de SPEC-031:
 
 - Clase actualizada: `text-4xl sm:text-5xl md:text-6xl lg:text-7xl`
 - Agregado `break-words` como defense in depth.
@@ -47,9 +53,9 @@ mobile con el copy nuevo. Aplicado el patrón de SPEC-031:
 ## Criterios de aceptación
 
 - [x] Pill superior muestra "Ecosistema Metamorfosis Real".
-- [x] H1 línea principal: "Nosotros te damos las herramientas".
-- [x] H1 segunda parte (en gradient azul): "Tú diseñas tu salud."
-- [x] Subtítulo: "No es una dieta, es el manual de instrucciones que tu cuerpo siempre necesitó."
+- [x] H1 línea principal: "Te damos las herramientas".
+- [x] H1 segunda parte (en gradient azul): "Tú creas los hábitos."
+- [x] Subtítulo: "Vida solo hay una y todo cuenta."
 - [x] H1 responsive: text-4xl en mobile, escalando hasta text-7xl en lg.
 - [x] H1 con `break-words` para fallback de overflow.
 - [ ] Post-deploy: visual en mobile (360px) — texto no desborda.
