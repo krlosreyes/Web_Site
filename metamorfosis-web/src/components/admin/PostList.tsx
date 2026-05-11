@@ -172,10 +172,34 @@ const PostList: React.FC<PostListProps> = ({ onEdit, onNew }) => {
     const handleDelete = async (id: string) => {
         if (!confirm('¿Seguro que deseas eliminar este artículo permanentemente?')) return;
         try {
-            const response = await fetch(`/api/admin/posts?id=${id}`, { method: 'DELETE' });
-            if (response.ok) fetchPosts();
+            // SPEC-064: Content-Type:application/json es obligatorio para que
+            // Astro 6 NO bloquee la request con 403 CSRF antes del handler
+            // (regla anti-loop documentada en CLAUDE.md sección 4). Aplica a
+            // POST/PUT/DELETE/PATCH desde JS.
+            const response = await fetch(`/api/admin/posts?id=${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+            });
+            // SPEC-064: feedback visible si falla. Sin esto, fetch con 4xx/5xx
+            // no lanza excepción y el handler queda en silencio → el usuario
+            // no se entera del error.
+            if (!response.ok) {
+                let errMsg = `Error ${response.status}`;
+                try {
+                    const body = await response.json();
+                    if (body?.error) errMsg = `${errMsg}: ${body.error}`;
+                } catch {
+                    // body no es JSON parseable, mantenemos el status
+                }
+                console.error('[PostList.handleDelete] No OK:', errMsg);
+                alert(`No se pudo eliminar el artículo. ${errMsg}`);
+                return;
+            }
+            fetchPosts();
         } catch (error) {
-            console.error("Error deleting post:", error);
+            console.error('[PostList.handleDelete] Error:', error);
+            alert('Error de red al eliminar el artículo. Reintentá.');
         }
     };
 

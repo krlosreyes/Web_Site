@@ -278,6 +278,13 @@ export const DELETE: APIRoute = async ({ url, request }) => {
 
         return new Response(JSON.stringify({ success: true }), { status: 200 });
     } catch (error) {
-        return new Response(JSON.stringify({ error: 'Error al borrar' }), { status: 500 });
+        // SPEC-064: log server-side para diagnosticar. Antes el endpoint
+        // fallaba silenciosamente y el cliente solo veía 500 genérico.
+        console.error('[posts.DELETE] Error:', error);
+        const msg = error instanceof Error ? error.message : 'Error al borrar';
+        return new Response(JSON.stringify({ error: msg }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+        });
     }
 };
