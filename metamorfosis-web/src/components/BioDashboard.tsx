@@ -24,6 +24,8 @@ interface DashboardStats {
     completedQuizzes?: any[];
     isLoading: boolean;
     needsOnboarding?: boolean;
+    /** SPEC-057: si el user es fundador, mostramos su número + beneficios. */
+    founderNumber: number | null;
 }
 
 const DEFAULT_STATS: DashboardStats = {
@@ -35,6 +37,7 @@ const DEFAULT_STATS: DashboardStats = {
     leanMassPct: null,
     metabolicAge: null,
     isLoading: true,
+    founderNumber: null,
 };
 
 const BioDashboard = () => {
@@ -71,6 +74,11 @@ const BioDashboard = () => {
                     completedQuizzes: (data as any).completedQuizzes ?? [],
                     isLoading: false,
                     needsOnboarding: !current,
+                    // SPEC-057: fallback visual de los beneficios fundador
+                    // si el email transaccional no llegó al user.
+                    founderNumber: data.founder?.isFounder
+                        ? (data.founder?.number ?? null)
+                        : null,
                 });
             } catch (err) {
                 console.error('[BioDashboard] fetch error:', err);
@@ -131,6 +139,56 @@ const BioDashboard = () => {
 
     return (
         <div className="animate-fade-in space-y-12 pb-20">
+            {/* SPEC-057: banner de fundador. Visible solo si el user pertenece
+                al cohorte de los primeros 1000 (founder.isFounder=true).
+                Cumple doble función:
+                  1. Reconocimiento permanente — el user ve su número siempre.
+                  2. Fallback al email transaccional: si por cualquier motivo
+                     el correo de bienvenida fundador no llegó, los beneficios
+                     siguen visibles en el dashboard. */}
+            {stats.founderNumber !== null && !stats.isLoading && (
+                <div className="relative overflow-hidden bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-[#00C49A]/10 border border-amber-400/30 rounded-[2rem] p-8">
+                    <div className="absolute -top-12 -right-12 w-48 h-48 bg-amber-400/10 blur-[80px] rounded-full pointer-events-none"></div>
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
+                        <div className="flex-shrink-0">
+                            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-300 mb-2">
+                                🎁 Acceso fundador
+                            </div>
+                            <div className="text-5xl sm:text-6xl font-black text-white italic tracking-tighter leading-none">
+                                #<span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-[#00C49A]">{stats.founderNumber}</span>
+                            </div>
+                            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mt-2">
+                                de los primeros 1000
+                            </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h3 className="text-white font-black text-lg uppercase tracking-tighter italic leading-tight mb-4 break-words">
+                                Beneficios garantizados al lanzamiento de <span className="text-[#00C49A]">ElenaApp</span>
+                            </h3>
+                            <ul className="space-y-3">
+                                <li className="flex items-start gap-3">
+                                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-400/15 border border-amber-400/30 flex items-center justify-center text-amber-300 text-xs font-black mt-0.5">1</span>
+                                    <div className="min-w-0">
+                                        <div className="text-white text-sm font-bold">Precio fundador permanente</div>
+                                        <div className="text-gray-400 text-xs">Descuento de por vida en la suscripción anual de ElenaApp.</div>
+                                    </div>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#00C49A]/15 border border-[#00C49A]/30 flex items-center justify-center text-[#00C49A] text-xs font-black mt-0.5">2</span>
+                                    <div className="min-w-0">
+                                        <div className="text-white text-sm font-bold">Un beneficio sorpresa</div>
+                                        <div className="text-gray-400 text-xs">Se revela el día del lanzamiento de ElenaApp.</div>
+                                    </div>
+                                </li>
+                            </ul>
+                            <p className="mt-4 text-[10px] font-mono text-gray-500 uppercase tracking-widest">
+                                Sin acción requerida — al iniciar sesión en ElenaApp te identificaremos con tu correo.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Banner cuando no hay diagnóstico aún */}
             {stats.needsOnboarding && !stats.isLoading && (
                 <div className="bg-gradient-to-br from-blue-500/10 to-[#00C49A]/10 border border-blue-500/30 rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6">

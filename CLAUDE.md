@@ -120,6 +120,18 @@ probá esto otro":
   range wrong). Si en el futuro se retoma self-hosting: usar Google
   Webfonts Helper manual (gwfh.mranftl.com), NO Python script, y verificar
   visualmente + Lighthouse antes de declarar la spec cerrada.
+- **Copy en español neutro (post-SPEC-054):** El sitio se dirige a audiencia
+  hispanoamericana completa (México, Colombia, España, Chile, Perú, Argentina,
+  Uruguay). NO usar voseo (`sos`, `tenés`, `podés`, `querés`, `sabés`, `creés`,
+  `necesitás`, `acabás`, etc.) ni imperativos rioplatenses con tilde final
+  (`Mirá`, `Hacé`, `Decí`, `Reservá`, `Iniciá`, `Probá`, `Descubrí`, `Recibí`,
+  `Obtené`, `Registrate`, etc.) en NINGÚN copy del sitio: components, pages,
+  emails transaccionales, mensajes de error, prompts, modals, notificaciones.
+  Usar tuteo neutro: `eres`, `tienes`, `puedes`, `mira`, `haz`, `di`, `reserva`,
+  `inicia`, `intenta`, `descubre`, `recibe`, `regístrate`. Excepción válida:
+  pretérito 1ra persona ("yo descubrí") cuando es narrativa de Carlos en
+  primera persona (ej. `sobre-mi.astro`). Aplica también a samples/ejemplos
+  de copy en conversación con Carlos — no solo al código fuente.
 - **Páginas con `BaseLayout` deben reservar ≥80px de padding-top** en su
   primer wrapper (`pt-24` o `pt-28` según diseño). El Navbar es `fixed
   top-0 h-20` y NO empuja contenido. Excepción: páginas con hero a viewport

@@ -12,17 +12,82 @@ import { onAuthStateChanged, type User } from 'firebase/auth';
  *
  * Modal con escape routes: ESC, click-outside, botón ✕.
  * Body scroll bloqueado mientras está abierto.
+ *
+ * SPEC-055: auto-open al entrar a la home (lógica respetuosa).
+ *   - Solo en path "/" (home).
+ *   - Solo si el user NO está logueado.
+ *   - Solo si el user NO descartó antes (localStorage flag).
+ *   - 3s delay después de mount (deja que el hero se cargue primero).
+ *   - Si el user lo cierra, marca dismissed -> nunca vuelve a abrir.
+ *   - Si el user clickea el botón del navbar, no se considera dismissed.
  */
+
+const DISMISSED_KEY = 'elenaapp_cta_dismissed';
+// SPEC-055: ElenaAppCTA se monta 2 veces en el Navbar (desktop + mobile menu).
+// Sin este sentinel, ambos useEffect disparan el auto-open al mismo tiempo y
+// terminan abriendo 2 modales encimados. El primer mount que llega gana.
+// sessionStorage (no localStorage) porque solo aplica a la sesión actual —
+// si el user navega y vuelve sin cerrar el browser, el sentinel persiste y
+// no se abre otro modal (no es necesario; ya tuvo su oportunidad esta sesión).
+const AUTO_OPENED_KEY = 'elenaapp_cta_auto_opened_session';
 
 const ElenaAppCTA: React.FC = () => {
     const [open, setOpen] = useState(false);
     const [user, setUser] = useState<User | null>(null);
+    const [authReady, setAuthReady] = useState(false);
     const dialogRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const unsub = onAuthStateChanged(auth, (u) => setUser(u));
+        const unsub = onAuthStateChanged(auth, (u) => {
+            setUser(u);
+            setAuthReady(true);
+        });
         return () => unsub();
     }, []);
+
+    // SPEC-055: auto-open en la home si el user no lo descartó antes.
+    // Esperamos a que auth resuelva para no abrir contra users logueados.
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (!authReady) return;
+        // Solo en home
+        if (window.location.pathname !== '/') return;
+        // No abrir si el user ya está logueado (ya está en el ecosistema)
+        if (user) return;
+        // No abrir si ya descartó antes (persistente, sobrevive cierre browser)
+        try {
+            if (localStorage.getItem(DISMISSED_KEY) === '1') return;
+        } catch {
+            // localStorage puede fallar (private mode estricto). Si falla,
+            // no abrimos automáticamente — preferimos silencio a error UX.
+            return;
+        }
+        // SPEC-055: anti doble-modal — el componente está montado 2 veces
+        // (desktop + mobile menu del navbar). Claim el sentinel en
+        // sessionStorage; si ya está, otra instancia se encargó.
+        try {
+            if (sessionStorage.getItem(AUTO_OPENED_KEY) === '1') return;
+            sessionStorage.setItem(AUTO_OPENED_KEY, '1');
+        } catch {
+            return;
+        }
+        // Delay 3s para que primero se vea el hero
+        const t = window.setTimeout(() => setOpen(true), 3000);
+        return () => window.clearTimeout(t);
+    }, [authReady, user]);
+
+    // SPEC-055: cuando el user cierra el modal (ESC, ✕, click-outside)
+    // marcamos como descartado para no volver a abrir automáticamente.
+    // Si abre el modal manualmente con el botón del navbar, no se persiste
+    // — esa es navegación intencional, no dismissal.
+    const dismissAndClose = () => {
+        try {
+            localStorage.setItem(DISMISSED_KEY, '1');
+        } catch {
+            // ignore
+        }
+        setOpen(false);
+    };
 
     // Bloquear scroll del body mientras el modal está abierto
     useEffect(() => {
@@ -36,18 +101,19 @@ const ElenaAppCTA: React.FC = () => {
         }
     }, [open]);
 
-    // Cerrar con Escape
+    // Cerrar con Escape (SPEC-055: marca dismissed)
     useEffect(() => {
         if (!open) return;
         const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setOpen(false);
+            if (e.key === 'Escape') dismissAndClose();
         };
         document.addEventListener('keydown', onKey);
         return () => document.removeEventListener('keydown', onKey);
     }, [open]);
 
+    // SPEC-055: click-outside también marca dismissed.
     const closeOnBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget) setOpen(false);
+        if (e.target === e.currentTarget) dismissAndClose();
     };
 
     return (
@@ -95,9 +161,9 @@ const ElenaAppCTA: React.FC = () => {
                         onClick={(e) => e.stopPropagation()}
                         className="relative w-full max-h-screen sm:max-h-[90vh] sm:max-w-lg sm:rounded-3xl bg-gradient-to-br from-[#0c1422] via-[#0a1020] to-[#020617] border border-blue-500/20 shadow-2xl overflow-y-auto animate-in slide-in-from-bottom-8 duration-300"
                     >
-                        {/* Cerrar */}
+                        {/* Cerrar (SPEC-055: marca dismissed) */}
                         <button
-                            onClick={() => setOpen(false)}
+                            onClick={dismissAndClose}
                             aria-label="Cerrar"
                             className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/5 border border-white/10 hover:bg-white/15 flex items-center justify-center text-white text-lg transition-all"
                         >
@@ -107,14 +173,17 @@ const ElenaAppCTA: React.FC = () => {
                         {/* Hero con mockup */}
                         <div className="relative pt-12 pb-6 px-6 sm:px-10 text-center">
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[200px] bg-blue-600/15 blur-[100px] -z-10 pointer-events-none"></div>
+                            {/* SPEC-055: logo branded de Elena (DNA verde + texto)
+                                reemplaza el mockup de teléfono. drop-shadow ajustada a
+                                verde (#00C49A) para matchear el glow del logo. */}
                             <img
-                                src="/elena-mockup.webp"
+                                src="/elena-logo.webp"
                                 alt="ElenaApp"
                                 width={160}
                                 height={160}
-                                loading="lazy"
+                                loading="eager"
                                 decoding="async"
-                                className="w-32 sm:w-40 mx-auto mb-6 drop-shadow-[0_0_30px_rgba(59,130,246,0.4)]"
+                                className="w-32 sm:w-40 mx-auto mb-6 drop-shadow-[0_0_30px_rgba(0,196,154,0.45)]"
                             />
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/15 border border-yellow-400/30 text-yellow-300 text-[10px] font-black uppercase tracking-[0.3em] mb-4">
                                 🚀 Acceso anticipado

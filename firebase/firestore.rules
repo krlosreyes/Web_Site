@@ -37,6 +37,14 @@ service cloud.firestore {
                       // Mismo principio para `crm`: el dueño no puede tocarlo
                       !('crm' in request.resource.data.keys())
                       || request.resource.data.crm == resource.data.crm
+                    )
+                    && (
+                      // SPEC-056: `founder` solo lo escribe el Admin SDK
+                      // (assignFounderIfEligible dentro de una runTransaction
+                      // que también incrementa el counter). El dueño NO debe
+                      // poder reclamar isFounder=true ni cambiar su number.
+                      !('founder' in request.resource.data.keys())
+                      || request.resource.data.founder == resource.data.founder
                     );
       allow delete: if false; // nunca desde cliente
 
@@ -129,6 +137,16 @@ service cloud.firestore {
         allow read: if request.auth != null;
         allow write: if false;
       }
+    }
+
+    // ===== system/{doc} (SPEC-056) =====
+    // Documentos de sistema (counters atómicos, feature flags). Solo Admin SDK
+    // accede. Cliente no debe poder leer/modificar — especialmente
+    // `system/counters.founderCount` que define el cap de cohorte fundador.
+    // Si el cliente pudiera leer, podría exponerlo en UI no autorizada; si
+    // pudiera modificar, rompería el cap de 1000.
+    match /system/{doc} {
+      allow read, write: if false;
     }
 
     // ===== admin_audit_log (SPEC-018) =====

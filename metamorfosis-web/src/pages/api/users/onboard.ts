@@ -21,8 +21,12 @@ import type { APIRoute } from 'astro';
 import { db, auth, FieldValue } from '../../../lib/firebaseAdmin';
 import { COLLECTIONS, SCHEMA_VERSION } from '../../../lib/constants/firestore';
 import type { ImrResult, UserDoc } from '../../../lib/types/user';
-import { sendWelcomeEmail } from '../../../lib/email';
+import {
+    sendFounderWelcomeEmail,
+    sendStandardWelcomeEmail,
+} from '../../../lib/email';
 import { logAdminAction } from '../../../lib/auditLog';
+import { assignFounderIfEligible } from '../../../lib/founders';
 
 export const prerender = false;
 
@@ -141,6 +145,11 @@ export const POST: APIRoute = async ({ request }) => {
                       invitedAt: null,
                       position: null,
                   },
+            // SPEC-056: NO seteamos el bloque `founder` acá. Lo asigna
+            // `assignFounderIfEligible` con una runTransaction después de
+            // este `set merge`. Si el user ya tenía `founder` definido
+            // (re-onboarding), la transacción detecta idempotencia y no
+            // toca el counter ni el doc.
             app: existing?.app ?? {
                 protocolId: null,
                 onboardingCompleted: false,
@@ -168,6 +177,22 @@ export const POST: APIRoute = async ({ request }) => {
             });
         }
 
+        // SPEC-056: asignar cohorte fundador atómicamente.
+        // Idempotente: si el user ya tiene founder.isFounder seteado, retorna
+        // el estado actual sin tocar el counter. Si todavía no, lee el
+        // counter actual de `system/counters.founderCount` y decide:
+        //   - currentCount < 1000 → fundador (incrementa counter)
+        //   - currentCount >= 1000 → user normal
+        // Si la transaction falla (raro), logueamos pero NO fallamos el
+        // onboard — el user todavía está creado correctamente. El bloque
+        // `founder` queda vacío y un reintento del onboard lo asignará.
+        let founderAssignment: Awaited<ReturnType<typeof assignFounderIfEligible>> | null = null;
+        try {
+            founderAssignment = await assignFounderIfEligible(uid, now);
+        } catch (e) {
+            console.error('[onboard] founder assignment failed:', e);
+        }
+
         // 5. Mergear leads anónimos previos con el mismo email
         if (email) {
             try {
@@ -190,33 +215,66 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         // SPEC-029: email de bienvenida — best-effort, idempotente.
+        // SPEC-057: si el user fue marcado fundador (founderAssignment.isFounder),
+        // mandamos el email de fundador con su número y los 2 beneficios. Si no,
+        // el welcome estándar (post-1000 o casos donde la asignación falló).
         // Solo se envía si no se envió antes (campo welcomeEmailSentAt).
         const alreadySent = (existing as { welcomeEmailSentAt?: string } | undefined)
             ?.welcomeEmailSentAt;
         if (!alreadySent && decoded.email) {
             try {
-                const result = await sendWelcomeEmail({
-                    to: decoded.email,
-                    name: userPayload.displayName ?? null,
-                });
+                const isFounder =
+                    founderAssignment?.isFounder === true &&
+                    typeof founderAssignment.number === 'number';
+                const result = isFounder
+                    ? await sendFounderWelcomeEmail({
+                          to: decoded.email,
+                          name: userPayload.displayName ?? null,
+                          founderNumber: founderAssignment!.number!,
+                      })
+                    : await sendStandardWelcomeEmail({
+                          to: decoded.email,
+                          name: userPayload.displayName ?? null,
+                      });
                 if (!result.skipped) {
                     await userRef.update({ welcomeEmailSentAt: now });
                     // Audit log: registrar el envío sin guardar el email completo (PII)
                     await logAdminAction({
-                        action: 'send_welcome_email',
+                        action: isFounder
+                            ? 'send_founder_welcome_email'
+                            : 'send_welcome_email',
                         resource: 'session',
                         resourceId: uid,
-                        changes: { messageId: { before: null, after: result.id ?? 'unknown' } },
+                        changes: {
+                            messageId: { before: null, after: result.id ?? 'unknown' },
+                            founderNumber: isFounder
+                                ? { before: null, after: founderAssignment!.number }
+                                : { before: null, after: null },
+                        },
                         request,
                     });
                 }
             } catch (e) {
                 // Best-effort: no rompemos el onboard si el email falla.
+                // Fallback: el dashboard del user muestra el badge fundador
+                // igual aunque el email no haya llegado (SPEC-057).
                 console.error('[onboard] Welcome email error:', e);
             }
         }
 
-        return jsonResponse(200, { success: true, uid });
+        // SPEC-056: exponer asignación fundador al frontend para badges
+        // inmediatos en el dashboard ("Eres fundador #42"). Si la asignación
+        // falló (catch arriba), retornamos null y el frontend cae a UI por defecto.
+        return jsonResponse(200, {
+            success: true,
+            uid,
+            founder: founderAssignment
+                ? {
+                      isFounder: founderAssignment.isFounder,
+                      number: founderAssignment.number,
+                  }
+                : null,
+        });
     } catch (error) {
         console.error('[onboard] Error:', error);
         return jsonResponse(500, { error: 'Error interno' });

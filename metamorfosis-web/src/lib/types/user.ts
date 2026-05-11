@@ -103,6 +103,31 @@ export interface UserWaitlist {
 }
 
 /**
+ * SPEC-056: Cohorte de fundadores (primeros 1000 usuarios registrados).
+ *
+ * Se asigna ATÓMICAMENTE en `POST /api/users/onboard` dentro de una
+ * Firestore runTransaction que incrementa `system/counters.founderCount`.
+ * Una vez asignado, NO se vuelve a tocar (idempotencia: si el user re-hace
+ * onboarding, se preservan los valores originales).
+ *
+ * `isFounder` es el flag definitivo que ElenaApp lee para desbloquear
+ * beneficios del precio fundador. NO se usa código de validación —
+ * Firebase Auth es compartido entre web y ElenaApp, el doc canónico
+ * `users/{uid}.founder` es la fuente de verdad.
+ *
+ * Cap: 1000 (constante en `lib/constants/founders.ts`). Después del 1000,
+ * los nuevos usuarios tienen `isFounder: false, number: null`.
+ */
+export interface UserFounder {
+    /** ¿Es fundador? Decidido en el onboard. */
+    isFounder: boolean;
+    /** Número 1..1000. null si no es fundador. */
+    number: number | null;
+    /** ISO string del momento que se asignó. null si no es fundador. */
+    assignedAt: string | null;
+}
+
+/**
  * Reservado para ElenaApp. La web NO escribe aquí.
  * El equipo de ElenaApp puede ampliar esta interfaz en su propio repo
  * mientras no rompa los campos existentes ni viole `schemaVersion`.
@@ -143,6 +168,8 @@ export interface UserDoc {
     habits: UserHabits;
     imr: UserImr;
     waitlist: UserWaitlist;
+    /** SPEC-056: cohorte fundadores (primeros 1000). */
+    founder: UserFounder;
     app: UserApp;
     meta: UserMeta;
 }

@@ -3,6 +3,7 @@ import StatsGrid from './StatsGrid';
 import PostList from './PostList';
 import LeadList from './LeadList';
 import ArticleEditor from './ArticleEditor';
+import FoundersList from './FoundersList';
 
 /**
  * Lazy load de AnaliticaIMR (SPEC-017).
@@ -43,7 +44,7 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode, onReset:
     }
 }
 
-type AdminTab = 'ARCHIVE' | 'LEADS' | 'ANALYTICS' | 'AUDIT' | 'FORUM';
+type AdminTab = 'ARCHIVE' | 'LEADS' | 'FOUNDERS' | 'ANALYTICS' | 'AUDIT' | 'FORUM';
 
 const LazyLoader = () => (
     <div className="flex items-center justify-center min-h-[400px] bg-gray-900 border border-gray-800 rounded-2xl">
@@ -114,6 +115,19 @@ const AdminApp = () => {
                         Gestión de Leads
                     </button>
 
+                    {/* SPEC-058: tab de cohorte fundadores. Color amber para
+                        diferenciar visualmente del resto (leads=teal, archive=blue, etc.). */}
+                    <button
+                        onClick={() => setActiveTab('FOUNDERS')}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm border ${activeTab === 'FOUNDERS'
+                            ? 'bg-amber-500/10 text-amber-300 border-amber-400/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
+                            : 'bg-transparent text-gray-500 border-transparent hover:bg-gray-800/50 hover:text-white'
+                            }`}
+                    >
+                        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m0 0v2m0-2h2m-2 0h-2m6-10a2 2 0 11-4 0 2 2 0 014 0zM6 7a2 2 0 11-4 0 2 2 0 014 0zm12 11a2 2 0 11-4 0 2 2 0 014 0zM6 17a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        Fundadores
+                    </button>
+
                     <button
                         onClick={() => setActiveTab('ARCHIVE')}
                         className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm border ${activeTab === 'ARCHIVE'
@@ -172,11 +186,13 @@ const AdminApp = () => {
                         />
                     ) : (
                         <>
-                            {/* StatsGrid se oculta en ANALYTICS, AUDIT y FORUM para
-                                evitar redundancia / saturación visual. */}
-                            {activeTab !== 'ANALYTICS' && activeTab !== 'AUDIT' && activeTab !== 'FORUM' && <StatsGrid />}
+                            {/* StatsGrid se oculta en ANALYTICS, AUDIT, FORUM y
+                                FOUNDERS para evitar redundancia / saturación visual
+                                (el tab Fundadores tiene su propio header con métricas). */}
+                            {activeTab !== 'ANALYTICS' && activeTab !== 'AUDIT' && activeTab !== 'FORUM' && activeTab !== 'FOUNDERS' && <StatsGrid />}
                             <div className="flex-1 animate-fade-in-up">
                                 {activeTab === 'LEADS' && <LeadList />}
+                                {activeTab === 'FOUNDERS' && <FoundersList />}
                                 {activeTab === 'ARCHIVE' && <PostList onEdit={handleEdit} onNew={handleNew} />}
                                 {activeTab === 'ANALYTICS' && (
                                     <Suspense fallback={<LazyLoader />}>
