@@ -170,7 +170,7 @@ const ArticleQuiz: React.FC<Props> = ({ questions: rawQuestions, articleId }) =>
                     </div>
 
                     <p className="text-gray-300 mb-3 max-w-md mx-auto font-medium leading-relaxed">
-                        Registrate para ver tu puntaje, acceder al dashboard
+                        Regístrate para ver tu puntaje, acceder al dashboard
                         y entrar a la <span className="text-[#00C49A] font-bold">lista de espera de ElenaApp</span>.
                     </p>
                     <p className="text-[10px] text-gray-600 font-mono mb-8 uppercase tracking-widest">
@@ -188,7 +188,7 @@ const ArticleQuiz: React.FC<Props> = ({ questions: rawQuestions, articleId }) =>
                             href="/login"
                             className="px-8 py-4 bg-blue-600 text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/30"
                         >
-                            Registrate y ver puntaje →
+                            Regístrate y ver puntaje →
                         </a>
                     </div>
                 </div>

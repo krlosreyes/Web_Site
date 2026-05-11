@@ -66,7 +66,7 @@ function validateQuizForPublish(quiz: Question[]): Map<number, string> {
         }
         const validOptions = (q.options || []).filter((o) => (o || '').trim().length > 0);
         if (validOptions.length < 2) {
-            errors.set(i, `Solo hay ${validOptions.length} opción válida — necesitás al menos 2.`);
+            errors.set(i, `Solo hay ${validOptions.length} opción válida — necesitas al menos 2.`);
             return;
         }
         const correctOption = q.options?.[q.correctAnswer];
@@ -317,7 +317,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
         if (newStatus === 'published') {
             // SPEC-046: pilar es obligatorio al publicar
             if (!pillar || !isValidPillarId(pillar)) {
-                alert('Tenés que elegir un Pilar Metabólico antes de publicar.');
+                alert('Tienes que elegir un Pilar Metabólico antes de publicar.');
                 return;
             }
             const errors = validateQuizForPublish(quiz);

@@ -126,7 +126,7 @@ const ElenaAppCTA: React.FC = () => {
                                 Sé de los <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">primeros 1000</span>
                             </h2>
                             <p className="text-gray-300 text-sm sm:text-base font-medium leading-relaxed max-w-md mx-auto">
-                                ElenaApp está casi lista. Reservá tu lugar y obtené beneficios exclusivos que no se repetirán.
+                                ElenaApp está casi lista. Reserva tu lugar y obtén beneficios exclusivos que no se repetirán.
                             </p>
                         </div>
 
@@ -184,7 +184,7 @@ const ElenaAppCTA: React.FC = () => {
                                         href="/login?fromWaitlist=1"
                                         className="block text-center w-full px-6 py-4 rounded-2xl bg-gradient-to-r from-[#00C49A] to-teal-600 text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-[#00C49A]/20 hover:scale-[1.02] active:scale-95 transition-all"
                                     >
-                                        Reservá tu lugar — gratis →
+                                        Reserva tu lugar — gratis →
                                     </a>
                                     <p className="text-center text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-4">
                                         Sin tarjeta · 2 minutos · Sin spam

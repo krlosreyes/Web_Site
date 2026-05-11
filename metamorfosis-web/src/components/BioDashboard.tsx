@@ -136,7 +136,7 @@ const BioDashboard = () => {
                 <div className="bg-gradient-to-br from-blue-500/10 to-[#00C49A]/10 border border-blue-500/30 rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div>
                         <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Tu diagnóstico está vacío</h3>
-                        <p className="text-gray-400 text-sm">Hacé el escaneo SPEC-70.5 (2 minutos) y desbloqueá tu reporte completo.</p>
+                        <p className="text-gray-400 text-sm">Haz el escaneo SPEC-70.5 (2 minutos) y desbloquea tu reporte completo.</p>
                     </div>
                     <a href="/quiz" className="bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-widest text-xs px-8 py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all whitespace-nowrap">
                         Iniciar Escaneo →

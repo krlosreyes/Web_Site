@@ -190,7 +190,7 @@ const NotificationBell: React.FC = () => {
 
                     {items.length === 0 ? (
                         <div className="px-4 py-8 text-center text-gray-600 text-xs font-mono">
-                            No tenés notificaciones todavía.
+                            No tienes notificaciones todavía.
                         </div>
                     ) : (
                         <ul className="divide-y divide-white/5">

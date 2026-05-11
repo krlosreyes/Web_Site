@@ -117,6 +117,7 @@ Decisión 2026-05-09: análisis del documento `Spec_Driven_Development.pdf` cruz
 | 052 | OG image branded dedicada | ✅ Cerrada (2026-05-11) | Default OG era `header-bg.jpg` (2 MB) — scrapers de LinkedIn/FB legacy fallaban o tardaban; ningún branding visible en el preview de redes | [SPEC-052](specs/SPEC-052-og-image-branded.md) |
 | 052b | Fix OG URLs absolutas (Astro.site, no Astro.url) | ✅ Cerrada (2026-05-11) | og:image/url se renderizaban con `http://localhost:4321/` en prod porque astro.config.mjs no tenía `site:` — Astro.url cae a localhost cuando reverse proxy de Hostinger no propaga Host header. Rompía TODOS los previews de redes | [SPEC-052b](specs/SPEC-052b-fix-og-urls-absolutas.md) |
 | 053 | Hero copy refresh (vos diseñás tu salud) | ✅ Cerrada (2026-05-11) | Copy "Transforma tu Metabolismo con Ciencia Real" + descripción técnica → tono más empoderador donde el user es protagonista | [SPEC-053](specs/SPEC-053-hero-copy-refresh.md) |
+| 054 | Neutralizar tono argentino en copy | ✅ Cerrada (2026-05-11) | El sitio mezclaba voseo (tenés, podés, Reservá, Iniciá) que limita conexión con audiencia hispanoamericana general (México, Colombia, España, etc.). Sweep + reemplazo a español neutro en 10 archivos | [SPEC-054](specs/SPEC-054-neutralizar-tono-argentino.md) |
 
 ### Fase 4 — BAJOS (limpieza)
 

@@ -198,7 +198,7 @@ const IMRQuiz = () => {
             } catch (err) {
                 console.error('[IMRQuiz] onboard error:', err);
                 setIsSaving(false);
-                alert('No pudimos guardar tu diagnóstico. Probá de nuevo.');
+                alert('No pudimos guardar tu diagnóstico. Inténtalo de nuevo.');
             }
         } else {
             // Anónimo: guardar payload + ir a registro
@@ -238,7 +238,7 @@ const IMRQuiz = () => {
                 setIsAlreadyRegistered(true);
             } else {
                 console.error('[IMRQuiz] register error:', err);
-                alert(err.message || 'Error al crear tu cuenta. Probá de nuevo.');
+                alert(err.message || 'Error al crear tu cuenta. Inténtalo de nuevo.');
             }
             setIsSaving(false);
         }
@@ -262,7 +262,7 @@ const IMRQuiz = () => {
                     Tu cuerpo te está hablando. Vamos a traducirlo.
                 </p>
                 <p className="text-gray-400 text-sm sm:text-base max-w-xl mx-auto mb-12 leading-relaxed">
-                    Descubrí tu <strong className="text-white">Índice Metabólico Real (IMR)</strong> y recibí un reporte personalizado con los 5 pilares que tenés que ajustar para recuperar energía, claridad mental y composición corporal.
+                    Descubre tu <strong className="text-white">Índice Metabólico Real (IMR)</strong> y recibe un reporte personalizado con los 5 pilares que tienes que ajustar para recuperar energía, claridad mental y composición corporal.
                 </p>
 
                 {/* CTA primario (mantenido visual, copy más imperativo y cálido) */}

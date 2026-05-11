@@ -212,7 +212,7 @@ const PostReactions: React.FC<Props> = ({ slug, initialReactions, hasQuiz = fals
                         href="/login"
                         className="ml-2 flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600/10 border border-blue-500/30 text-blue-300 hover:bg-blue-600/20 hover:border-blue-500/50 transition-all text-xs font-bold uppercase tracking-widest"
                     >
-                        🔒 Registrate para reaccionar
+                        🔒 Regístrate para reaccionar
                     </a>
                 )}
 

@@ -739,10 +739,10 @@ const ForumEngine = () => {
                     <Icons.Lock size={32} className="text-blue-400" />
                 </div>
                 <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-6 leading-tight break-words">
-                    Identificate para entrar a <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">La Tribu</span>
+                    Identifícate para entrar a <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">La Tribu</span>
                 </h2>
                 <p className="text-gray-400 text-base max-w-xl mx-auto mb-12 font-medium">
-                    El foro es exclusivo para usuarios registrados. Crea tu cuenta o iniciá sesión para participar.
+                    El foro es exclusivo para usuarios registrados. Crea tu cuenta o inicia sesión para participar.
                 </p>
                 <a
                     href="/login"
