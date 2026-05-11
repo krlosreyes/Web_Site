@@ -32,6 +32,32 @@ la idea (user protagonista) con frases más cortas y emocionales. El subtítulo
 "Vida solo hay una y todo cuenta" refuerza urgencia y reusa el copy de la
 OG image branded (SPEC-052) para consistencia de mensaje cross-canal.
 
+## Treatment del subtítulo: glass card
+
+El subtítulo "Vida solo hay una y todo cuenta." era plain `text-secondary`
+que se perdía visualmente entre el H1 dominante y los CTAs brillantes.
+Aplicar un wrapper estilo glass para darle protagonismo emocional sin
+agrandar el font ni quitarle protagonismo a los CTAs (que siguen siendo
+la acción principal).
+
+Diseño:
+- **Background:** `bg-bg-surface/40` (semi-transparente, 40% opacidad).
+- **Backdrop:** `backdrop-blur-md` (vidrio esmerilado sobre el hero image).
+- **Border:** solo izquierdo (`border-l-4 border-accent-blue`) — ancla
+  visual asimétrica, evoca "quote" o "pull-quote".
+- **Border radius:** `rounded-r-2xl` (esquinas redondeadas solo a la derecha,
+  estética más diseñada).
+- **Glow:** `shadow-[0_0_30px_rgba(0,123,255,0.15)]` — halo azul sutil con
+  opacidad baja para no competir con los CTAs.
+- **Texto:** `text-primary` (no secondary) + `italic` + `font-medium`. El
+  italic le da peso emocional sin agrandar tipográficamente.
+- **Layout:** `inline-block` + `max-w-xl`. Solo abraza el texto, no ocupa
+  todo el ancho del container.
+
+El resultado es un elemento que destaca pero no opaca: los CTAs siguen
+siendo el centro de gravedad del Hero, el subtítulo es la "promesa
+emocional" enmarcada.
+
 ## Layout responsive del H1
 
 **Requerimiento del owner:** cada frase del H1 debe quedar en UNA línea en

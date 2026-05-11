@@ -38,9 +38,19 @@ import { ArrowRight } from 'lucide-astro';
         <span class="md:whitespace-nowrap">Te damos las herramientas</span><br/><span class="md:whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-accent-blue to-cyan-400">Tú creas los hábitos.</span>
       </h1>
 
-      <p class="text-xl text-text-secondary max-w-xl mb-10 leading-relaxed">
-        Vida solo hay una y todo cuenta.
-      </p>
+      {/* SPEC-053: subtítulo emocional con tratamiento glass para
+          darle protagonismo sin agrandar el tamaño ni opacar los CTAs.
+          - bg semi-transparente + backdrop-blur: efecto vidrio sobre el hero
+          - border-left grueso en accent-blue: ancla visual asimétrica
+          - rounded-r-2xl: esquinas redondeadas solo a la derecha (más design-y)
+          - shadow azul tenue (opacity 0.15): glow sin gritar
+          - italic + text-primary (no secondary): el texto pesa más
+          - inline-block: solo abraza el texto, no ocupa toda la fila */}
+      <div class="inline-block bg-bg-surface/20 backdrop-blur-md border-l-4 border-accent-blue rounded-r-2xl px-6 py-4 mb-10 shadow-[0_0_30px_rgba(0,123,255,0.15)] max-w-xl">
+        <p class="text-xl text-text-primary leading-relaxed italic font-medium">
+          Vida solo hay una y todo cuenta.
+        </p>
+      </div>
       
       <div class="flex flex-col sm:flex-row items-start gap-4">
         <a href="/quiz" class="btn-gradient px-8 py-4 text-lg flex items-center gap-2">
