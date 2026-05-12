@@ -127,17 +127,20 @@ const jsonLd = {
         is:inline
         set:html={JSON.stringify(jsonLd)}
     ></script>
-    <article class="min-h-screen relative bg-[#020617] overflow-hidden">
-        <!-- Cuadrícula Técnica de Fondo (Sutil) -->
+    <article class="min-h-screen relative bg-bg-base overflow-hidden">
+        <!-- Cuadrícula técnica de fondo (sutil, opacity 3%) -->
         <div
             class="absolute inset-0 z-0 pointer-events-none opacity-[0.03]"
             style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 40px 40px;"
         >
         </div>
-        <div
-            class="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-transparent via-[#020617]/50 to-[#020617]"
-        >
-        </div>
+        {/* SPEC-072d: ELIMINADO el gradient overlay `from-transparent via-[#020617]/50
+            to-[#020617]` que cubria todo el article y oscurecia las cards
+            inferiores con una niebla #020617 casi opaca. Era la causa real
+            del problema de "ilegibilidad" reportado en las cards al final
+            (Discutir/Evidencia/Lleva-esto/Tribu) — los fixes previos de
+            contraste de texto y fondo de cards no servian porque este overlay
+            pintaba encima. */}
 
         <!-- Hero Header Dinámico -->
         <div
