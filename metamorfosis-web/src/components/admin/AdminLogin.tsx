@@ -116,7 +116,7 @@ const AdminLogin: React.FC = () => {
                 <button
                     type="submit"
                     disabled={isLoading || adminCode.length < 8}
-                    className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-black uppercase tracking-widest rounded-lg shadow-[0_0_15px_rgba(37,99,235,0.2)] transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-accent hover:bg-accent-strong disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-black uppercase tracking-widest rounded-lg shadow-[0_0_15px_rgba(37,99,235,0.2)] transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
                 >
                     {isLoading ? (
                         <>

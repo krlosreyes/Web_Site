@@ -28,14 +28,14 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode, onReset:
     render() {
         if (this.state.hasError) {
             return (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-10 text-center">
-                    <p className="text-red-400 font-bold text-lg mb-2">⚠️ Error en el componente</p>
-                    <p className="text-gray-400 text-sm mb-6 font-mono">{this.state.error}</p>
+                <div className="bg-status-bad/10 border border-status-bad/30 rounded-xl p-8 text-center">
+                    <p className="text-status-bad font-semibold text-base mb-2">⚠️ Error en el componente</p>
+                    <p className="text-text-secondary text-sm mb-5 font-mono">{this.state.error}</p>
                     <button
                         onClick={() => { this.setState({ hasError: false, error: '' }); this.props.onReset(); }}
-                        className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-red-500 transition-all"
+                        className="px-5 py-2.5 bg-status-bad text-bg-base rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
                     >
-                        ← Volver al Panel
+                        ← Volver al panel
                     </button>
                 </div>
             );
@@ -47,15 +47,28 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode, onReset:
 type AdminTab = 'ARCHIVE' | 'LEADS' | 'FOUNDERS' | 'ANALYTICS' | 'AUDIT' | 'FORUM';
 
 const LazyLoader = () => (
-    <div className="flex items-center justify-center min-h-[400px] bg-gray-900 border border-gray-800 rounded-2xl">
-        <div className="flex flex-col items-center gap-4">
-            <div className="w-8 h-8 border-2 border-purple-500/30 border-t-purple-400 rounded-full animate-spin" />
-            <span className="text-xs text-gray-500 uppercase tracking-widest font-mono">
-                Cargando módulo de analítica…
+    <div className="flex items-center justify-center min-h-[400px] bg-bg-surface border border-white/[0.08] rounded-xl">
+        <div className="flex flex-col items-center gap-3">
+            <div className="w-7 h-7 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+            <span className="text-xs text-text-muted font-medium">
+                Cargando módulo…
             </span>
         </div>
     </div>
 );
+
+// SPEC-075: helper para clases de botón del sidebar.
+// Activo = bg-accent/10 + text-accent + border-accent/30.
+// Inactivo = transparente + text-text-secondary + hover sutil.
+// Unificado a accent teal (antes cada tab tenia su color: teal/amber/blue/
+// purple/yellow/orange). El admin es de Carlos, identifica tabs por texto,
+// no necesita 6 colores compitiendo en el sidebar.
+const sidebarBtn = (active: boolean) =>
+    `flex items-center gap-3 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm border ${
+        active
+            ? 'bg-accent/10 text-accent border-accent/30'
+            : 'bg-transparent text-text-secondary border-transparent hover:bg-white/[0.04] hover:text-text-primary'
+    }`;
 
 const AdminApp = () => {
     const [activeTab, setActiveTab] = useState<AdminTab>('ARCHIVE');
@@ -103,73 +116,54 @@ const AdminApp = () => {
         <div className="flex flex-col lg:flex-row gap-8 min-h-[calc(100vh-8rem)]">
             {/* Sidebar Navigation */}
             {!isEditing && (
-                <aside className="w-full lg:w-64 shrink-0 flex flex-col gap-2">
+                <aside className="w-full lg:w-60 shrink-0 flex flex-col gap-1">
                     <button
                         onClick={() => setActiveTab('LEADS')}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm border ${activeTab === 'LEADS'
-                            ? 'bg-[#00C49A]/10 text-[#00C49A] border-[#00C49A]/30 shadow-[0_0_15px_rgba(0,196,154,0.1)]'
-                            : 'bg-transparent text-gray-500 border-transparent hover:bg-gray-800/50 hover:text-white'
-                            }`}
+                        className={sidebarBtn(activeTab === 'LEADS')}
                     >
-                        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                        Gestión de Leads
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        Gestión de leads
                     </button>
 
-                    {/* SPEC-058: tab de cohorte fundadores. Color amber para
-                        diferenciar visualmente del resto (leads=teal, archive=blue, etc.). */}
                     <button
                         onClick={() => setActiveTab('FOUNDERS')}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm border ${activeTab === 'FOUNDERS'
-                            ? 'bg-amber-500/10 text-amber-300 border-amber-400/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
-                            : 'bg-transparent text-gray-500 border-transparent hover:bg-gray-800/50 hover:text-white'
-                            }`}
+                        className={sidebarBtn(activeTab === 'FOUNDERS')}
                     >
-                        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m0 0v2m0-2h2m-2 0h-2m6-10a2 2 0 11-4 0 2 2 0 014 0zM6 7a2 2 0 11-4 0 2 2 0 014 0zm12 11a2 2 0 11-4 0 2 2 0 014 0zM6 17a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m0 0v2m0-2h2m-2 0h-2m6-10a2 2 0 11-4 0 2 2 0 014 0zM6 7a2 2 0 11-4 0 2 2 0 014 0zm12 11a2 2 0 11-4 0 2 2 0 014 0zM6 17a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         Fundadores
                     </button>
 
                     <button
                         onClick={() => setActiveTab('ARCHIVE')}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm border ${activeTab === 'ARCHIVE'
-                            ? 'bg-blue-500/10 text-blue-400 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
-                            : 'bg-transparent text-gray-500 border-transparent hover:bg-gray-800/50 hover:text-white'
-                            }`}
+                        className={sidebarBtn(activeTab === 'ARCHIVE')}
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                        Gestión de Artículos
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        Gestión de artículos
                     </button>
+
+                    <div className="my-2 border-t border-white/[0.04]" />
 
                     <button
                         onClick={() => setActiveTab('ANALYTICS')}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm border mt-4 relative group ${activeTab === 'ANALYTICS'
-                            ? 'bg-purple-500/10 text-purple-300 border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.15)]'
-                            : 'bg-transparent text-gray-500 border-transparent hover:bg-gray-800/50 hover:text-white'
-                            }`}
+                        className={sidebarBtn(activeTab === 'ANALYTICS')}
                     >
-                        <div className="absolute inset-0 bg-purple-500/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur-md"></div>
-                        <svg className={`w-5 h-5 relative z-10 ${activeTab === 'ANALYTICS' ? 'text-purple-300' : 'text-purple-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        <span className="relative z-10">Analítica IMR</span>
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        Analítica IMR
                     </button>
 
                     <button
                         onClick={() => setActiveTab('AUDIT')}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm border ${activeTab === 'AUDIT'
-                            ? 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.15)]'
-                            : 'bg-transparent text-gray-500 border-transparent hover:bg-gray-800/50 hover:text-white'
-                            }`}
+                        className={sidebarBtn(activeTab === 'AUDIT')}
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                         Audit log
                     </button>
 
                     <button
                         onClick={() => setActiveTab('FORUM')}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm border ${activeTab === 'FORUM'
-                            ? 'bg-orange-500/10 text-orange-300 border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.15)]'
-                            : 'bg-transparent text-gray-500 border-transparent hover:bg-gray-800/50 hover:text-white'
-                            }`}
+                        className={sidebarBtn(activeTab === 'FORUM')}
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path></svg>
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path></svg>
                         Moderación foro
                     </button>
                 </aside>

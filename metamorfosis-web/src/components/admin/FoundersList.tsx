@@ -202,50 +202,47 @@ const FoundersList: React.FC = () => {
 
     return (
         <div className="space-y-6 animate-fade-in-up">
-            {/* Header con métricas */}
-            <div className="bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-[#00C49A]/10 border border-amber-400/30 rounded-[2rem] p-8 relative overflow-hidden">
-                <div className="absolute -top-12 -right-12 w-48 h-48 bg-amber-400/10 blur-[80px] rounded-full pointer-events-none"></div>
-                <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
+            {/* Header — SPEC-075: simplificado sin gradient gigante ni blur 80px */}
+            <div className="bg-bg-elevated border border-white/[0.1] rounded-xl p-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
                     <div>
-                        <div className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-300 mb-2">
+                        <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-400 mb-2 inline-flex items-center gap-2">
                             🎁 Cohorte fundadores
                         </div>
-                        <div className="text-5xl sm:text-6xl font-black text-white italic tracking-tighter leading-none">
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-[#00C49A]">
-                                {count}
-                            </span>
-                            <span className="text-gray-500"> / {cap}</span>
+                        <div className="text-3xl sm:text-4xl font-bold text-text-primary tracking-tight leading-none">
+                            <span className="text-accent">{count}</span>
+                            <span className="text-text-muted text-2xl sm:text-3xl"> / {cap}</span>
                         </div>
-                        <div className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mt-2">
+                        <div className="text-xs text-text-secondary mt-2">
                             {remaining > 0
                                 ? `${remaining} cupos disponibles`
-                                : 'cupo lleno · nuevos usuarios son estándar'}
+                                : 'Cupo lleno · nuevos usuarios son estándar'}
                         </div>
                     </div>
                     <div className="flex flex-col items-start md:items-end gap-2">
-                        <div className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">
+                        <div className="text-[11px] text-text-muted">
                             Actualizado: {lastUpdatedAt ? formatDate(lastUpdatedAt.toISOString()) : '—'}
                             {isRefreshing && (
-                                <span className="ml-2 text-[#00C49A] animate-pulse">●</span>
+                                <span className="ml-2 text-accent animate-pulse">●</span>
                             )}
                         </div>
                         <button
                             onClick={() => fetchFounders(false)}
                             disabled={loading || isRefreshing}
-                            className="text-[10px] font-bold uppercase tracking-widest text-amber-300 hover:text-amber-200 border border-amber-400/30 hover:border-amber-400/50 rounded-full px-4 py-1.5 transition-all disabled:opacity-50"
+                            className="text-xs font-semibold text-text-secondary hover:text-text-primary border border-white/[0.1] hover:border-white/[0.2] rounded-md px-3 py-1.5 transition-colors disabled:opacity-50"
                         >
-                            ↻ Actualizar ahora
+                            ↻ Actualizar
                         </button>
                     </div>
                 </div>
                 {/* Progress bar */}
-                <div className="relative z-10 h-3 bg-black/40 rounded-full overflow-hidden border border-white/5">
+                <div className="h-2 bg-bg-base rounded-full overflow-hidden">
                     <div
-                        className="h-full bg-gradient-to-r from-amber-400 to-[#00C49A] transition-all duration-500"
+                        className="h-full bg-accent transition-all duration-500"
                         style={{ width: `${progressPct}%` }}
                     />
                 </div>
-                <div className="relative z-10 mt-2 text-right text-[10px] font-mono text-gray-500 uppercase tracking-widest">
+                <div className="mt-2 text-right text-[11px] text-text-muted">
                     {progressPct}% del cupo asignado
                 </div>
             </div>
@@ -257,12 +254,12 @@ const FoundersList: React.FC = () => {
                     placeholder="Buscar por nombre, email o número..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    className="flex-1 max-w-md px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-amber-400/50 focus:bg-white/8 transition-all"
+                    className="flex-1 max-w-md px-4 py-2.5 rounded-lg bg-bg-surface border border-white/[0.08] text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:border-accent/40 transition-colors"
                 />
                 <button
                     onClick={() => data && exportCsv(filtered)}
                     disabled={!data || filtered.length === 0}
-                    className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-xs font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                    className="px-5 py-2.5 rounded-lg bg-bg-surface border border-white/[0.08] text-text-secondary text-xs font-semibold hover:bg-bg-elevated hover:text-text-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                     ↓ Exportar CSV ({filtered.length})
                 </button>
@@ -291,7 +288,7 @@ const FoundersList: React.FC = () => {
 
             {/* Tabla */}
             {data && filtered.length > 0 && (
-                <div className="bg-[#0c1422]/40 backdrop-blur-xl border border-white/10 rounded-[2rem] overflow-hidden">
+                <div className="bg-[#0c1422]/40 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
