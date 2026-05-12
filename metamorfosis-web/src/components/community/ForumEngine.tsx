@@ -39,7 +39,7 @@ const Icons = {
 
 // ─── Avatar ──────────────────────────────────────────────────────
 const AVATAR_COLORS = [
-    'bg-blue-500/20 border-blue-500/40 text-blue-300',
+    'bg-blue-500/20 border-accent/40 text-blue-300',
     'bg-[#00C49A]/20 border-[#00C49A]/40 text-[#00C49A]',
     'bg-purple-500/20 border-purple-500/40 text-purple-300',
     'bg-pink-500/20 border-pink-500/40 text-pink-300',
@@ -733,20 +733,20 @@ const ForumEngine = () => {
     // ─── Render: gate de identificación (anónimo) ───
     if (!user) {
         return (
-            <div className="max-w-4xl mx-auto mt-12 bg-white/[0.02] border border-white/10 rounded-[2.5rem] p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[300px] bg-blue-600/10 blur-[120px] -z-10"></div>
-                <div className="w-20 h-20 bg-blue-600/20 border border-blue-500/30 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
+            <div className="max-w-4xl mx-auto mt-12 bg-white/[0.02] border border-white/10 rounded-xl p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[300px] bg-accent/10 blur-[120px] -z-10"></div>
+                <div className="w-20 h-20 bg-accent/15 border border-accent/30 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
                     <Icons.Lock size={32} className="text-blue-400" />
                 </div>
                 <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-6 leading-tight break-words">
-                    Identifícate para entrar a <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">La Tribu</span>
+                    Identifícate para entrar a <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-emerald-400">La Tribu</span>
                 </h2>
                 <p className="text-gray-400 text-base max-w-xl mx-auto mb-12 font-medium">
                     El foro es exclusivo para usuarios registrados. Crea tu cuenta o inicia sesión para participar.
                 </p>
                 <a
                     href="/login"
-                    className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-widest text-xs px-10 py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all"
+                    className="inline-block bg-accent hover:bg-accent-strong text-white font-black uppercase tracking-widest text-xs px-10 py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all"
                 >
                     Identificarse →
                 </a>
@@ -775,8 +775,8 @@ const ForumEngine = () => {
                         <div className="w-10 h-10 border-4 border-blue-600/30 border-t-blue-500 rounded-full animate-spin"></div>
                     </div>
                 ) : (
-                    <div className="bg-white/[0.02] border border-white/10 rounded-[2.5rem] p-8 md:p-16 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[100px]"></div>
+                    <div className="bg-white/[0.02] border border-white/10 rounded-xl p-8 md:p-16 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 blur-[100px]"></div>
                         <div className="flex items-center gap-4 mb-8 flex-wrap">
                             <Avatar
                                 initial={selectedTopic.authorInitial || selectedTopic.authorName?.charAt(0).toUpperCase() || '?'}
@@ -916,8 +916,8 @@ const ForumEngine = () => {
                                                                 }}
                                                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[11px] font-bold transition-all active:scale-95
                                                                     ${replyingTo === r.id
-                                                                        ? 'bg-blue-500/15 border-blue-500/40 text-blue-300'
-                                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:border-blue-500/30 hover:text-blue-300'}`}
+                                                                        ? 'bg-blue-500/15 border-accent/40 text-blue-300'
+                                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:border-accent/30 hover:text-blue-300'}`}
                                                                 aria-pressed={replyingTo === r.id}
                                                             >
                                                                 ↳ Responder
@@ -981,7 +981,7 @@ const ForumEngine = () => {
                                             type="button"
                                             onClick={() => setMentionPickerOpen((o) => !o)}
                                             disabled={mentionableUsers.length === 0}
-                                            className="bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed text-blue-300 w-12 h-12 rounded-xl border border-white/10 flex items-center justify-center text-base font-black hover:bg-blue-500/15 hover:border-blue-500/40 active:scale-95 transition-all"
+                                            className="bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed text-blue-300 w-12 h-12 rounded-xl border border-white/10 flex items-center justify-center text-base font-black hover:bg-blue-500/15 hover:border-accent/40 active:scale-95 transition-all"
                                             aria-label="Mencionar a un usuario"
                                             aria-expanded={mentionPickerOpen}
                                             title={mentionableUsers.length === 0 ? 'Nadie a quién mencionar todavía' : 'Mencionar'}
@@ -1026,7 +1026,7 @@ const ForumEngine = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in duration-700">
             <aside className="lg:col-span-3 space-y-6">
                 <a href="/dashboard" className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group shadow-lg">
-                    <div className="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                    <div className="w-10 h-10 bg-accent/15 rounded-xl flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
                         <Icons.ChevronLeft size={20} />
                     </div>
                     <div>
@@ -1091,7 +1091,7 @@ const ForumEngine = () => {
                 </div>
 
                 {isCreating && (
-                    <div className="bg-blue-600/5 border border-blue-500/20 p-6 md:p-10 rounded-[2.5rem] mb-6">
+                    <div className="bg-accent/5 border border-blue-500/20 p-6 md:p-10 rounded-xl mb-6">
                         {/* SPEC-040: badge si el topic se está creando vinculado a un artículo */}
                         {newTopic.linkedPostSlug && (
                             <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-xl bg-[#00C49A]/10 border border-[#00C49A]/30">
@@ -1173,7 +1173,7 @@ const ForumEngine = () => {
                                     className={`group bg-white/[0.02] border p-6 md:p-8 rounded-[2rem] hover:bg-white/[0.05] transition-all cursor-pointer relative overflow-hidden
                                         ${topic.pinned
                                             ? 'border-amber-500/40 hover:border-amber-500/60 shadow-lg shadow-amber-500/5'
-                                            : 'border-white/5 hover:border-blue-500/30'}`}
+                                            : 'border-white/5 hover:border-accent/30'}`}
                                 >
                                     {/* SPEC-041: marca lateral naranja si está destacado */}
                                     {topic.pinned && (

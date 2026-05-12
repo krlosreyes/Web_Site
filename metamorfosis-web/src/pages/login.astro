@@ -3,75 +3,75 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Acceso Exclusivo | Metamorfosis Real">
-  <main class="min-h-screen bg-[#020408] flex items-center justify-center px-4 relative overflow-hidden">
-    {/* Fondos Bio-Tech */}
-    <div class="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-blue-600/10 blur-[150px] rounded-full"></div>
-    <div class="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-[#00C49A]/10 blur-[150px] rounded-full"></div>
-
-    <div class="w-full max-w-[450px] relative z-10 py-12">
-      <div class="text-center mb-10 animate-fade-in">
-        <img src="/logoSite.webp" alt="IMR Logo" width="80" height="80" class="h-20 w-auto mx-auto mb-6 drop-shadow-[0_0_25px_rgba(59,130,246,0.4)]" />
-        <h1 id="portal-title" class="text-4xl font-black text-white italic uppercase tracking-tighter leading-none">
-            Acceso <span class="text-blue-500 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">Premium</span>
+  <main class="min-h-screen bg-bg-base flex items-center justify-center px-4">
+    <div class="w-full max-w-[420px] relative z-10 py-12">
+      <div class="text-center mb-8">
+        <img src="/logoSite.webp" alt="Metamorfosis Real" width="64" height="64" class="h-16 w-auto mx-auto mb-5 drop-shadow-[0_0_20px_rgba(0,196,154,0.35)]" />
+        <h1 id="portal-title" class="text-3xl md:text-4xl font-black text-text-primary italic uppercase tracking-tight leading-tight">
+            Acceso <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent to-emerald-400">Premium</span>
         </h1>
-        <p id="portal-subtitle" class="mt-3 text-gray-500 text-[9px] font-black uppercase tracking-[0.3em] opacity-70">Sincronización de Identidad Metabólica</p>
+        <p id="portal-subtitle" class="mt-3 text-[11px] font-bold text-text-muted uppercase tracking-[0.2em]">Tu identidad metabólica</p>
       </div>
 
-      <div class="bg-white/5 p-1 rounded-2xl mb-8 flex border border-white/10 backdrop-blur-md relative">
-        <button id="tab-login" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all bg-blue-600 text-white shadow-lg">Iniciar Sesión</button>
-        <button id="tab-register" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all text-gray-600 relative group">
-            Crear Perfil <span id="lock-icon" class="ml-2">🔒</span>
+      <!-- Tabs Login/Registro -->
+      <div class="bg-bg-elevated p-1 rounded-lg mb-6 flex border border-white/[0.08]">
+        <button id="tab-login" class="flex-1 py-2.5 text-xs font-semibold rounded-md transition-colors bg-accent text-bg-base">
+          Iniciar sesión
+        </button>
+        <button id="tab-register" class="flex-1 py-2.5 text-xs font-semibold rounded-md transition-colors text-text-muted">
+          Crear perfil <span id="lock-icon" class="ml-1">🔒</span>
         </button>
       </div>
 
-      {/* SPEC-034: hint persistente con dos estados (no-elegible amber / elegible verde).
-          Reemplaza al alert rojo agresivo. CTAs directos a /quiz y /biblioteca. */}
-      <div id="onboarding-hint-pending" class="hidden mb-6 p-5 rounded-2xl bg-amber-500/8 border border-amber-500/30 text-left transition-all">
-        <p class="text-sm text-amber-100 leading-relaxed mb-1">
+      <!-- Hint estado: pendiente (no completó quiz ni leyó artículo) -->
+      <div id="onboarding-hint-pending" class="hidden mb-5 p-4 rounded-xl bg-status-warn/[0.08] border border-status-warn/30 text-left">
+        <p class="text-sm text-text-primary leading-relaxed mb-1">
             <span class="text-base">🌱</span> <strong>¿Primera vez por acá?</strong>
         </p>
-        <p class="text-xs text-amber-100/80 leading-relaxed mb-4">
-            Para mantener la calidad de La Tribu, antes de crear tu cuenta necesitamos que vivas el contenido. Elegí cualquiera de los dos:
+        <p class="text-xs text-text-secondary leading-relaxed mb-3">
+            Para mantener la calidad de La Tribu, antes de crear tu cuenta necesitamos que vivas el contenido. Elige cualquiera de los dos:
         </p>
         <div class="flex flex-col sm:flex-row gap-2">
-            <a href="/quiz" class="flex-1 text-center bg-blue-600/20 border border-blue-500/40 text-blue-200 hover:bg-blue-600/30 transition-all px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest">
+            <a href="/quiz" class="flex-1 text-center bg-bg-surface border border-white/[0.1] text-text-primary hover:border-accent/40 transition-colors px-3 py-2.5 rounded-lg text-xs font-semibold">
                 🧬 Calcular mi IMR · 2 min
             </a>
-            <a href="/biblioteca" class="flex-1 text-center bg-[#00C49A]/20 border border-[#00C49A]/40 text-[#00C49A] hover:bg-[#00C49A]/30 transition-all px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest">
-                📖 Artículo + test
+            <a href="/biblioteca" class="flex-1 text-center bg-bg-surface border border-white/[0.1] text-text-primary hover:border-accent/40 transition-colors px-3 py-2.5 rounded-lg text-xs font-semibold">
+                📖 Artículo + quiz
             </a>
         </div>
-        <p class="text-[10px] text-amber-200/50 font-mono uppercase tracking-widest mt-3">
-            * El test al final del artículo es lo que habilita el registro
+        <p class="text-[11px] text-text-muted mt-3">
+            * El quiz al final del artículo habilita el registro.
         </p>
       </div>
 
-      <div id="onboarding-hint-ready" class="hidden mb-6 p-4 rounded-2xl bg-[#00C49A]/8 border border-[#00C49A]/30 text-center transition-all">
-        <p class="text-xs text-[#00C49A] font-bold leading-relaxed">
+      <!-- Hint estado: listo (completó algo) -->
+      <div id="onboarding-hint-ready" class="hidden mb-5 p-3 rounded-lg bg-accent/[0.08] border border-accent/30 text-center">
+        <p class="text-sm text-accent font-semibold">
             ✅ Listo: ya puedes crear tu cuenta.
         </p>
       </div>
 
-      <div class="bg-white/[0.03] backdrop-blur-[30px] border border-white/10 p-10 rounded-[3rem] shadow-2xl">
-        <form id="auth-form" class="space-y-6">
-          <div id="field-name" class="hidden space-y-2">
-            <label class="text-[10px] font-black text-blue-400 uppercase tracking-widest ml-1">Nombre Biohacker</label>
-            <input id="input-name" type="text" placeholder="Tu nombre real..." class="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-blue-500/50 transition-all" />
+      <!-- Form auth -->
+      <div class="bg-bg-elevated border border-white/[0.1] p-6 md:p-8 rounded-xl">
+        <form id="auth-form" class="space-y-4">
+          <div id="field-name" class="hidden space-y-1.5">
+            <label class="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] ml-1">Tu nombre</label>
+            <input id="input-name" type="text" placeholder="Tu nombre" class="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-3 px-4 text-text-primary text-base outline-none focus:border-accent transition-colors placeholder:text-text-muted" />
           </div>
 
-          <div class="space-y-2">
-            <label class="text-[10px] font-black text-blue-400 uppercase tracking-widest ml-1">Email</label>
-            <input id="input-email" type="email" placeholder="tu@metamorfosis.com" required class="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-blue-500/50 transition-all" />
-          </div>
-          
-          <div class="space-y-2">
-            <label class="text-[10px] font-black text-blue-400 uppercase tracking-widest ml-1">Clave</label>
-            <input id="input-pass" type="password" placeholder="••••••••••••" required class="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-blue-500/50 transition-all" />
+          <div class="space-y-1.5">
+            <label class="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] ml-1">Email</label>
+            <input id="input-email" type="email" placeholder="tu@email.com" required class="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-3 px-4 text-text-primary text-base outline-none focus:border-accent transition-colors placeholder:text-text-muted" />
           </div>
 
-          <div class="pt-6">
-            <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all shadow-xl shadow-blue-600/20">
-              Sincronizar Perfil
+          <div class="space-y-1.5">
+            <label class="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] ml-1">Contraseña</label>
+            <input id="input-pass" type="password" placeholder="••••••••••••" required class="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-3 px-4 text-text-primary text-base outline-none focus:border-accent transition-colors placeholder:text-text-muted" />
+          </div>
+
+          <div class="pt-3">
+            <button type="submit" id="submit-btn" class="w-full bg-accent hover:bg-accent-strong disabled:bg-bg-surface disabled:text-text-muted text-bg-base py-3 rounded-lg font-semibold text-base transition-colors">
+              Entrar
             </button>
           </div>
         </form>
@@ -126,15 +126,19 @@ import Layout from '../layouts/Layout.astro';
         }
         mode = newMode;
         if (mode === 'login') {
-            tabLogin?.classList.add('bg-blue-600', 'text-white');
-            tabRegister?.classList.remove('bg-blue-600', 'text-white');
+            tabLogin?.classList.add('bg-accent', 'text-bg-base');
+            tabLogin?.classList.remove('text-text-muted');
+            tabRegister?.classList.remove('bg-accent', 'text-bg-base');
+            tabRegister?.classList.add('text-text-muted');
             fieldName?.classList.add('hidden');
-            if (submitBtn) submitBtn.textContent = 'Sincronizar Perfil';
+            if (submitBtn) submitBtn.textContent = 'Entrar';
         } else {
-            tabRegister?.classList.add('bg-blue-600', 'text-white');
-            tabLogin?.classList.remove('bg-blue-600', 'text-white');
+            tabRegister?.classList.add('bg-accent', 'text-bg-base');
+            tabRegister?.classList.remove('text-text-muted');
+            tabLogin?.classList.remove('bg-accent', 'text-bg-base');
+            tabLogin?.classList.add('text-text-muted');
             fieldName?.classList.remove('hidden');
-            if (submitBtn) submitBtn.textContent = 'Crear Identidad';
+            if (submitBtn) submitBtn.textContent = 'Crear cuenta';
         }
     };
 
