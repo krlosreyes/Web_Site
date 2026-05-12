@@ -247,55 +247,45 @@ const IMRQuiz = () => {
     if (step === 0) {
         return (
             <div className="text-center py-12 sm:py-20 animate-fade-in flex flex-col items-center px-4">
-                {/* SPEC-047: chip eyebrow amigable, no jerga interna */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] mb-8">
+                {/* SPEC-072: pill accent teal (no azul) en rounded-md */}
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-accent/10 border border-accent/20 text-accent text-[11px] font-bold uppercase tracking-[0.2em] mb-8">
                     🧬 Diagnóstico gratuito · 2 minutos
                 </div>
 
-                {/* SPEC-047: pregunta hook + responsive.
-                    SPEC-061: escalado más conservador (text-3xl sm:4xl md:5xl
-                    lg:6xl) y tracking-tight (no tighter) — el escalado anterior
-                    cortaba la palabra en algunos viewports y daba sensación
-                    visual apretada. max-w-3xl + break-words como defensa. */}
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white italic uppercase tracking-tight leading-[1.1] mb-6 max-w-3xl break-words">
-                    ¿Qué edad tiene tu <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">metabolismo</span>?
+                {/* H1 expresivo: italic uppercase + gradient en palabra clave
+                    (regla del system: UN h1 expresivo por vista). */}
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-text-primary italic uppercase tracking-tight leading-[1.1] mb-6 max-w-3xl break-words">
+                    ¿Qué edad tiene tu <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-emerald-400">metabolismo</span>?
                 </h1>
 
-                {/* SPEC-061: copy del sub-hook honesto. El anterior prometía
-                    "reporte personalizado con los 5 pilares para recuperar
-                    energía, claridad mental y composición corporal" pero el
-                    quiz solo entrega: IMR score + zona biológica + bloques
-                    E/M/C + edad metabólica. Sin reporte PDF, sin tracking de
-                    claridad mental. Ahora el copy refleja lo que realmente
-                    recibe el user. */}
-                <p className="text-gray-300 text-base sm:text-lg max-w-xl mx-auto mb-2 font-medium leading-relaxed">
+                <p className="text-text-secondary text-base sm:text-lg max-w-xl mx-auto mb-3 font-medium leading-relaxed">
                     Tu cuerpo te está hablando. Vamos a traducirlo.
                 </p>
-                <p className="text-gray-400 text-sm sm:text-base max-w-xl mx-auto mb-12 leading-relaxed">
-                    Calcula tu <strong className="text-white">Índice Metabólico Real (IMR)</strong> en menos de 2 minutos. Descubre tu edad metabólica estimada y la zona biológica donde te encuentras hoy.
+                <p className="text-text-secondary text-sm sm:text-base max-w-xl mx-auto mb-10 leading-relaxed">
+                    Calcula tu <strong className="text-text-primary">Índice Metabólico Real (IMR)</strong> en menos de 2 minutos. Descubre tu edad metabólica estimada y la zona biológica donde te encuentras hoy.
                 </p>
 
-                {/* CTA primario (mantenido visual, copy más imperativo y cálido) */}
-                <button onClick={() => setStep(1)} className="relative group outline-none">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full blur opacity-40 group-hover:opacity-100 transition duration-1000"></div>
-                    <div className="relative px-10 sm:px-14 py-5 sm:py-6 bg-gradient-to-r from-[#00C49A] to-teal-600 text-white text-lg sm:text-2xl font-black rounded-full border border-blue-400/50 flex items-center gap-4 hover:scale-105 transition-all shadow-2xl">
-                        INICIAR MI DIAGNÓSTICO
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                    </div>
+                {/* CTA primario — bg-accent sólido, sin gradient ni blur halo. */}
+                <button
+                    onClick={() => setStep(1)}
+                    className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-lg bg-accent text-bg-base font-semibold text-base sm:text-lg hover:bg-accent-strong transition-colors"
+                >
+                    Iniciar mi diagnóstico
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </button>
 
-                {/* SPEC-047: trust signals abajo */}
-                <div className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:gap-4 max-w-xl">
-                    <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest">
-                        <span className="text-[#00C49A]">✓</span> Sin registro previo
+                {/* Trust signals — labels neutros, sin tracking-widest extremo */}
+                <div className="mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 max-w-xl text-[11px] font-medium text-text-muted">
+                    <span className="inline-flex items-center gap-1.5">
+                        <span className="text-accent">✓</span> Sin registro previo
                     </span>
-                    <span className="text-gray-700">·</span>
-                    <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest">
-                        <span className="text-[#00C49A]">✓</span> Resultado al instante
+                    <span className="text-white/[0.1]">·</span>
+                    <span className="inline-flex items-center gap-1.5">
+                        <span className="text-accent">✓</span> Resultado al instante
                     </span>
-                    <span className="text-gray-700">·</span>
-                    <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest">
-                        <span className="text-[#00C49A]">✓</span> Basado en evidencia
+                    <span className="text-white/[0.1]">·</span>
+                    <span className="inline-flex items-center gap-1.5">
+                        <span className="text-accent">✓</span> Basado en evidencia
                     </span>
                 </div>
             </div>
@@ -304,69 +294,78 @@ const IMRQuiz = () => {
 
     if (step === 1) {
         const progress = (subStep / 8) * 100;
+        // SPEC-072: helper para clases de botón seleccionable (genero, hora, sleep).
+        // Estado activo = bg-accent + text-bg-base (consistente con btn-primary).
+        // Estado inactivo = bg-bg-elevated + text-text-secondary.
+        const optionBtn = (active: boolean) =>
+            active
+                ? 'bg-accent border-accent text-bg-base'
+                : 'bg-bg-elevated border-white/[0.06] text-text-secondary hover:bg-white/[0.04] hover:border-white/[0.12]';
+
         return (
-            <div className="max-w-2xl w-full mx-auto py-12 px-10 bg-[#0c1f31]/80 backdrop-blur-3xl rounded-[3rem] border border-white/10 shadow-2xl animate-fade-in">
-                <div className="mb-12">
-                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-blue-400 mb-4">
-                        <span>Fase {subStep} de 8: {subStep <= 3 ? 'Estructura' : subStep <= 6 ? 'Metabolismo' : 'Conducta'}</span>
-                        <span>{Math.round(progress)}%</span>
+            <div className="max-w-2xl w-full mx-auto py-10 px-6 sm:px-10 bg-bg-surface border border-white/[0.06] rounded-2xl animate-fade-in">
+                {/* Progress header */}
+                <div className="mb-10">
+                    <div className="flex justify-between text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted mb-3">
+                        <span>Fase {subStep} de 8 · {subStep <= 3 ? 'Estructura' : subStep <= 6 ? 'Metabolismo' : 'Conducta'}</span>
+                        <span className="text-accent">{Math.round(progress)}%</span>
                     </div>
-                    <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-500" style={{ width: `${progress}%` }}></div>
+                    <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                        <div className="h-full bg-accent transition-all duration-500" style={{ width: `${progress}%` }}></div>
                     </div>
                 </div>
 
                 <div className="min-h-[300px] flex flex-col justify-center">
                     {subStep === 1 && (
-                        <div className="space-y-8 animate-slide-up text-center">
-                            <h2 className="text-3xl font-black text-white italic uppercase tracking-tight">Empecemos por ti</h2>
-                            <p className="text-gray-400 text-sm">Necesitamos un par de datos para ajustar el algoritmo a tu biología.</p>
-                            <div className="grid grid-cols-2 gap-4">
-                                <button onClick={() => setBioData({...bioData, gender: 'male'})} className={`p-6 rounded-2xl border transition-all ${bioData.gender === 'male' ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/20' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}>Soy Hombre</button>
-                                <button onClick={() => setBioData({...bioData, gender: 'female'})} className={`p-6 rounded-2xl border transition-all ${bioData.gender === 'female' ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/20' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}>Soy Mujer</button>
+                        <div className="space-y-6 animate-slide-up text-center">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">Empecemos por ti</h2>
+                            <p className="text-text-secondary text-sm leading-relaxed">Necesitamos un par de datos para ajustar el algoritmo a tu biología.</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button onClick={() => setBioData({...bioData, gender: 'male'})} className={`p-5 rounded-xl border font-semibold text-base transition-colors ${optionBtn(bioData.gender === 'male')}`}>Soy hombre</button>
+                                <button onClick={() => setBioData({...bioData, gender: 'female'})} className={`p-5 rounded-xl border font-semibold text-base transition-colors ${optionBtn(bioData.gender === 'female')}`}>Soy mujer</button>
                             </div>
                             <div className="text-left mt-6">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">¿Cuántos años tienes?</label>
-                                <input type="number" placeholder="Ej. 35" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 px-8 text-white outline-none focus:border-blue-500 text-2xl font-black mt-2" onChange={e => setBioData({...bioData, age: parseInt(e.target.value)})} value={bioData.age || ''} />
+                                <label className="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] ml-1">¿Cuántos años tienes?</label>
+                                <input type="number" placeholder="Ej. 35" className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-4 px-5 text-text-primary outline-none focus:border-accent text-xl font-semibold mt-2 transition-colors" onChange={e => setBioData({...bioData, age: parseInt(e.target.value)})} value={bioData.age || ''} />
                             </div>
                         </div>
                     )}
 
                     {subStep === 2 && (
-                        <div className="space-y-8 animate-slide-up text-center">
-                            <h2 className="text-3xl font-black text-white italic uppercase tracking-tight">Tu Estructura Física</h2>
-                            <p className="text-gray-400 text-sm">Esto nos ayuda a calcular tu masa magra y requerimientos básicos.</p>
-                            <div className="grid gap-6 text-left">
+                        <div className="space-y-6 animate-slide-up text-center">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">Tu estructura física</h2>
+                            <p className="text-text-secondary text-sm leading-relaxed">Esto nos ayuda a calcular tu masa magra y requerimientos básicos.</p>
+                            <div className="grid gap-5 text-left">
                                 <div>
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">¿Cuánto pesas actualmente? (kg)</label>
-                                    <input type="number" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 px-8 text-white outline-none focus:border-blue-500 text-2xl font-black mt-2" onChange={e => setBioData({...bioData, weight: parseFloat(e.target.value)})} value={bioData.weight || ''} />
+                                    <label className="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] ml-1">¿Cuánto pesas actualmente? (kg)</label>
+                                    <input type="number" className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-4 px-5 text-text-primary outline-none focus:border-accent text-xl font-semibold mt-2 transition-colors" onChange={e => setBioData({...bioData, weight: parseFloat(e.target.value)})} value={bioData.weight || ''} />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">¿Cuál es tu estatura? (cm)</label>
-                                    <input type="number" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 px-8 text-white outline-none focus:border-blue-500 text-2xl font-black mt-2" onChange={e => setBioData({...bioData, height: parseFloat(e.target.value)})} value={bioData.height || ''} />
+                                    <label className="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] ml-1">¿Cuál es tu estatura? (cm)</label>
+                                    <input type="number" className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-4 px-5 text-text-primary outline-none focus:border-accent text-xl font-semibold mt-2 transition-colors" onChange={e => setBioData({...bioData, height: parseFloat(e.target.value)})} value={bioData.height || ''} />
                                 </div>
                             </div>
                         </div>
                     )}
 
                     {subStep === 3 && (
-                        <div className="space-y-8 animate-slide-up text-center">
-                            <h2 className="text-3xl font-black text-white italic uppercase tracking-tight">Tu Centro de Energía</h2>
-                            <p className="text-gray-400 text-sm">¿Cuánto mide tu cintura a la altura del ombligo? Es el mejor predictor de tu metabolismo.</p>
-                            <input type="range" min="60" max="150" className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500 mt-6" onChange={e => setBioData({...bioData, waist: parseInt(e.target.value)})} value={bioData.waist} />
-                            <div className="text-6xl font-black text-blue-400 italic">{bioData.waist}<span className="text-xl text-gray-500 ml-2">cm</span></div>
+                        <div className="space-y-6 animate-slide-up text-center">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">Tu centro de energía</h2>
+                            <p className="text-text-secondary text-sm leading-relaxed">¿Cuánto mide tu cintura a la altura del ombligo? Es el mejor predictor de tu metabolismo.</p>
+                            <input type="range" min="60" max="150" className="w-full h-2 bg-white/[0.08] rounded-lg appearance-none cursor-pointer accent-accent mt-6" style={{ accentColor: '#00C49A' }} onChange={e => setBioData({...bioData, waist: parseInt(e.target.value)})} value={bioData.waist} />
+                            <div className="text-5xl font-bold text-accent tracking-tight">{bioData.waist}<span className="text-base text-text-muted ml-2 font-medium">cm</span></div>
                         </div>
                     )}
 
                     {subStep === 4 && (
-                        <div className="space-y-8 animate-slide-up text-center">
-                            <h2 className="text-3xl font-black text-white italic uppercase tracking-tight">Tu Composición Corporal</h2>
-                            <p className="text-gray-400 text-sm">¿Cómo describirías tu porcentaje de grasa actual? Elige la opción que más se acerque.</p>
-                            <div className="grid gap-4 text-left mt-6">
+                        <div className="space-y-6 animate-slide-up text-center">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">Tu composición corporal</h2>
+                            <p className="text-text-secondary text-sm leading-relaxed">¿Cómo describirías tu porcentaje de grasa actual? Elige la opción que más se acerque.</p>
+                            <div className="grid gap-3 text-left mt-4">
                                 {[10, 18, 25, 35].map(bf => (
-                                    <button key={bf} onClick={() => {setBioData({...bioData, bodyFat: bf}); nextSubStep();}} className="p-5 bg-white/5 border border-white/10 rounded-2xl text-left hover:border-blue-500 hover:bg-white/10 transition-all flex justify-between items-center group">
-                                        <span className="text-gray-300 font-bold uppercase text-xs tracking-widest">{bf < 15 ? 'Deportista / Muy Definido' : bf < 22 ? 'Promedio / Saludable' : bf < 30 ? 'Algo de Sobrepeso' : 'Necesito mejorar bastante'}</span>
-                                        <span className="text-2xl font-black text-white/50 italic group-hover:text-blue-400 transition-colors">~{bf}%</span>
+                                    <button key={bf} onClick={() => {setBioData({...bioData, bodyFat: bf}); nextSubStep();}} className="p-4 bg-bg-elevated border border-white/[0.06] rounded-xl text-left hover:border-accent/40 hover:bg-white/[0.04] transition-colors flex justify-between items-center group">
+                                        <span className="text-text-primary font-medium text-sm">{bf < 15 ? 'Deportista / muy definido' : bf < 22 ? 'Promedio / saludable' : bf < 30 ? 'Algo de sobrepeso' : 'Necesito mejorar bastante'}</span>
+                                        <span className="text-lg font-bold text-text-muted group-hover:text-accent transition-colors">~{bf}%</span>
                                     </button>
                                 ))}
                             </div>
@@ -374,24 +373,24 @@ const IMRQuiz = () => {
                     )}
 
                     {subStep === 5 && (
-                        <div className="space-y-8 animate-slide-up text-center">
-                            <h2 className="text-3xl font-black text-white italic uppercase tracking-tight">Tu Descanso Digestivo</h2>
-                            <p className="text-gray-400 text-sm">¿Cuántas horas sueles pasar sin comer desde tu cena hasta tu primer alimento del día siguiente?</p>
-                            <div className="flex justify-center items-center gap-8 py-10">
-                                <button onClick={() => setBioData({...bioData, fastingHours: Math.max(8, bioData.fastingHours - 1)})} className="w-16 h-16 bg-white/5 hover:bg-white/10 transition-colors rounded-full text-3xl font-black border border-white/10">-</button>
-                                <div className="text-8xl font-black text-white italic drop-shadow-lg">{bioData.fastingHours}<span className="text-2xl text-gray-500 not-italic ml-2">hrs</span></div>
-                                <button onClick={() => setBioData({...bioData, fastingHours: Math.min(24, bioData.fastingHours + 1)})} className="w-16 h-16 bg-white/5 hover:bg-white/10 transition-colors rounded-full text-3xl font-black border border-white/10">+</button>
+                        <div className="space-y-6 animate-slide-up text-center">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">Tu descanso digestivo</h2>
+                            <p className="text-text-secondary text-sm leading-relaxed">¿Cuántas horas sueles pasar sin comer desde tu cena hasta tu primer alimento del día siguiente?</p>
+                            <div className="flex justify-center items-center gap-6 py-8">
+                                <button onClick={() => setBioData({...bioData, fastingHours: Math.max(8, bioData.fastingHours - 1)})} className="w-12 h-12 bg-bg-elevated hover:bg-white/[0.06] transition-colors rounded-lg text-2xl font-semibold border border-white/[0.06] text-text-primary">−</button>
+                                <div className="text-6xl font-bold text-text-primary tracking-tight">{bioData.fastingHours}<span className="text-xl text-text-muted ml-2 font-medium">hrs</span></div>
+                                <button onClick={() => setBioData({...bioData, fastingHours: Math.min(24, bioData.fastingHours + 1)})} className="w-12 h-12 bg-bg-elevated hover:bg-white/[0.06] transition-colors rounded-lg text-2xl font-semibold border border-white/[0.06] text-text-primary">+</button>
                             </div>
                         </div>
                     )}
 
                     {subStep === 6 && (
-                        <div className="space-y-8 animate-slide-up text-center">
-                            <h2 className="text-3xl font-black text-white italic uppercase tracking-tight">Cierre de tu Día</h2>
-                            <p className="text-gray-400 text-sm">¿A qué hora sueles terminar tu última comida pesada del día?</p>
-                            <div className="grid grid-cols-3 gap-4 mt-8">
+                        <div className="space-y-6 animate-slide-up text-center">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">Cierre de tu día</h2>
+                            <p className="text-text-secondary text-sm leading-relaxed">¿A qué hora sueles terminar tu última comida pesada del día?</p>
+                            <div className="grid grid-cols-3 gap-3 mt-6">
                                 {[18, 19, 20, 21, 22, 23].map(h => (
-                                    <button key={h} onClick={() => {setBioData({...bioData, dinnerHour: h, lastMealHour: h}); nextSubStep();}} className={`p-5 rounded-2xl border font-black text-lg transition-all ${bioData.dinnerHour === h ? 'bg-blue-600 border-blue-400 shadow-lg shadow-blue-500/20' : 'bg-white/5 border-white/10 hover:bg-white/10 text-gray-300'}`}>
+                                    <button key={h} onClick={() => {setBioData({...bioData, dinnerHour: h, lastMealHour: h}); nextSubStep();}} className={`p-4 rounded-xl border font-semibold text-base transition-colors ${optionBtn(bioData.dinnerHour === h)}`}>
                                         {h}:00
                                     </button>
                                 ))}
@@ -400,17 +399,17 @@ const IMRQuiz = () => {
                     )}
 
                     {subStep === 7 && (
-                        <div className="space-y-8 animate-slide-up text-center">
-                            <h2 className="text-3xl font-black text-white italic uppercase tracking-tight">¿Qué tal duermes?</h2>
-                            <p className="text-gray-400 text-sm mb-6">Del 1 (pésimo) al 5 (excelente), ¿cómo calificarías tu calidad de sueño y recuperación?</p>
-                            <div className="flex justify-between gap-3 mt-6">
+                        <div className="space-y-6 animate-slide-up text-center">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">¿Qué tal duermes?</h2>
+                            <p className="text-text-secondary text-sm leading-relaxed">Del 1 (pésimo) al 5 (excelente), ¿cómo calificarías tu calidad de sueño y recuperación?</p>
+                            <div className="flex justify-between gap-2 mt-4">
                                 {[1, 2, 3, 4, 5].map(v => (
-                                    <button key={v} onClick={() => {setBioData({...bioData, sleepQuality: v/5}); setTimeout(nextSubStep, 300);}} className={`flex-1 py-6 rounded-2xl border font-black text-2xl transition-all ${Math.round(bioData.sleepQuality * 5) === v ? 'bg-[#00C49A] border-[#00C49A] text-black shadow-lg shadow-[#00C49A]/30 scale-105' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}>
+                                    <button key={v} onClick={() => {setBioData({...bioData, sleepQuality: v/5}); setTimeout(nextSubStep, 300);}} className={`flex-1 py-5 rounded-xl border font-bold text-xl transition-colors ${optionBtn(Math.round(bioData.sleepQuality * 5) === v)}`}>
                                         {v}
                                     </button>
                                 ))}
                             </div>
-                            <div className="flex justify-between text-[10px] font-bold text-gray-500 uppercase tracking-widest px-2">
+                            <div className="flex justify-between text-[11px] font-medium text-text-muted px-1">
                                 <span>Agotado</span>
                                 <span>Excelente</span>
                             </div>
@@ -418,19 +417,19 @@ const IMRQuiz = () => {
                     )}
 
                     {subStep === 8 && (
-                        <div className="space-y-8 animate-slide-up text-center">
-                            <h2 className="text-3xl font-black text-white italic uppercase tracking-tight">Movimiento y Agua</h2>
-                            <p className="text-gray-400 text-sm">Ya casi terminamos. ¿Cómo van tus hábitos diarios generales?</p>
-                            <div className="grid gap-8 text-left mt-6">
+                        <div className="space-y-6 animate-slide-up text-center">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">Movimiento y agua</h2>
+                            <p className="text-text-secondary text-sm leading-relaxed">Ya casi terminamos. ¿Cómo van tus hábitos diarios generales?</p>
+                            <div className="grid gap-5 text-left mt-4">
                                 <div>
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">¿Cuántos minutos sueles hacer de ejercicio al día?</label>
-                                    <input type="number" className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 px-8 text-white outline-none focus:border-blue-500 text-2xl font-black mt-2" onChange={e => setBioData({...bioData, exerciseMinutes: parseInt(e.target.value)})} value={bioData.exerciseMinutes || ''} />
+                                    <label className="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] ml-1">¿Cuántos minutos sueles hacer de ejercicio al día?</label>
+                                    <input type="number" className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-4 px-5 text-text-primary outline-none focus:border-accent text-xl font-semibold mt-2 transition-colors" onChange={e => setBioData({...bioData, exerciseMinutes: parseInt(e.target.value)})} value={bioData.exerciseMinutes || ''} />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">¿Cuánta agua tomas al día? (Litros)</label>
-                                    <div className="flex items-center gap-6 mt-4 bg-white/5 p-6 rounded-2xl border border-white/10">
-                                        <input type="range" min="0" max="5" step="0.5" className="flex-1 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500" onChange={e => setBioData({...bioData, hydrationLitros: parseFloat(e.target.value)})} value={bioData.hydrationLitros} />
-                                        <span className="text-3xl font-black text-white italic">{bioData.hydrationLitros}L</span>
+                                    <label className="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] ml-1">¿Cuánta agua tomas al día? (litros)</label>
+                                    <div className="flex items-center gap-5 mt-3 bg-bg-base/60 p-4 rounded-lg border border-white/[0.08]">
+                                        <input type="range" min="0" max="5" step="0.5" className="flex-1 h-2 bg-white/[0.08] rounded-lg appearance-none cursor-pointer" style={{ accentColor: '#00C49A' }} onChange={e => setBioData({...bioData, hydrationLitros: parseFloat(e.target.value)})} value={bioData.hydrationLitros} />
+                                        <span className="text-2xl font-bold text-accent">{bioData.hydrationLitros}L</span>
                                     </div>
                                 </div>
                             </div>
@@ -438,12 +437,14 @@ const IMRQuiz = () => {
                     )}
                 </div>
 
-                <div className="mt-12 flex justify-between gap-4">
+                <div className="mt-10 flex justify-between gap-3">
                     {subStep > 1 && (
-                        <button onClick={() => setSubStep(subStep - 1)} className="px-8 py-4 bg-white/5 text-gray-400 rounded-xl font-bold uppercase text-[10px] tracking-widest">Atrás</button>
+                        <button onClick={() => setSubStep(subStep - 1)} className="px-5 py-3 bg-bg-elevated text-text-secondary rounded-lg font-semibold text-sm border border-white/[0.06] hover:bg-white/[0.04] transition-colors">
+                            ← Atrás
+                        </button>
                     )}
-                    <button onClick={nextSubStep} disabled={isSaving} className="flex-1 px-8 py-4 bg-blue-600 disabled:bg-gray-700 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-blue-600/20">
-                        {isSaving ? 'Guardando…' : (subStep === 8 ? 'Finalizar Escaneo →' : 'Siguiente Paso')}
+                    <button onClick={nextSubStep} disabled={isSaving} className="flex-1 px-5 py-3 bg-accent disabled:bg-bg-elevated disabled:text-text-muted text-bg-base rounded-lg font-semibold text-sm hover:bg-accent-strong transition-colors">
+                        {isSaving ? 'Guardando…' : (subStep === 8 ? 'Finalizar diagnóstico →' : 'Siguiente paso')}
                     </button>
                 </div>
             </div>
@@ -452,22 +453,22 @@ const IMRQuiz = () => {
 
     if (isAlreadyRegistered) {
         return (
-            <div className="max-w-xl w-full mx-auto py-12 px-10 bg-[#0c1f31]/80 backdrop-blur-3xl rounded-[3rem] border border-white/10 shadow-2xl text-center animate-fade-in">
-                <div className="w-24 h-24 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400">
+            <div className="max-w-md w-full mx-auto py-10 px-6 sm:px-8 bg-bg-surface border border-white/[0.06] rounded-2xl text-center animate-fade-in">
+                <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center mx-auto mb-5 border border-accent/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                         <circle cx="12" cy="7" r="4"></circle>
                     </svg>
                 </div>
-                <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter mb-4 leading-none">Cuenta Existente</h2>
-                <p className="text-gray-400 text-sm font-medium mb-10 max-w-sm mx-auto">
-                    Detectamos que el correo <span className="text-white font-bold">{regData.email}</span> ya pertenece a un Biohacker activo en Metamorfosis Real.
+                <h2 className="text-2xl font-bold text-text-primary tracking-tight mb-3">Cuenta existente</h2>
+                <p className="text-text-secondary text-sm leading-relaxed mb-8 max-w-sm mx-auto">
+                    Detectamos que el correo <span className="text-text-primary font-semibold">{regData.email}</span> ya pertenece a un usuario activo de Metamorfosis Real.
                 </p>
-                <div className="space-y-4">
-                    <a href="/login" className="block w-full bg-blue-600 text-white py-6 rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl hover:bg-blue-500 transition-all">
-                        Iniciar Sesión →
+                <div className="space-y-3">
+                    <a href="/login" className="block w-full bg-accent text-bg-base py-3 rounded-lg font-semibold text-base hover:bg-accent-strong transition-colors">
+                        Iniciar sesión →
                     </a>
-                    <button onClick={() => setIsAlreadyRegistered(false)} className="w-full py-4 text-gray-500 text-[10px] font-black uppercase tracking-widest hover:text-white transition-colors">
+                    <button onClick={() => setIsAlreadyRegistered(false)} className="w-full py-2 text-text-muted text-sm font-medium hover:text-text-primary transition-colors">
                         Usar otro correo
                     </button>
                 </div>
@@ -476,15 +477,15 @@ const IMRQuiz = () => {
     }
 
     return (
-        <div className="max-w-xl w-full mx-auto py-12 px-10 bg-[#0c1f31]/60 backdrop-blur-2xl rounded-[3rem] border border-white/10 shadow-2xl text-center">
-            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-4 leading-none">Análisis Completado</h2>
-            <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-10">Vincula tu identidad para recibir tu reporte IMR</p>
-            <form onSubmit={handleFinalRegister} className="space-y-4 text-left">
-                <input required type="text" placeholder="Tu nombre..." className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none focus:border-blue-500" value={regData.name} onChange={e => setRegData({...regData, name: e.target.value})} />
-                <input required type="email" placeholder="Email..." className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none focus:border-blue-500" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} />
-                <input required type="password" placeholder="Crea una clave..." minLength={8} className="w-full bg-black/40 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none focus:border-blue-500" value={regData.pass} onChange={e => setRegData({...regData, pass: e.target.value})} />
-                <button disabled={isSaving} type="submit" className="w-full bg-blue-600 disabled:bg-gray-700 text-white py-6 rounded-2xl font-black uppercase tracking-[0.3em] shadow-xl hover:bg-blue-500 transition-all">
-                    {isSaving ? "Generando Reporte..." : "Ver Resultados de Autoridad →"}
+        <div className="max-w-md w-full mx-auto py-10 px-6 sm:px-8 bg-bg-surface border border-white/[0.06] rounded-2xl text-center">
+            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight mb-2">Análisis completado</h2>
+            <p className="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] mb-8">Vincula tu identidad para recibir tu reporte IMR</p>
+            <form onSubmit={handleFinalRegister} className="space-y-3 text-left">
+                <input required type="text" placeholder="Tu nombre" className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-3 px-4 text-text-primary outline-none focus:border-accent text-base transition-colors placeholder:text-text-muted" value={regData.name} onChange={e => setRegData({...regData, name: e.target.value})} />
+                <input required type="email" placeholder="Email" className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-3 px-4 text-text-primary outline-none focus:border-accent text-base transition-colors placeholder:text-text-muted" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} />
+                <input required type="password" placeholder="Crea una clave (mínimo 8 caracteres)" minLength={8} className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-3 px-4 text-text-primary outline-none focus:border-accent text-base transition-colors placeholder:text-text-muted" value={regData.pass} onChange={e => setRegData({...regData, pass: e.target.value})} />
+                <button disabled={isSaving} type="submit" className="w-full bg-accent disabled:bg-bg-elevated disabled:text-text-muted text-bg-base py-3 rounded-lg font-semibold text-base hover:bg-accent-strong transition-colors mt-2">
+                    {isSaving ? 'Generando reporte…' : 'Ver mis resultados →'}
                 </button>
             </form>
         </div>
