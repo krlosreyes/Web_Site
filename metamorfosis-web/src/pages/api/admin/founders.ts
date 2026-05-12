@@ -73,33 +73,41 @@ export const GET: APIRoute = async ({ request }) => {
         const founderCount =
             (counterSnap.data()?.[FOUNDER_COUNTER_FIELD] as number | undefined) ?? 0;
 
-        // 2. Query: users donde founder.isFounder == true, ordenados por number.
-        // Firestore exige índice compuesto para where + orderBy en campos
-        // distintos. Acá ambos son `founder.*`, alcanza con índice simple
-        // (Firestore lo crea automático en primer query si no existe).
+        // 2. Query: users donde founder.isFounder == true.
+        // SPEC-058 original usaba `.where(...).orderBy('founder.number', 'asc')`,
+        // pero Firestore exige índice compuesto MANUAL para combinar `where`
+        // con `orderBy` en campos anidados — devuelve 500 si no existe (con
+        // un link para crearlo en consola). El comentario original decía
+        // "Firestore lo crea automático" lo cual es falso.
+        //
+        // Fix: traer todos los docs con `where` solo y ordenar in-memory.
+        // Patrón consistente con el resto del proyecto (biblioteca, stats).
+        // Cap = 1000 docs, sort in-memory es trivial.
         const snap = await db
             .collection(COLLECTIONS.USERS)
             .where('founder.isFounder', '==', true)
-            .orderBy('founder.number', 'asc')
             .get();
 
-        const founders: FounderRow[] = snap.docs.map((doc) => {
-            const data = doc.data();
-            return {
-                uid: doc.id,
-                number: Number(data.founder?.number ?? 0),
-                displayName: data.displayName ?? null,
-                email: data.email ?? '',
-                assignedAt: data.founder?.assignedAt ?? null,
-                imrScore:
-                    typeof data.imr?.current?.imrScore === 'number'
-                        ? data.imr.current.imrScore
-                        : null,
-                waitlistStatus: data.waitlist?.status ?? null,
-                welcomeEmailSent: Boolean(data.welcomeEmailSentAt),
-                createdAt: data.meta?.createdAt ?? null,
-            };
-        });
+        const founders: FounderRow[] = snap.docs
+            .map((doc) => {
+                const data = doc.data();
+                return {
+                    uid: doc.id,
+                    number: Number(data.founder?.number ?? 0),
+                    displayName: data.displayName ?? null,
+                    email: data.email ?? '',
+                    assignedAt: data.founder?.assignedAt ?? null,
+                    imrScore:
+                        typeof data.imr?.current?.imrScore === 'number'
+                            ? data.imr.current.imrScore
+                            : null,
+                    waitlistStatus: data.waitlist?.status ?? null,
+                    welcomeEmailSent: Boolean(data.welcomeEmailSentAt),
+                    createdAt: data.meta?.createdAt ?? null,
+                };
+            })
+            // Ordenar por número de fundador ASC in-memory.
+            .sort((a, b) => a.number - b.number);
 
         return jsonResponse(200, {
             cap: FOUNDER_CAP,
@@ -109,6 +117,7 @@ export const GET: APIRoute = async ({ request }) => {
         });
     } catch (error) {
         console.error('[admin.founders.GET] Error:', error);
-        return jsonResponse(500, { error: 'Error obteniendo fundadores' });
+        const msg = error instanceof Error ? error.message : 'Error obteniendo fundadores';
+        return jsonResponse(500, { error: msg });
     }
 };
