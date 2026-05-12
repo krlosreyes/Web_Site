@@ -331,9 +331,18 @@ const PostList: React.FC<PostListProps> = ({ onEdit, onNew }) => {
                                             {formatPubDate(post.publishedAt)}
                                         </td>
                                         <td className="px-4 py-4 text-right">
+                                            {/* SPEC-086: vistas/clics ahora son números reales. Si el
+                                                post no acumuló data todavía (0/0), mostramos "—" para
+                                                no confundir con "tiene tráfico pero todos rebotaron". */}
                                             <div className="flex flex-col items-end">
-                                                <span className="text-[10px] uppercase tracking-tighter text-gray-500">Vistas: {post.views}</span>
-                                                <span className="text-[10px] uppercase tracking-tighter text-blue-400">Clics: {post.clicks}</span>
+                                                {post.views === 0 && post.clicks === 0 ? (
+                                                    <span className="text-[10px] uppercase tracking-tighter text-gray-600">—</span>
+                                                ) : (
+                                                    <>
+                                                        <span className="text-[10px] uppercase tracking-tighter text-gray-500">Vistas: {post.views}</span>
+                                                        <span className="text-[10px] uppercase tracking-tighter text-blue-400">Clics: {post.clicks}</span>
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-4 py-4 text-right">

@@ -48,24 +48,29 @@ export const GET: APIRoute = async ({ request }) => {
 
         const posts = snapshot.docs.map(doc => {
             const data = doc.data();
-            
-            // Mocking metrics similarly to before if they don't exist
-            const mockViews = Math.floor(Math.random() * 5000) + 500;
-            const mockClicks = Math.floor(mockViews * (Math.random() * 0.3 + 0.1));
-            const mockConversions = Math.floor(mockClicks * (Math.random() * 0.1 + 0.02));
+
+            // SPEC-086: vistas/clics reales desde analytics.* del doc. Si el
+            // post no tiene tráfico aún, devolvemos 0 (no mocks aleatorios).
+            // El admin UI muestra "—" cuando ambos están en 0, así diferenciamos
+            // "sin data acumulada" vs "literalmente cero clics tras tener vistas".
+            const views = typeof data.analytics?.views === 'number' ? data.analytics.views : 0;
+            const clicks = typeof data.analytics?.clicks === 'number' ? data.analytics.clicks : 0;
+            const conversions = typeof data.analytics?.conversions === 'number'
+                ? data.analytics.conversions
+                : 0;
 
             return {
                 id: doc.id,
                 ...data, // Incluir todo el contenido original (content, images, etc.)
                 title: data.metadata?.title || data.title || 'Untitled',
                 slug: data.metadata?.slug || data.slug || doc.id,
-                views: data.analytics?.views || mockViews,
-                clicks: data.analytics?.clicks || mockClicks,
-                conversions: data.analytics?.conversions || mockConversions,
+                views,
+                clicks,
+                conversions,
             };
         });
 
-        // Backend sort by views
+        // Backend sort by views (desc). Posts sin views quedan al final.
         posts.sort((a, b) => b.views - a.views);
 
         return new Response(JSON.stringify({ success: true, posts }), {

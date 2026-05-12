@@ -4,6 +4,7 @@ import { db } from "../../lib/firebaseAdmin";
 import { COLLECTIONS } from "../../lib/constants/firestore";
 import { getPillar } from "../../lib/constants/pillars";
 import { isValidSessionValue } from "../../lib/auth";
+import { incrementView } from "../../lib/postAnalytics";
 import ArticleQuiz from "../../components/ArticleQuiz";
 import PostReactions from "../../components/blog/PostReactions";
 import { Clock, Calendar, BookOpen, Link as LinkIcon } from "lucide-astro";
@@ -34,12 +35,36 @@ if (!article) {
 // SPEC-015: drafts solo se ven si quien pide es admin (preview pre-publicación).
 // Visitantes anónimos reciben 404 igual que un slug inexistente.
 const isDraft = article.status === "draft";
+const adminSessionCookie = Astro.cookies.get("admin_session");
+const isAdminViewing = isValidSessionValue(adminSessionCookie?.value);
 if (isDraft) {
-    const sessionCookie = Astro.cookies.get("admin_session");
-    const isAdminViewing = isValidSessionValue(sessionCookie?.value);
     if (!isAdminViewing) {
         return Astro.redirect("/404");
     }
+}
+
+// SPEC-086: contador de vistas real. Dedupe por cookie de sesión
+// `viewed_posts` (CSV de slugs vistos esta sesión) + exclusión del
+// admin. Sin esto, el panel admin mostraba datos random (mocks).
+// La operación es best-effort: si falla, el artículo igual se renderiza.
+const VIEWED_COOKIE = "viewed_posts";
+const MAX_VIEWED_SLUGS = 50; // cap para que la cookie no crezca sin límite
+const slugStr = String(slug || "");
+const viewedRaw = Astro.cookies.get(VIEWED_COOKIE)?.value || "";
+const viewedList = viewedRaw ? viewedRaw.split(",").filter(Boolean) : [];
+const alreadyViewedThisSession = viewedList.includes(slugStr);
+if (!isAdminViewing && !alreadyViewedThisSession && slugStr) {
+    // Fire-and-forget: no await; no bloqueamos el render por esto.
+    incrementView(slugStr);
+    // Actualizamos la cookie con el slug nuevo (rotamos si excede el cap).
+    const nextViewed = [...viewedList, slugStr].slice(-MAX_VIEWED_SLUGS);
+    Astro.cookies.set(VIEWED_COOKIE, nextViewed.join(","), {
+        path: "/",
+        httpOnly: true,
+        secure: import.meta.env.PROD,
+        sameSite: "lax",
+        // Sin maxAge → cookie de sesión (vive hasta cerrar browser).
+    });
 }
 
 // Limpiar prefijos dinámicamente
@@ -349,6 +374,7 @@ const jsonLd = {
                     href="/quiz"
                     data-umami-event="cta_quiz_iniciar"
                     data-umami-event-source="articulo"
+                    data-track-click="article-cta"
                     class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-sm hover:bg-accent-strong transition-colors"
                 >
                     Iniciar diagnóstico IMR
@@ -390,6 +416,7 @@ const jsonLd = {
                     <a
                         href="/comunidad"
                         data-umami-event="cta_tribu_entrar"
+                        data-track-click="article-cta"
                         class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-sm hover:bg-accent-strong transition-colors"
                     >
                         Entrar a la comunidad →
@@ -429,6 +456,37 @@ const jsonLd = {
             window.addEventListener("scroll", onScroll, { passive: true });
         };
         trackReading();
+
+        // SPEC-086: trackeo de clics reales en los CTAs del artículo.
+        // Delegamos en los elementos con [data-track-click="article-cta"]
+        // y disparamos navigator.sendBeacon hacia el endpoint dedicado.
+        // sendBeacon está diseñado exactamente para este caso: garantiza
+        // entrega durante la navegación sin necesidad de preventDefault.
+        // Astro 6 CSRF: el endpoint admite POST sin header explícito
+        // porque sendBeacon manda blob; lo armamos como application/json
+        // vacío para pasar el filtro de Content-Type.
+        const trackArticleClicks = () => {
+            const slug = window.location.pathname.split("/").filter(Boolean).pop();
+            if (!slug) return;
+            const ctas = document.querySelectorAll(
+                '[data-track-click="article-cta"]',
+            );
+            ctas.forEach((el) => {
+                el.addEventListener("click", () => {
+                    try {
+                        const url = `/api/posts/${encodeURIComponent(slug)}/click`;
+                        const blob = new Blob(["{}"], {
+                            type: "application/json",
+                        });
+                        navigator.sendBeacon(url, blob);
+                    } catch (_) {
+                        // Best-effort: si sendBeacon no está disponible o
+                        // falla, no rompemos la navegación del usuario.
+                    }
+                });
+            });
+        };
+        trackArticleClicks();
     </script>
 </BaseLayout>
 
