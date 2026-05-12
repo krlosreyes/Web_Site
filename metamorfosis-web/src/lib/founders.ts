@@ -125,3 +125,82 @@ export async function assignFounderIfEligible(
         };
     });
 }
+
+export interface FounderRemovalResult {
+    /** True si efectivamente había un fundador y se eliminó. */
+    removed: boolean;
+    /** Counter de fundadores activos DESPUÉS de la operación. */
+    countAfter: number;
+}
+
+/**
+ * Elimina la condición de fundador del user `uid` (SPEC-077).
+ *
+ * Operación atómica en transacción:
+ *   1. Verifica que el user existe y tiene `founder.isFounder=true`.
+ *      Si no lo es, retorna `removed=false` sin tocar nada (idempotente).
+ *   2. Decrementa `system/counters.founderCount` (libera cupo).
+ *   3. Setea `users/{uid}.founder.isFounder=false`.
+ *      Conserva `number` y `assignedAt` históricos para audit; el usuario
+ *      no los ve en ningún lado, pero quedan en datos por si en algún
+ *      futuro se necesita reconstruir quién fue el fundador #N originalmente.
+ *
+ * Si el counter está en 0 y se intenta eliminar (caso anómalo), NO se
+ * decrementa por debajo de 0 — clampea a 0 con `Math.max`.
+ *
+ * Uso: desde el endpoint admin `DELETE /api/admin/founders?uid=...`.
+ * NO exponer al cliente público bajo ninguna circunstancia.
+ */
+export async function removeFounder(uid: string): Promise<FounderRemovalResult> {
+    const userRef = db.collection(COLLECTIONS.USERS).doc(uid);
+    const counterRef = db
+        .collection(FOUNDER_COUNTER_DOC.collection)
+        .doc(FOUNDER_COUNTER_DOC.doc);
+
+    return await db.runTransaction(async (tx) => {
+        const userSnap = await tx.get(userRef);
+        if (!userSnap.exists) {
+            return { removed: false, countAfter: 0 };
+        }
+
+        const userData = userSnap.data() as { founder?: UserFounder } | undefined;
+        const isFounder = userData?.founder?.isFounder === true;
+
+        if (!isFounder) {
+            // Idempotente: si ya no es fundador, no tocar el counter.
+            const counterSnap = await tx.get(counterRef);
+            const currentCount =
+                (counterSnap.data()?.[FOUNDER_COUNTER_FIELD] as number | undefined) ?? 0;
+            return { removed: false, countAfter: currentCount };
+        }
+
+        // Decremento atómico del counter. Conservamos number/assignedAt
+        // históricos en el user — solo flipeamos isFounder a false.
+        // FieldValue.increment(-1) puede llevar a negativos en teoría;
+        // dejamos un read+write para clampear a 0 como defensa final.
+        const counterSnap = await tx.get(counterRef);
+        const currentCount =
+            (counterSnap.data()?.[FOUNDER_COUNTER_FIELD] as number | undefined) ?? 0;
+        const newCount = Math.max(0, currentCount - 1);
+
+        tx.set(
+            counterRef,
+            { [FOUNDER_COUNTER_FIELD]: newCount },
+            { merge: true },
+        );
+        tx.set(
+            userRef,
+            {
+                founder: {
+                    isFounder: false,
+                    // Preservar number/assignedAt como historial.
+                    number: userData?.founder?.number ?? null,
+                    assignedAt: userData?.founder?.assignedAt ?? null,
+                },
+            },
+            { merge: true },
+        );
+
+        return { removed: true, countAfter: newCount };
+    });
+}

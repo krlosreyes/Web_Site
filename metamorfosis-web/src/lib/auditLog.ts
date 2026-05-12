@@ -38,9 +38,10 @@ export type AuditAction =
     | 'admin_delete_forum_topic'
     | 'admin_delete_forum_reply'
     | 'pin_forum_topic'
-    | 'save_forum_topic';
+    | 'save_forum_topic'
+    | 'remove_founder';
 
-export type AuditResource = 'post' | 'lead' | 'image' | 'system' | 'session' | 'forum_topic' | 'forum_reply';
+export type AuditResource = 'post' | 'lead' | 'image' | 'system' | 'session' | 'forum_topic' | 'forum_reply' | 'user';
 
 export interface AuditChange {
     before: unknown;

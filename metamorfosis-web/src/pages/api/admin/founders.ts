@@ -20,6 +20,8 @@ import {
     FOUNDER_COUNTER_DOC,
     FOUNDER_COUNTER_FIELD,
 } from '../../../lib/constants/founders';
+import { removeFounder } from '../../../lib/founders';
+import { logAdminAction } from '../../../lib/auditLog';
 import {
     isAuthenticatedFromCookie,
     parseCookies,
@@ -118,6 +120,56 @@ export const GET: APIRoute = async ({ request }) => {
     } catch (error) {
         console.error('[admin.founders.GET] Error:', error);
         const msg = error instanceof Error ? error.message : 'Error obteniendo fundadores';
+        return jsonResponse(500, { error: msg });
+    }
+};
+
+/**
+ * DELETE /api/admin/founders?uid={uid} — elimina la condición de fundador
+ * de un user (SPEC-077). Decrementa el counter atómico para liberar cupo
+ * y permitir que un nuevo onboard pueda asignarse fundador.
+ *
+ * Conserva `founder.number` y `founder.assignedAt` en el doc del user como
+ * audit histórico — solo flipea `isFounder` a `false`. El usuario nunca
+ * ve esos campos en UI.
+ *
+ * Auth: cookie admin (igual que GET).
+ *
+ * Respuestas:
+ *   - 200 OK + { removed: true, countAfter: N } si se eliminó.
+ *   - 200 OK + { removed: false, countAfter: N } si el user no era fundador
+ *     (idempotente). El cliente debe revisar `removed` para decidir el toast.
+ *   - 400 si falta el query param `uid`.
+ *   - 401 sin sesión admin.
+ *   - 500 si la transacción falla.
+ */
+export const DELETE: APIRoute = async ({ request, url }) => {
+    const guard = authGate(request);
+    if (guard) return guard;
+
+    const uid = url.searchParams.get('uid');
+    if (!uid) {
+        return jsonResponse(400, { error: 'Falta query param `uid`' });
+    }
+
+    try {
+        const result = await removeFounder(uid);
+
+        // SPEC-018: log de auditoría (best-effort).
+        await logAdminAction({
+            action: 'remove_founder',
+            resource: 'user',
+            resourceId: uid,
+            changes: {
+                'founder.isFounder': { before: true, after: false },
+            },
+            request,
+        });
+
+        return jsonResponse(200, result);
+    } catch (error) {
+        console.error('[admin.founders.DELETE] Error:', error);
+        const msg = error instanceof Error ? error.message : 'Error eliminando fundador';
         return jsonResponse(500, { error: msg });
     }
 };

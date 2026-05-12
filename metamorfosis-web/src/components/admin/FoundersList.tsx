@@ -85,6 +85,8 @@ const FoundersList: React.FC = () => {
     const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
     const [query, setQuery] = useState('');
     const [isRefreshing, setIsRefreshing] = useState(false);
+    // SPEC-077: uid en proceso de eliminación (para feedback visual).
+    const [deletingUid, setDeletingUid] = useState<string | null>(null);
 
     // Ref del intervalo para limpiarlo en unmount.
     const intervalRef = useRef<number | null>(null);
@@ -124,6 +126,62 @@ const FoundersList: React.FC = () => {
             if (intervalRef.current) window.clearInterval(intervalRef.current);
         };
     }, [fetchFounders]);
+
+    /**
+     * SPEC-077: eliminar fundador. Decrementa el counter atómico
+     * server-side, libera cupo, y refresca el listado.
+     *
+     * Reglas CLAUDE.md sección 4 aplicadas:
+     *   - Content-Type: application/json (sin esto Astro 6 rechaza con 403 CSRF).
+     *   - credentials: 'include' explícito (cookie admin_session).
+     *   - Check res.ok + parse body para mensaje útil si falla.
+     *   - Alert visible al usuario en error (no silencio).
+     */
+    const handleDelete = useCallback(
+        async (uid: string, name: string | null, email: string) => {
+            const label = name || email || uid;
+            const confirmed = window.confirm(
+                `¿Eliminar a "${label}" del cohorte fundador?\n\n` +
+                'Pierde los beneficios del cohorte. Libera un cupo para que otro usuario pueda entrar. ' +
+                'El usuario sigue existiendo como usuario normal — solo se le quita el estatus fundador.'
+            );
+            if (!confirmed) return;
+
+            setDeletingUid(uid);
+            try {
+                const res = await fetch(
+                    `/api/admin/founders?uid=${encodeURIComponent(uid)}`,
+                    {
+                        method: 'DELETE',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                    },
+                );
+
+                if (!res.ok) {
+                    let errMsg = `Error ${res.status}`;
+                    try {
+                        const body = await res.json();
+                        if (body?.error) errMsg = `${errMsg}: ${body.error}`;
+                    } catch {
+                        // body no parseable
+                    }
+                    console.error('[FoundersList.handleDelete] No OK:', errMsg);
+                    alert(`No se pudo eliminar el fundador. ${errMsg}`);
+                    return;
+                }
+
+                // Refresh listado (counter actualizado + fila ya fuera).
+                await fetchFounders(false);
+            } catch (e: any) {
+                console.error('[FoundersList.handleDelete] Network error:', e);
+                alert(`Error de red al eliminar: ${e?.message || 'desconocido'}`);
+            } finally {
+                setDeletingUid(null);
+            }
+        },
+        [fetchFounders],
+    );
 
     const filtered = useMemo(() => {
         if (!data) return [];
@@ -244,6 +302,7 @@ const FoundersList: React.FC = () => {
                                     <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">IMR</th>
                                     <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">Asignado</th>
                                     <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">Email enviado</th>
+                                    <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -285,6 +344,16 @@ const FoundersList: React.FC = () => {
                                             ) : (
                                                 <span className="text-amber-400">⚠ no</span>
                                             )}
+                                        </td>
+                                        <td className="px-4 py-3 text-right">
+                                            <button
+                                                onClick={() => handleDelete(f.uid, f.displayName, f.email)}
+                                                disabled={deletingUid === f.uid}
+                                                className="text-[10px] font-bold uppercase tracking-widest text-red-400 hover:text-red-300 border border-red-500/20 hover:border-red-500/40 rounded-md px-3 py-1.5 transition-colors disabled:opacity-50 disabled:cursor-wait"
+                                                title="Quitar el estatus fundador (libera cupo)"
+                                            >
+                                                {deletingUid === f.uid ? 'Eliminando…' : '🗑 Eliminar'}
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}

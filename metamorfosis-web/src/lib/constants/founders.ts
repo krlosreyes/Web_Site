@@ -12,7 +12,7 @@
  * — Firestore aborta uno y lo reintenta.
  */
 
-/** Tope inflexible de fundadores. NO modificar sin spec dedicada. */
+/** Tope inflexible de fundadores activos. NO modificar sin spec dedicada. */
 export const FOUNDER_CAP = 1000;
 
 /**
@@ -24,5 +24,16 @@ export const FOUNDER_COUNTER_DOC = {
     doc: 'counters',
 } as const;
 
-/** Campo dentro del doc `system/counters` que cuenta los fundadores asignados. */
+/**
+ * Contador de fundadores activos.
+ *
+ * Incrementa cuando se asigna un nuevo fundador (`assignFounderIfEligible`).
+ * Decrementa cuando se elimina (SPEC-077: `removeFounder`).
+ *
+ * Es el counter ÚNICO que se compara contra `FOUNDER_CAP` para decidir
+ * si hay cupo. El campo interno `founder.number` que se guarda en cada
+ * user es para audit/historial — NO se muestra al usuario en ninguna
+ * UI. Si tras eliminar+asignar se repite un número, no hay impacto
+ * porque ningún ojo humano lo ve.
+ */
 export const FOUNDER_COUNTER_FIELD = 'founderCount';

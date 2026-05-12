@@ -148,23 +148,22 @@ const BioDashboard = () => {
                      siguen visibles en el dashboard. */}
             {stats.founderNumber !== null && !stats.isLoading && (
                 <div className="bg-bg-surface border border-amber-500/20 rounded-xl p-5 md:p-6 flex flex-col md:flex-row md:items-center gap-5">
-                    {/* Lado izquierdo — número fundador compacto */}
-                    <div className="flex items-center gap-4 shrink-0 md:border-r md:border-white/[0.06] md:pr-6">
+                    <div className="flex items-center gap-4 shrink-0">
                         <div className="w-12 h-12 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-2xl shrink-0">
                             🎁
                         </div>
                         <div>
-                            <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-400 mb-0.5">
+                            <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-400 mb-1">
                                 Acceso fundador
                             </div>
-                            <div className="text-2xl font-bold text-text-primary leading-none">
-                                #{stats.founderNumber} <span className="text-text-muted text-sm font-medium">/ 1000</span>
+                            <div className="text-base font-semibold text-text-primary leading-tight">
+                                Estás dentro del cohorte fundador
                             </div>
                         </div>
                     </div>
 
-                    {/* Lado derecho — beneficios en línea, no en lista vertical */}
-                    <div className="flex-1 min-w-0">
+                    {/* Lado derecho — beneficios concisos */}
+                    <div className="flex-1 min-w-0 md:border-l md:border-white/[0.06] md:pl-6">
                         <p className="text-sm text-text-secondary leading-relaxed">
                             <span className="text-text-primary font-semibold">Precio fundador permanente</span> en la suscripción anual de ElenaApp + <span className="text-text-primary font-semibold">beneficios sorpresa</span> que se revelan el día del lanzamiento.
                         </p>
