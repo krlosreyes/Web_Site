@@ -7,10 +7,10 @@ import { ArrowRight } from 'lucide-astro';
   <div class="hero-bg-image" aria-hidden="true"></div>
 
   {/* Gradient overlay - left dark, right reveals image */}
-  <div class="absolute inset-0 z-[1]" style="background: linear-gradient(to right, rgba(5,10,18,0.97) 0%, rgba(5,10,18,0.85) 45%, rgba(5,10,18,0.35) 75%, rgba(5,10,18,0.1) 100%);"></div>
+  <div class="absolute inset-0 z-[1]" style="background: linear-gradient(to right, rgba(2,6,23,0.97) 0%, rgba(2,6,23,0.85) 45%, rgba(2,6,23,0.35) 75%, rgba(2,6,23,0.1) 100%);"></div>
 
   {/* Bottom fade to body */}
-  <div class="absolute bottom-0 left-0 right-0 h-40 z-[2]" style="background: linear-gradient(to bottom, transparent, #050a12);"></div>
+  <div class="absolute bottom-0 left-0 right-0 h-40 z-[2]" style="background: linear-gradient(to bottom, transparent, #020617);"></div>
 
   {/* Content */}
   <div class="container mx-auto max-w-6xl relative z-10">
@@ -18,64 +18,62 @@ import { ArrowRight } from 'lucide-astro';
         H1 wrappea natural. En tablet/desktop necesitamos más ancho para que
         cada frase del H1 quepa en una sola línea (con whitespace-nowrap). */}
     <div class="max-w-2xl md:max-w-3xl lg:max-w-4xl text-left">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-blue/10 border border-accent-blue/20 text-accent-blue text-xs font-bold uppercase tracking-widest mb-6">
+      {/* SPEC-072: pill en accent teal (paleta del sistema), no azul brillante.
+          rounded-md (no rounded-full) para coherencia con .pill del system. */}
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-accent/10 border border-accent/20 text-accent text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
         <span class="relative flex h-2 w-2">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-blue opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 bg-accent-blue"></span>
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
         </span>
         Ecosistema Metamorfosis Real
       </div>
 
-      {/* SPEC-053: copy refresh + responsive del H1.
-          Copy: el user es el protagonista — "te damos las herramientas, tú creas
-          los hábitos". Subtítulo emocional.
-          Responsive: en mobile cada frase wrappea naturalmente en 2-3 líneas
-          (text-4xl, sin nowrap). Desde md (tablet portrait, 768px+) cada frase
-          se fuerza a UNA línea con `md:whitespace-nowrap` y font escalado para
-          que quepa: text-5xl en md, text-6xl en lg. text-7xl quedó fuera
-          intencionalmente — 25 chars en text-7xl no caben en max-w-4xl. */}
+      {/* SPEC-072: h1 con gradient teal (no azul-cyan) en la palabra clave.
+          Mantenemos el copy y la responsividad de SPEC-053. */}
       <h1 class="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold text-text-primary mb-8 leading-[1.05] tracking-tight break-words">
-        <span class="md:whitespace-nowrap">Te damos las herramientas</span><br/><span class="md:whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-accent-blue to-cyan-400">Tú creas los hábitos.</span>
+        <span class="md:whitespace-nowrap">Te damos las herramientas</span><br/><span class="md:whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-accent to-emerald-400">Tú creas los hábitos.</span>
       </h1>
 
-      {/* SPEC-053: subtítulo emocional con tratamiento glass para
-          darle protagonismo sin agrandar el tamaño ni opacar los CTAs.
-          - bg semi-transparente + backdrop-blur: efecto vidrio sobre el hero
-          - border-left grueso en accent-blue: ancla visual asimétrica
-          - rounded-r-2xl: esquinas redondeadas solo a la derecha (más design-y)
-          - shadow azul tenue (opacity 0.15): glow sin gritar
-          - italic + text-primary (no secondary): el texto pesa más
-          - inline-block: solo abraza el texto, no ocupa toda la fila */}
-      <div class="inline-block bg-bg-surface/20 backdrop-blur-md border-l-4 border-accent-blue rounded-r-2xl px-6 py-4 mb-10 shadow-[0_0_30px_rgba(0,123,255,0.15)] max-w-xl">
-        <p class="text-xl text-text-primary leading-relaxed italic font-medium">
-          Vida solo hay una y todo cuenta.
-        </p>
-      </div>
-      
-      <div class="flex flex-col sm:flex-row items-start gap-4">
-        <a href="/quiz" class="btn-gradient px-8 py-4 text-lg flex items-center gap-2">
-          Obtener mi Diagnóstico IMR <ArrowRight size={20} />
+      {/* SPEC-072: subtítulo simplificado. Antes tenía glass treatment
+          cargado (backdrop-blur + shadow azul + rounded-r-2xl). Ahora solo
+          border-left sutil del accent + italic. Más sobrio, igual de
+          legible, alineado con el design system premium. */}
+      <p class="border-l-2 border-accent pl-5 mb-10 text-xl text-text-primary/90 italic font-medium leading-relaxed max-w-xl">
+        Vida solo hay una y todo cuenta.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-start gap-3">
+        {/* CTA primario — accent teal sólido. */}
+        <a
+          href="/quiz"
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-accent text-bg-base font-semibold text-base hover:bg-accent-strong transition-colors"
+        >
+          Obtener mi diagnóstico IMR <ArrowRight size={18} />
         </a>
-        <a href="#pilares" class="px-8 py-4 rounded-xl border border-text-primary/20 bg-white/5 backdrop-blur-sm text-text-primary font-bold hover:bg-white/10 transition-all">
-          Explorar el Ecosistema
+        {/* CTA secundario — outline limpio. */}
+        <a
+          href="#pilares"
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-bg-surface/60 text-text-primary font-semibold text-base border border-white/[0.12] hover:bg-bg-surface hover:border-white/[0.2] transition-colors"
+        >
+          Explorar el ecosistema
         </a>
       </div>
 
-      {/* Subtle stats row */}
-      <div class="mt-14 flex items-center gap-8">
+      {/* Stats row — colores unificados al sistema. */}
+      <div class="mt-14 flex items-center gap-6 md:gap-8">
         <div>
-          <p class="text-2xl font-bold font-heading text-text-primary">10K+</p>
-          <p class="text-xs text-text-secondary uppercase tracking-widest">Usuarios Activos</p>
+          <p class="text-2xl font-bold text-text-primary">10K+</p>
+          <p class="text-[11px] text-text-muted uppercase tracking-[0.2em] mt-0.5">Usuarios activos</p>
         </div>
-        <div class="w-px h-10 bg-text-primary/10"></div>
+        <div class="w-px h-10 bg-white/[0.08]"></div>
         <div>
-          <p class="text-2xl font-bold font-heading text-health-green">94%</p>
-          <p class="text-xs text-text-secondary uppercase tracking-widest">Mejora Metabólica</p>
+          <p class="text-2xl font-bold text-accent">94%</p>
+          <p class="text-[11px] text-text-muted uppercase tracking-[0.2em] mt-0.5">Mejora metabólica</p>
         </div>
-        <div class="w-px h-10 bg-text-primary/10"></div>
+        <div class="w-px h-10 bg-white/[0.08]"></div>
         <div>
-          <p class="text-2xl font-bold font-heading text-accent-blue">IMR</p>
-          <p class="text-xs text-text-secondary uppercase tracking-widest">Índice Propio</p>
+          <p class="text-2xl font-bold text-text-primary">IMR</p>
+          <p class="text-[11px] text-text-muted uppercase tracking-[0.2em] mt-0.5">Índice propio</p>
         </div>
       </div>
     </div>
@@ -84,7 +82,7 @@ import { ArrowRight } from 'lucide-astro';
 
 <style>
   .hero-section {
-    background-color: #050a12;
+    background-color: #020617;
   }
 
   .hero-bg-image {
