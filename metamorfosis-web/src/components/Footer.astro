@@ -17,26 +17,26 @@ const SOCIAL_LINKS = {
 } as const;
 ---
 
-<footer class="bg-gray-900 text-gray-300 py-12 border-t border-gray-800">
+<footer class="bg-bg-surface text-text-secondary py-12 border-t border-white/[0.06]">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <!-- Brand -->
             <div>
-                <h3 class="text-white text-lg font-bold mb-4">
+                <h3 class="text-text-primary text-base font-semibold mb-3 tracking-tight">
                     Metamorfosis Real
                 </h3>
-                <p class="text-sm">
+                <p class="text-sm leading-relaxed">
                     Optimización metabólica e ingeniería humana para una vida
                     sin límites.
                 </p>
 
                 <!-- Redes sociales activas: YouTube, Instagram, TikTok -->
-                <div class="flex items-center gap-4 mt-6">
+                <div class="flex items-center gap-4 mt-5">
                     <a
                         href={SOCIAL_LINKS.youtube}
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="text-gray-400 hover:text-[#00C49A] transition-colors duration-300"
+                        class="text-text-muted hover:text-accent transition-colors"
                         aria-label="YouTube"
                     >
                         <Youtube class="w-5 h-5" />
@@ -46,7 +46,7 @@ const SOCIAL_LINKS = {
                         href={SOCIAL_LINKS.instagram}
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="text-gray-400 hover:text-[#00C49A] transition-colors duration-300"
+                        class="text-text-muted hover:text-accent transition-colors"
                         aria-label="Instagram"
                     >
                         <Instagram class="w-5 h-5" />
@@ -56,7 +56,7 @@ const SOCIAL_LINKS = {
                         href={SOCIAL_LINKS.tiktok}
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="text-gray-400 hover:text-[#00C49A] transition-colors duration-300"
+                        class="text-text-muted hover:text-accent transition-colors"
                         aria-label="TikTok"
                     >
                         {/* SVG oficial de TikTok */}
@@ -77,22 +77,22 @@ const SOCIAL_LINKS = {
 
             <!-- Navigation -->
             <div>
-                <h4 class="text-white font-semibold mb-4">Navegación</h4>
+                <h4 class="text-text-primary text-sm font-semibold mb-3 tracking-tight">Navegación</h4>
                 <ul class="space-y-2 text-sm">
                     <li>
-                        <a href="/" class="hover:text-[#00C49A] transition"
+                        <a href="/" class="hover:text-accent transition-colors"
                             >Inicio</a
                         >
                     </li>
                     <li>
-                        <a href="/biblioteca" class="hover:text-[#00C49A] transition"
+                        <a href="/biblioteca" class="hover:text-accent transition-colors"
                             >Artículos</a
                         >
                     </li>
                     <li>
                         <a
                             href="/sobre-mi"
-                            class="hover:text-[#00C49A] transition">Sobre Mí</a
+                            class="hover:text-accent transition-colors">Sobre mí</a
                         >
                     </li>
                 </ul>
@@ -100,24 +100,23 @@ const SOCIAL_LINKS = {
 
             <!-- Legal -->
             <div>
-                <h4 class="text-white font-semibold mb-4">Legal</h4>
+                <h4 class="text-text-primary text-sm font-semibold mb-3 tracking-tight">Legal</h4>
                 <ul class="space-y-2 text-sm">
                     <li>
                         <a
                             href="/terminos"
-                            class="hover:text-[#00C49A] transition"
-                            >Términos y Condiciones</a
+                            class="hover:text-accent transition-colors"
+                            >Términos y condiciones</a
                         >
                     </li>
                     <li>
                         <a
                             href="/privacidad"
-                            class="hover:text-[#00C49A] transition"
-                            >Política de Privacidad</a
+                            class="hover:text-accent transition-colors"
+                            >Política de privacidad</a
                         >
                     </li>
-                    <!-- SPEC-030b: text-gray-500 → text-gray-400 (WCAG AA sobre bg-gray-900: 3.3:1 → 6.4:1). -->
-                    <li class="pt-2 text-xs text-gray-400 italic">
+                    <li class="pt-2 text-xs text-text-muted">
                         metamorfosisvitaloficial@gmail.com
                     </li>
                 </ul>
@@ -126,29 +125,28 @@ const SOCIAL_LINKS = {
 
         <!-- Copyright & Admin Entry -->
         <div
-            class="w-full flex flex-col sm:flex-row items-center justify-between gap-2 py-4 border-t border-white/10 mt-8"
+            class="w-full flex flex-col sm:flex-row items-center justify-between gap-3 py-4 border-t border-white/[0.06] mt-8"
         >
-            {/* SPEC-030b: text-[#4a637e] (~3.3:1 contrast) → text-gray-400 (6.4:1, WCAG AA). */}
-            <div class="text-xs text-gray-400">
+            <div class="text-xs text-text-muted">
                 © {new Date().getFullYear()} Metamorfosis Real. Todos los derechos
                 reservados.
             </div>
             <div class="flex items-center gap-4">
                 <a
                     href="/privacidad"
-                    class="text-xs text-gray-400 hover:text-[#007BFF] transition-colors duration-200 font-medium"
+                    class="text-xs text-text-muted hover:text-accent transition-colors font-medium"
                     >Privacidad</a
                 >
                 <a
                     href="/terminos"
-                    class="text-xs text-gray-400 hover:text-[#007BFF] transition-colors duration-200 font-medium"
+                    class="text-xs text-text-muted hover:text-accent transition-colors font-medium"
                     >Términos</a
                 >
                 {
                     isAdmin && (
                         <a
                             href="/admin/dashboard"
-                            class="flex items-center gap-1 text-xs text-[#00C49A] hover:text-white transition-colors duration-200 font-medium"
+                            class="flex items-center gap-1.5 text-xs text-accent hover:text-text-primary transition-colors font-medium"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"

@@ -16,42 +16,42 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
 ---
 
 <nav
-    class="fixed top-0 left-0 w-full z-[100] transition-all duration-500 border-b border-white/5 backdrop-blur-md bg-black/20"
+    class="fixed top-0 left-0 w-full z-[100] transition-all duration-300 border-b border-white/[0.06] backdrop-blur-md bg-bg-base/70"
     id="navbar"
 >
     <div class="container mx-auto px-6 h-20 flex items-center justify-between">
-        {/* Logo */}
+        {/* Logo — drop-shadow con accent teal en lugar de azul brillante. */}
         <a href="/" class="flex items-center gap-3 group" id="navbar-logo">
             <img
                 src="/logoSite.webp"
                 alt="Metamorfosis Real"
                 width="192"
                 height="192"
-                class="h-12 md:h-14 w-auto drop-shadow-[0_0_18px_rgba(59,130,246,0.55)] group-hover:drop-shadow-[0_0_22px_rgba(59,130,246,0.85)] group-hover:scale-110 transition-all duration-500"
+                class="h-12 md:h-14 w-auto drop-shadow-[0_0_18px_rgba(0,196,154,0.45)] group-hover:drop-shadow-[0_0_22px_rgba(0,196,154,0.75)] transition-all duration-300"
             />
             <span
-                class="text-white font-black italic uppercase tracking-tighter text-xl md:text-2xl group-hover:text-blue-400 transition-colors"
-                >Metamorfosis <span class="text-blue-500">Real</span></span
+                class="text-text-primary font-black italic uppercase tracking-tight text-lg md:text-xl group-hover:text-accent transition-colors"
+                >Metamorfosis <span class="text-accent">Real</span></span
             >
         </a>
 
-        {/* Desktop Menu */}
-        <div class="hidden md:flex items-center gap-10">
+        {/* Desktop Menu — links proporcionados (sin tracking-widest gritando). */}
+        <div class="hidden md:flex items-center gap-8">
             <a
                 href="/biblioteca"
-                class="text-[10px] font-black text-gray-400 hover:text-white uppercase tracking-[0.2em] transition-colors"
+                class="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
                 >Biblioteca</a
             >
             <a
                 href="/comunidad"
-                class="text-[10px] font-black text-gray-400 hover:text-white uppercase tracking-[0.2em] transition-colors"
+                class="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
                 >La Tribu</a
             >
             {
                 isAdmin && (
                     <a
                         href="/admin/dashboard"
-                        class="text-[10px] font-black text-[#00C49A] hover:text-white uppercase tracking-[0.2em] transition-colors"
+                        class="text-sm font-medium text-accent hover:text-accent-strong transition-colors"
                     >
                         Admin
                     </a>
@@ -61,20 +61,20 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
             {/* Dynamic Auth Button */}
             <div
                 id="auth-container"
-                class="flex items-center gap-6 pl-6 border-l border-white/10"
+                class="flex items-center gap-5 pl-5 border-l border-white/[0.08]"
             >
                 {
                     isAdmin ? (
                         <>
-                            <span class="flex items-center gap-2 text-[10px] font-black text-[#00C49A] uppercase tracking-[0.2em]">
-                                <span class="w-2 h-2 rounded-full bg-[#00C49A] animate-pulse" />
-                                Modo Admin
+                            <span class="flex items-center gap-2 text-[11px] font-bold text-accent uppercase tracking-[0.18em]">
+                                <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                                Modo admin
                             </span>
                             <button
                                 id="admin-logout-btn"
-                                class="text-[10px] font-black text-red-400 hover:text-red-300 uppercase tracking-[0.2em] transition-all"
+                                class="text-sm font-medium text-text-secondary hover:text-status-bad transition-colors"
                             >
-                                Cerrar Sesión
+                                Cerrar sesión
                             </button>
                         </>
                     ) : (
@@ -82,15 +82,15 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
                             <a
                                 href="/login"
                                 id="login-btn"
-                                class="text-[10px] font-black text-white hover:text-blue-400 uppercase tracking-[0.2em] transition-all"
+                                class="text-sm font-medium text-text-primary hover:text-accent transition-colors"
                             >
                                 Ingresar
                             </a>
                             <button
                                 id="logout-btn"
-                                class="hidden text-[10px] font-black text-red-400 hover:text-red-300 uppercase tracking-[0.2em] transition-all"
+                                class="hidden text-sm font-medium text-text-secondary hover:text-status-bad transition-colors"
                             >
-                                Cerrar Sesión
+                                Cerrar sesión
                             </button>
                             {/* SPEC-043: campanita de notificaciones (solo si user logueado, decide internamente).
                                 SPEC-030b: client:idle en vez de client:load para sacar Firebase del critical path —
@@ -107,7 +107,7 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
 
         {/* Mobile Toggle */}
         <button
-            class="md:hidden text-white p-2 -mr-2 rounded-lg hover:bg-white/10 transition-colors"
+            class="md:hidden text-text-primary p-2 -mr-2 rounded-lg hover:bg-white/[0.06] transition-colors"
             id="menu-toggle"
             aria-label="Abrir menú"
             aria-expanded="false"
@@ -153,47 +153,47 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
         </button>
     </div>
 
-    {/* Mobile Menu Panel */}
+    {/* Mobile Menu Panel — sin uppercase, font-medium, padding limpio. */}
     <div
         id="mobile-menu"
-        class="hidden md:hidden bg-black/95 backdrop-blur-md border-t border-white/10 shadow-2xl"
+        class="hidden md:hidden bg-bg-base/95 backdrop-blur-md border-t border-white/[0.06]"
     >
-        <div class="container mx-auto px-6 py-5 flex flex-col gap-1">
+        <div class="container mx-auto px-6 py-4 flex flex-col gap-1">
             <a
                 href="/biblioteca"
-                class="mobile-menu-link text-sm font-black text-gray-300 hover:text-white hover:bg-white/5 uppercase tracking-[0.2em] py-3 px-3 rounded-lg transition-colors"
+                class="mobile-menu-link text-base font-medium text-text-secondary hover:text-text-primary hover:bg-white/[0.04] py-3 px-3 rounded-lg transition-colors"
                 >Biblioteca</a
             >
             <a
                 href="/comunidad"
-                class="mobile-menu-link text-sm font-black text-gray-300 hover:text-white hover:bg-white/5 uppercase tracking-[0.2em] py-3 px-3 rounded-lg transition-colors"
+                class="mobile-menu-link text-base font-medium text-text-secondary hover:text-text-primary hover:bg-white/[0.04] py-3 px-3 rounded-lg transition-colors"
                 >La Tribu</a
             >
             {
                 isAdmin && (
                     <a
                         href="/admin/dashboard"
-                        class="mobile-menu-link text-sm font-black text-[#00C49A] hover:text-white hover:bg-[#00C49A]/10 uppercase tracking-[0.2em] py-3 px-3 rounded-lg transition-colors"
+                        class="mobile-menu-link text-base font-medium text-accent hover:text-accent-strong hover:bg-accent/[0.06] py-3 px-3 rounded-lg transition-colors"
                     >
                         Admin
                     </a>
                 )
             }
 
-            <div class="h-px bg-white/10 my-2"></div>
+            <div class="h-px bg-white/[0.06] my-2"></div>
 
             {
                 isAdmin ? (
                     <>
-                        <span class="flex items-center gap-2 text-xs font-black text-[#00C49A] uppercase tracking-[0.2em] py-3 px-3">
-                            <span class="w-2 h-2 rounded-full bg-[#00C49A] animate-pulse" />
-                            Modo Admin
+                        <span class="flex items-center gap-2 text-[11px] font-bold text-accent uppercase tracking-[0.18em] py-3 px-3">
+                            <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                            Modo admin
                         </span>
                         <button
                             id="mobile-admin-logout-btn"
-                            class="text-left text-sm font-black text-red-400 hover:text-red-300 hover:bg-red-500/10 uppercase tracking-[0.2em] py-3 px-3 rounded-lg transition-colors"
+                            class="text-left text-base font-medium text-status-bad hover:text-status-bad/80 hover:bg-status-bad/[0.06] py-3 px-3 rounded-lg transition-colors"
                         >
-                            Cerrar Sesión
+                            Cerrar sesión
                         </button>
                     </>
                 ) : (
@@ -201,15 +201,15 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
                         <a
                             href="/login"
                             id="mobile-login-btn"
-                            class="mobile-menu-link text-sm font-black text-white hover:text-blue-400 hover:bg-white/5 uppercase tracking-[0.2em] py-3 px-3 rounded-lg transition-colors"
+                            class="mobile-menu-link text-base font-medium text-text-primary hover:text-accent hover:bg-white/[0.04] py-3 px-3 rounded-lg transition-colors"
                         >
                             Ingresar
                         </a>
                         <button
                             id="mobile-logout-btn"
-                            class="hidden text-left text-sm font-black text-red-400 hover:text-red-300 hover:bg-red-500/10 uppercase tracking-[0.2em] py-3 px-3 rounded-lg transition-colors"
+                            class="hidden text-left text-base font-medium text-status-bad hover:text-status-bad/80 hover:bg-status-bad/[0.06] py-3 px-3 rounded-lg transition-colors"
                         >
-                            Cerrar Sesión
+                            Cerrar sesión
                         </button>
                         {/* SPEC-048: ElenaApp CTA en menú mobile.
                             Reusamos el mismo componente — el modal funciona
@@ -390,12 +390,14 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
 
         // ─────────── Scroll effect ───────────
         const onScroll = () => {
+            // Más opaco al scrollear (más contraste). Sin cambio de height
+            // porque el dashboard depende de h-20 fijo para scroll-margin.
             if (window.scrollY > 50) {
-                navbar.classList.add("bg-black/80", "h-16");
-                navbar.classList.remove("bg-black/20", "h-20");
+                navbar.classList.remove("bg-bg-base/70");
+                navbar.classList.add("bg-bg-base/95");
             } else {
-                navbar.classList.add("bg-black/20", "h-20");
-                navbar.classList.remove("bg-black/80", "h-16");
+                navbar.classList.remove("bg-bg-base/95");
+                navbar.classList.add("bg-bg-base/70");
             }
         };
         window.addEventListener("scroll", onScroll, { passive: true });

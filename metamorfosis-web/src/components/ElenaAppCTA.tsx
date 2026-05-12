@@ -124,7 +124,7 @@ const ElenaAppCTA: React.FC = () => {
                 onClick={() => setOpen(true)}
                 aria-haspopup="dialog"
                 aria-expanded={open}
-                className="relative inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-cyan-500 text-white font-black uppercase tracking-[0.2em] text-[10px] shadow-lg shadow-blue-600/30 active:scale-95 transition-all"
+                className="relative inline-flex items-center gap-2 px-4 py-2 rounded-md bg-accent text-bg-base hover:bg-accent-strong font-semibold text-xs transition-colors"
             >
                 {/* Ícono móvil — placeholder hasta que haya logo dedicado */}
                 <svg
@@ -139,8 +139,8 @@ const ElenaAppCTA: React.FC = () => {
                     <line x1="11" y1="18" x2="13" y2="18" />
                 </svg>
                 <span>ElenaApp</span>
-                <span className="ml-0.5 px-1.5 py-0.5 rounded bg-yellow-400/90 text-black text-[8px] font-black tracking-tighter">
-                    EARLY
+                <span className="ml-0.5 px-1.5 py-0.5 rounded bg-bg-base/30 text-bg-base text-[9px] font-bold tracking-wide">
+                    BETA
                 </span>
             </button>
 
@@ -159,23 +159,19 @@ const ElenaAppCTA: React.FC = () => {
                     <div
                         ref={dialogRef}
                         onClick={(e) => e.stopPropagation()}
-                        className="relative w-full max-h-screen sm:max-h-[90vh] sm:max-w-lg sm:rounded-3xl bg-gradient-to-br from-[#0c1422] via-[#0a1020] to-[#020617] border border-blue-500/20 shadow-2xl overflow-y-auto animate-in slide-in-from-bottom-8 duration-300"
+                        className="relative w-full max-h-screen sm:max-h-[90vh] sm:max-w-lg sm:rounded-2xl bg-bg-surface border border-white/[0.08] overflow-y-auto animate-in slide-in-from-bottom-8 duration-300"
                     >
                         {/* Cerrar (SPEC-055: marca dismissed) */}
                         <button
                             onClick={dismissAndClose}
                             aria-label="Cerrar"
-                            className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/5 border border-white/10 hover:bg-white/15 flex items-center justify-center text-white text-lg transition-all"
+                            className="absolute top-4 right-4 z-10 w-9 h-9 rounded-lg bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] flex items-center justify-center text-text-secondary hover:text-text-primary text-lg transition-colors"
                         >
                             ✕
                         </button>
 
-                        {/* Hero con mockup */}
-                        <div className="relative pt-12 pb-6 px-6 sm:px-10 text-center">
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[200px] bg-blue-600/15 blur-[100px] -z-10 pointer-events-none"></div>
-                            {/* SPEC-055: logo branded de Elena (DNA verde + texto)
-                                reemplaza el mockup de teléfono. drop-shadow ajustada a
-                                verde (#00C49A) para matchear el glow del logo. */}
+                        {/* Hero con logo */}
+                        <div className="relative pt-10 pb-5 px-6 sm:px-8 text-center">
                             <img
                                 src="/elena-logo.webp"
                                 alt="ElenaApp"
@@ -183,77 +179,68 @@ const ElenaAppCTA: React.FC = () => {
                                 height={160}
                                 loading="eager"
                                 decoding="async"
-                                className="w-32 sm:w-40 mx-auto mb-6 drop-shadow-[0_0_30px_rgba(0,196,154,0.45)]"
+                                className="w-28 sm:w-32 mx-auto mb-5 drop-shadow-[0_0_24px_rgba(0,196,154,0.35)]"
                             />
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/15 border border-yellow-400/30 text-yellow-300 text-[10px] font-black uppercase tracking-[0.3em] mb-4">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-accent/10 border border-accent/20 text-accent text-[11px] font-bold uppercase tracking-[0.18em] mb-4">
                                 🚀 Acceso anticipado
                             </div>
-                            {/* SPEC-055: copy del título en 2 líneas.
-                                Antes: "Sé de los primeros 1000" en una sola línea —
-                                el número 4-char con tracking-tighter se cortaba en
-                                viewports angostos. Ahora "SÉ FUNDADOR" arriba (grande,
-                                blanco) + "de los primeros 1000" abajo (chico, gradient
-                                azul→teal). Más vendedor + posiciona al user como
-                                protagonista + consistente con email + badge dashboard. */}
+                            {/* H1 expresivo del modal (italic uppercase). */}
                             <h2
                                 id="elenaapp-modal-title"
-                                className="font-heading font-black text-white italic uppercase tracking-tighter leading-none mb-3 break-words"
+                                className="font-heading font-black text-text-primary italic uppercase tracking-tight leading-tight mb-3 break-words"
                             >
-                                <span className="block text-3xl sm:text-4xl">Sé fundador</span>
-                                <span className="block mt-2 text-sm sm:text-base font-bold tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]">
+                                <span className="block text-2xl sm:text-3xl">Sé fundador</span>
+                                <span className="block mt-1 text-xs sm:text-sm font-bold tracking-[0.15em] text-accent">
                                     Uno de los primeros 1000
                                 </span>
                             </h2>
-                            <p className="text-gray-300 text-sm sm:text-base font-medium leading-relaxed max-w-md mx-auto">
-                                ElenaApp está casi lista.<br />
-                                Reserva tu lugar y obtén beneficios exclusivos.
+                            <p className="text-text-secondary text-sm leading-relaxed max-w-md mx-auto">
+                                ElenaApp está casi lista. Reserva tu lugar y obtén beneficios exclusivos.
                             </p>
                         </div>
 
                         {/* Beneficios */}
-                        <div className="px-6 sm:px-10 pb-2">
-                            <ul className="space-y-3">
-                                <li className="flex items-start gap-3 p-4 rounded-2xl bg-[#00C49A]/8 border border-[#00C49A]/30">
-                                    <span className="text-2xl shrink-0 leading-none">🎁</span>
-                                    <div className="min-w-0">
-                                        <p className="text-[#00C49A] font-black text-sm uppercase tracking-widest mb-1">
-                                            Precio Fundador
-                                        </p>
-                                        <p className="text-gray-300 text-xs leading-relaxed">
-                                            Descuento permanente en la suscripción anual. Solo para los primeros 1000.
-                                        </p>
-                                    </div>
-                                </li>
-                                <li className="flex items-start gap-3 p-4 rounded-2xl bg-blue-500/8 border border-blue-500/20">
-                                    <span className="text-2xl shrink-0 leading-none">🔒</span>
-                                    <div className="min-w-0">
-                                        <p className="text-blue-300 font-black text-sm uppercase tracking-widest mb-1">
-                                            Beneficios Sorpresa
-                                        </p>
-                                        <p className="text-gray-400 text-xs leading-relaxed">
-                                            Se revelan el día del lanzamiento. Vas a querer estar adentro.
-                                        </p>
-                                    </div>
-                                </li>
-                            </ul>
+                        <div className="px-6 sm:px-8 pb-2 space-y-2.5">
+                            <div className="flex items-start gap-3 p-4 rounded-lg bg-accent/[0.06] border border-accent/20">
+                                <span className="text-xl shrink-0 leading-none">🎁</span>
+                                <div className="min-w-0">
+                                    <p className="text-accent font-semibold text-sm mb-0.5">
+                                        Precio fundador
+                                    </p>
+                                    <p className="text-text-secondary text-xs leading-relaxed">
+                                        Descuento permanente en la suscripción anual. Solo para los primeros 1000.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3 p-4 rounded-lg bg-bg-elevated border border-white/[0.06]">
+                                <span className="text-xl shrink-0 leading-none">🔒</span>
+                                <div className="min-w-0">
+                                    <p className="text-text-primary font-semibold text-sm mb-0.5">
+                                        Beneficios sorpresa
+                                    </p>
+                                    <p className="text-text-secondary text-xs leading-relaxed">
+                                        Se revelan el día del lanzamiento. Vas a querer estar adentro.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         {/* CTA según auth state */}
-                        <div className="px-6 sm:px-10 py-6 sm:py-8 border-t border-white/5 mt-4">
+                        <div className="px-6 sm:px-8 py-6 border-t border-white/[0.06] mt-4">
                             {user ? (
                                 <>
-                                    <div className="flex items-center justify-center gap-2 px-5 py-4 rounded-2xl bg-[#00C49A]/15 border border-[#00C49A]/40 text-[#00C49A] font-black text-sm uppercase tracking-widest text-center mb-3">
-                                        <span className="text-lg">✓</span>
+                                    <div className="flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-accent/[0.1] border border-accent/30 text-accent font-semibold text-sm text-center mb-3">
+                                        <span className="text-base">✓</span>
                                         Ya estás en la lista
                                     </div>
-                                    <p className="text-center text-xs text-gray-500 font-mono uppercase tracking-widest mb-4">
-                                        Te avisamos por email cuando lance
+                                    <p className="text-center text-xs text-text-muted mb-3">
+                                        Te avisamos por email cuando lance.
                                     </p>
                                     <a
                                         href="https://elena-app.vercel.app/"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="block text-center text-xs text-blue-400 hover:text-blue-300 underline font-bold uppercase tracking-widest"
+                                        className="block text-center text-xs text-accent hover:text-accent-strong font-medium"
                                     >
                                         Ver preview de la app →
                                     </a>
@@ -262,11 +249,11 @@ const ElenaAppCTA: React.FC = () => {
                                 <>
                                     <a
                                         href="/login?fromWaitlist=1"
-                                        className="block text-center w-full px-6 py-4 rounded-2xl bg-gradient-to-r from-[#00C49A] to-teal-600 text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-[#00C49A]/20 hover:scale-[1.02] active:scale-95 transition-all"
+                                        className="block text-center w-full px-5 py-3 rounded-lg bg-accent text-bg-base hover:bg-accent-strong font-semibold text-base transition-colors"
                                     >
                                         Reserva tu lugar — gratis →
                                     </a>
-                                    <p className="text-center text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-4">
+                                    <p className="text-center text-[11px] text-text-muted mt-3">
                                         Sin tarjeta · 2 minutos · Sin spam
                                     </p>
                                 </>
