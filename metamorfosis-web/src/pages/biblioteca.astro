@@ -8,8 +8,10 @@ import { BookOpen, Award, Zap, ChevronRight } from "lucide-astro";
 // SPEC-059: la home (Pillars.astro) linkea acá con ?pilar={id} para
 // preseleccionar el filtro. Si el query param no es un pilar válido,
 // caemos a 'todos' (default original de SPEC-046).
-const requestedPillar = Astro.url.searchParams.get('pilar');
-const initialPillar = isValidPillarId(requestedPillar) ? requestedPillar! : 'todos';
+const requestedPillar = Astro.url.searchParams.get("pilar");
+const initialPillar = isValidPillarId(requestedPillar)
+    ? requestedPillar!
+    : "todos";
 
 export const prerender = false;
 
@@ -19,9 +21,9 @@ const postsRef = db.collection(COLLECTIONS.POSTS);
 // hacemos en JS. ISO 8601 ordena lexicográficamente igual que cronológicamente,
 // así que basta `localeCompare` sin parsear a Date.
 const snapshot = await postsRef.get();
-const allArticles = snapshot.docs.map(doc => ({
+const allArticles = snapshot.docs.map((doc) => ({
     id: doc.id,
-    ...doc.data() as Record<string, unknown>,
+    ...(doc.data() as Record<string, unknown>),
 }));
 
 // SPEC-015: ocultar drafts del público. Artículos legacy sin campo `status`
@@ -29,16 +31,25 @@ const allArticles = snapshot.docs.map(doc => ({
 const articles = allArticles
     .filter((art) => {
         const status = (art as { status?: string }).status;
-        return status === undefined || status === 'published';
+        return status === undefined || status === "published";
     })
     .sort((a, b) => {
-        const aDate = String((a as { publishedAt?: unknown }).publishedAt ?? (a as { createdAt?: unknown }).createdAt ?? '');
-        const bDate = String((b as { publishedAt?: unknown }).publishedAt ?? (b as { createdAt?: unknown }).createdAt ?? '');
+        const aDate = String(
+            (a as { publishedAt?: unknown }).publishedAt ??
+                (a as { createdAt?: unknown }).createdAt ??
+                "",
+        );
+        const bDate = String(
+            (b as { publishedAt?: unknown }).publishedAt ??
+                (b as { createdAt?: unknown }).createdAt ??
+                "",
+        );
         return bDate.localeCompare(aDate);
     });
 
 const title = "Biblioteca";
-const description = "El conocimiento científico para dominar tu biología y transformar tu vida.";
+const description =
+    "Adquiere el conocimiento científico para dominar tu biología y transformar tu vida.";
 ---
 
 <BaseLayout title={title} description={description}>
@@ -46,121 +57,177 @@ const description = "El conocimiento científico para dominar tu biología y tra
         <div class="container mx-auto px-6 relative z-10">
             <!-- Header -->
             <div class="max-w-4xl mx-auto text-center mb-12">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-accent/10 border border-accent/20 rounded-md text-[11px] font-bold text-accent uppercase tracking-[0.18em] mb-6">
+                <div
+                    class="inline-flex items-center gap-2 px-3 py-1.5 bg-accent/10 border border-accent/20 rounded-md text-[11px] font-bold text-accent uppercase tracking-[0.18em] mb-6"
+                >
                     <Award size={13} />
                     Biblioteca IMR
                 </div>
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-text-primary leading-tight mb-4 tracking-tight">
+                <h1
+                    class="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-text-primary leading-tight mb-4 tracking-tight"
+                >
                     Biblioteca de <span class="text-accent">Metamorfosis</span>
                 </h1>
-                <p class="text-text-secondary text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-                    El conocimiento científico para dominar tu biología y transformar tu vida.
+                <p
+                    class="text-text-secondary text-base md:text-lg max-w-2xl mx-auto leading-relaxed"
+                >
+                    El conocimiento científico para dominar tu biología y
+                    transformar tu vida.
                 </p>
             </div>
 
             <!-- SPEC-046: filtros por pilar (client-side, sin re-fetch)
                  SPEC-059: pilar inicial viene del query param ?pilar=. -->
             <div class="max-w-4xl mx-auto mb-10">
-                <div id="pillar-filter" class="flex flex-wrap gap-2 justify-center" data-active={initialPillar}>
+                <div
+                    id="pillar-filter"
+                    class="flex flex-wrap gap-2 justify-center"
+                    data-active={initialPillar}
+                >
                     <button
                         type="button"
                         data-pillar="todos"
                         class={`text-xs font-medium px-4 py-2 rounded-md border transition-colors ${
-                            initialPillar === 'todos'
-                                ? 'bg-accent text-bg-base border-accent'
-                                : 'bg-bg-surface text-text-secondary border-white/[0.08] hover:border-white/[0.16] hover:text-text-primary'
+                            initialPillar === "todos"
+                                ? "bg-accent text-bg-base border-accent"
+                                : "bg-bg-surface text-text-secondary border-white/[0.08] hover:border-white/[0.16] hover:text-text-primary"
                         }`}
                     >
                         Todos
                     </button>
-                    {PILLARS.map((p) => {
-                        const isActive = initialPillar === p.id;
-                        return (
-                            <button
-                                type="button"
-                                data-pillar={p.id}
-                                class={`text-xs font-medium px-4 py-2 rounded-md border transition-colors inline-flex items-center gap-1.5 ${
-                                    isActive
-                                        ? 'bg-accent text-bg-base border-accent'
-                                        : 'bg-bg-surface text-text-secondary border-white/[0.08] hover:border-white/[0.16] hover:text-text-primary'
-                                }`}
-                            >
-                                <span>{p.emoji}</span>
-                                {p.name}
-                            </button>
-                        );
-                    })}
+                    {
+                        PILLARS.map((p) => {
+                            const isActive = initialPillar === p.id;
+                            return (
+                                <button
+                                    type="button"
+                                    data-pillar={p.id}
+                                    class={`text-xs font-medium px-4 py-2 rounded-md border transition-colors inline-flex items-center gap-1.5 ${
+                                        isActive
+                                            ? "bg-accent text-bg-base border-accent"
+                                            : "bg-bg-surface text-text-secondary border-white/[0.08] hover:border-white/[0.16] hover:text-text-primary"
+                                    }`}
+                                >
+                                    <span>{p.emoji}</span>
+                                    {p.name}
+                                </button>
+                            );
+                        })
+                    }
                 </div>
             </div>
 
             <!-- Grid de cards de artículos -->
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="articles-grid">
-                {articles.map((art: any) => {
-                    const pillar = getPillar(art.pillar);
-                    const cardPillar = (art as { pillar?: string }).pillar || 'sin-pilar';
-                    const isHiddenInitially =
-                        initialPillar !== 'todos' && cardPillar !== initialPillar;
-                    return (
-                    <article
-                        class={`article-card group relative flex flex-col h-full ${
-                            isHiddenInitially ? 'hidden' : ''
-                        }`}
-                        data-pillar={cardPillar}
-                    >
-                        <div class="relative flex flex-col h-full bg-bg-surface border border-white/[0.06] rounded-xl overflow-hidden transition-colors duration-300 hover:border-accent/30">
-                            <div class="relative aspect-video overflow-hidden">
-                                {art.images && art.images[0] ? (
-                                    <img src={art.images[0]} alt={art.title} class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
-                                ) : (
-                                    <div class="w-full h-full bg-bg-elevated flex items-center justify-center text-text-muted">
-                                        <BookOpen size={36} />
-                                    </div>
-                                )}
-                                <div class="absolute inset-0 bg-gradient-to-t from-bg-surface to-transparent"></div>
+            <div
+                class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+                id="articles-grid"
+            >
+                {
+                    articles.map((art: any) => {
+                        const pillar = getPillar(art.pillar);
+                        const cardPillar =
+                            (art as { pillar?: string }).pillar || "sin-pilar";
+                        const isHiddenInitially =
+                            initialPillar !== "todos" &&
+                            cardPillar !== initialPillar;
+                        return (
+                            <article
+                                class={`article-card group relative flex flex-col h-full ${
+                                    isHiddenInitially ? "hidden" : ""
+                                }`}
+                                data-pillar={cardPillar}
+                            >
+                                <div class="relative flex flex-col h-full bg-bg-surface border border-white/[0.06] rounded-xl overflow-hidden transition-colors duration-300 hover:border-accent/30">
+                                    <div class="relative aspect-video overflow-hidden">
+                                        {art.images && art.images[0] ? (
+                                            <img
+                                                src={art.images[0]}
+                                                alt={art.title}
+                                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                                            />
+                                        ) : (
+                                            <div class="w-full h-full bg-bg-elevated flex items-center justify-center text-text-muted">
+                                                <BookOpen size={36} />
+                                            </div>
+                                        )}
+                                        <div class="absolute inset-0 bg-gradient-to-t from-bg-surface to-transparent" />
 
-                                <div class="absolute top-4 left-4 flex flex-wrap gap-1.5">
-                                    {pillar && (
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-bg-base/70 backdrop-blur-md border border-white/[0.12] rounded-md text-[11px] font-semibold text-text-primary">
-                                            <span class="text-sm leading-none">{pillar.emoji}</span>
-                                            {pillar.name}
-                                        </span>
-                                    )}
-                                    {!pillar && (
-                                        <span class="px-2.5 py-1 bg-bg-base/70 backdrop-blur-md border border-white/[0.12] rounded-md text-[11px] font-semibold text-text-primary">Protocolo</span>
-                                    )}
-                                    {art.quiz && art.quiz.length > 0 && (
-                                        <div class="inline-flex items-center gap-1 px-2.5 py-1 bg-accent/15 backdrop-blur-md border border-accent/30 rounded-md text-[11px] font-semibold text-accent">
-                                            <Zap size={10} fill="currentColor" /> Quiz
+                                        <div class="absolute top-4 left-4 flex flex-wrap gap-1.5">
+                                            {pillar && (
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-bg-base/70 backdrop-blur-md border border-white/[0.12] rounded-md text-[11px] font-semibold text-text-primary">
+                                                    <span class="text-sm leading-none">
+                                                        {pillar.emoji}
+                                                    </span>
+                                                    {pillar.name}
+                                                </span>
+                                            )}
+                                            {!pillar && (
+                                                <span class="px-2.5 py-1 bg-bg-base/70 backdrop-blur-md border border-white/[0.12] rounded-md text-[11px] font-semibold text-text-primary">
+                                                    Protocolo
+                                                </span>
+                                            )}
+                                            {art.quiz &&
+                                                art.quiz.length > 0 && (
+                                                    <div class="inline-flex items-center gap-1 px-2.5 py-1 bg-accent/15 backdrop-blur-md border border-accent/30 rounded-md text-[11px] font-semibold text-accent">
+                                                        <Zap
+                                                            size={10}
+                                                            fill="currentColor"
+                                                        />{" "}
+                                                        Quiz
+                                                    </div>
+                                                )}
                                         </div>
-                                    )}
-                                </div>
-                            </div>
+                                    </div>
 
-                            <div class="p-6 flex flex-col flex-1">
-                                <h3 class="text-lg font-semibold text-text-primary mb-2 line-clamp-2 group-hover:text-accent transition-colors leading-snug">
-                                    {art.title}
-                                </h3>
-                                <p class="text-text-secondary text-sm leading-relaxed line-clamp-3 mb-5 flex-1">
-                                    {art.content ? art.content.substring(0, 160) + "..." : "Explora los mecanismos biológicos profundos."}
-                                </p>
+                                    <div class="p-6 flex flex-col flex-1">
+                                        <h3 class="text-lg font-semibold text-text-primary mb-2 line-clamp-2 group-hover:text-accent transition-colors leading-snug">
+                                            {art.title}
+                                        </h3>
+                                        <p class="text-text-secondary text-sm leading-relaxed line-clamp-3 mb-5 flex-1">
+                                            {art.content
+                                                ? art.content.substring(
+                                                      0,
+                                                      160,
+                                                  ) + "..."
+                                                : "Explora los mecanismos biológicos profundos."}
+                                        </p>
 
-                                <div class="flex items-center justify-between pt-4 border-t border-white/[0.06]">
-                                    <a href={`/posts/${art.slug}`} class="inline-flex items-center gap-1.5 text-sm font-medium text-text-secondary group-hover:text-accent transition-colors">
-                                        Leer artículo <ChevronRight size={14} />
-                                    </a>
+                                        <div class="flex items-center justify-between pt-4 border-t border-white/[0.06]">
+                                            <a
+                                                href={`/posts/${art.slug}`}
+                                                class="inline-flex items-center gap-1.5 text-sm font-medium text-text-secondary group-hover:text-accent transition-colors"
+                                            >
+                                                Leer artículo{" "}
+                                                <ChevronRight size={14} />
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </article>
-                    );
-                })}
+                            </article>
+                        );
+                    })
+                }
             </div>
 
             {/* CTA final */}
-            <div class="mt-20 text-center p-8 md:p-12 rounded-xl bg-bg-surface border border-white/[0.06]">
-                <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-3">¿Buscas un protocolo específico?</h2>
-                <p class="text-text-secondary text-base mb-7 max-w-md mx-auto leading-relaxed">Empieza por tu diagnóstico IMR y te orientamos al protocolo correcto.</p>
-                <a href="/quiz" class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-base hover:bg-accent-strong transition-colors">
+            <div
+                class="mt-20 text-center p-8 md:p-12 rounded-xl bg-bg-surface border border-white/[0.06]"
+            >
+                <h2
+                    class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-3"
+                >
+                    ¿Buscas un protocolo específico?
+                </h2>
+                <p
+                    class="text-text-secondary text-base mb-7 max-w-md mx-auto leading-relaxed"
+                >
+                    Empieza por tu diagnóstico IMR y te orientamos al protocolo
+                    correcto.
+                </p>
+                <a
+                    href="/quiz"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-base hover:bg-accent-strong transition-colors"
+                >
                     Iniciar diagnóstico IMR →
                 </a>
             </div>
@@ -170,8 +237,14 @@ const description = "El conocimiento científico para dominar tu biología y tra
 
 <style is:global>
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
 
@@ -179,10 +252,10 @@ const description = "El conocimiento científico para dominar tu biología y tra
     // SPEC-046: filtrado client-side por pilar.
     // Evita re-fetch + sin recargar página. Toggle de chips arriba del grid.
     (function () {
-        const filterRoot = document.getElementById('pillar-filter');
+        const filterRoot = document.getElementById("pillar-filter");
         if (!filterRoot) return;
-        const buttons = filterRoot.querySelectorAll('button[data-pillar]');
-        const cards = document.querySelectorAll('.article-card');
+        const buttons = filterRoot.querySelectorAll("button[data-pillar]");
+        const cards = document.querySelectorAll(".article-card");
 
         const setActive = (pillarId: string) => {
             buttons.forEach((b) => {
@@ -190,19 +263,19 @@ const description = "El conocimiento científico para dominar tu biología y tra
                 const isActive = btn.dataset.pillar === pillarId;
                 btn.className = `text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border transition-all ${
                     isActive
-                        ? 'bg-white text-black border-white'
-                        : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
+                        ? "bg-white text-black border-white"
+                        : "bg-white/5 text-gray-300 border-white/10 hover:bg-white/10"
                 }`;
             });
             cards.forEach((c) => {
                 const card = c as HTMLElement;
-                const cardPillar = card.dataset.pillar || 'sin-pilar';
+                const cardPillar = card.dataset.pillar || "sin-pilar";
                 // SPEC-059: usar classList.hidden en vez de style.display
                 // para coincidir con el render server-side de initialPillar.
-                if (pillarId === 'todos' || cardPillar === pillarId) {
-                    card.classList.remove('hidden');
+                if (pillarId === "todos" || cardPillar === pillarId) {
+                    card.classList.remove("hidden");
                 } else {
-                    card.classList.add('hidden');
+                    card.classList.add("hidden");
                 }
             });
             filterRoot.dataset.active = pillarId;
@@ -212,19 +285,19 @@ const description = "El conocimiento científico para dominar tu biología y tra
             // ya aplicado y al hacer back/forward del browser, el filtro
             // se preserve.
             const url = new URL(window.location.href);
-            if (pillarId === 'todos') {
-                url.searchParams.delete('pilar');
+            if (pillarId === "todos") {
+                url.searchParams.delete("pilar");
             } else {
-                url.searchParams.set('pilar', pillarId);
+                url.searchParams.set("pilar", pillarId);
             }
-            window.history.replaceState({}, '', url.toString());
+            window.history.replaceState({}, "", url.toString());
         };
 
         buttons.forEach((b) =>
-            (b as HTMLButtonElement).addEventListener('click', () => {
-                const pid = (b as HTMLButtonElement).dataset.pillar || 'todos';
+            (b as HTMLButtonElement).addEventListener("click", () => {
+                const pid = (b as HTMLButtonElement).dataset.pillar || "todos";
                 setActive(pid);
-            })
+            }),
         );
     })();
 </script>
