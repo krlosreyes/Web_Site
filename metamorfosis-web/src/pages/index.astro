@@ -5,13 +5,13 @@ import Pillars from "../components/Pillars.astro";
 import TipsBox from "../components/TipsBox.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 
-const title = "Tu Metabolismo, Reiniciado | Metamorfosis Real";
+// SPEC-079: title vacío en la home → BaseLayout muestra solo "Metamorfosis Real".
+// Antes se concatenaba "Tu Metabolismo, Reiniciado | Metamorfosis Real | Metamorfosis Real".
 const description =
   "Ecosistema de salud metabólica de alta autoridad. Optimiza tu biología con ciencia real y el motor de inteligencia de ElenaApp.";
 ---
 
 <BaseLayout
-  title={title}
   description={description}
   preloadImage="/header-bg.webp"
   preloadImageType="image/webp"

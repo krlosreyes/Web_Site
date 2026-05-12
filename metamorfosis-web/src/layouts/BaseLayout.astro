@@ -5,7 +5,8 @@ import Footer from "../components/Footer.astro";
 import UmamiScript from "../components/UmamiScript.astro";
 
 interface Props {
-    title: string;
+    /** Título de la página. Si está vacío, se usa solo el nombre del sitio. */
+    title?: string;
     description?: string;
     image?: string;
     canonicalURL?: string;
@@ -27,7 +28,7 @@ interface Props {
 }
 
 const {
-    title,
+    title = "",
     description = "Metamorfosis Real - Ecosistema de salud metabólica de alta autoridad.",
     // SPEC-052: OG image branded dedicada 1200x630 (41 KB). Antes default
     // era header-bg.jpg (2 MB) — scrapers de LinkedIn/FB legacy tienen
@@ -55,19 +56,38 @@ const SITE = Astro.site!;
 const pageURL = new URL(Astro.url.pathname, SITE).href;
 const imageURL = new URL(image, SITE).href;
 const canonical = canonicalURL ?? pageURL;
+
+// SPEC-079: lógica del title sin duplicar siteName.
+// - Si title está vacío (home): mostrar solo siteName.
+// - Si title ya contiene siteName (algunas páginas legacy): no duplicar.
+// - Caso normal: "{title} | {siteName}".
+const titleTrim = (title ?? "").trim();
+const fullTitle = titleTrim === "" || titleTrim === siteName
+    ? siteName
+    : titleTrim.includes(siteName)
+        ? titleTrim
+        : `${titleTrim} | ${siteName}`;
+// OG/Twitter usan el mismo title resuelto.
+const ogTitle = fullTitle;
 ---
 
 <!doctype html>
 <html lang="es" class="dark">
     <head>
         <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        {/* SPEC-079: favicon con el logo de Metamorfosis Real.
+            - Primario: logoSite.webp (modernos navegadores soportan webp)
+            - Fallback: logoSite.png (browsers viejos)
+            - Apple touch icon: png alta resolución para iOS home screen */}
+        <link rel="icon" type="image/webp" href="/logoSite.webp" />
+        <link rel="icon" type="image/png" href="/logoSite.png" />
+        <link rel="apple-touch-icon" href="/logoSite.png" />
         <meta name="viewport" content="width=device-width" />
         <meta name="generator" content={Astro.generator} />
 
-        <!-- Dynamic SEO -->
-        <title>{title} | {siteName}</title>
-        <meta name="title" content={title} />
+        <!-- Dynamic SEO — SPEC-079: title condicional (no duplica siteName) -->
+        <title>{fullTitle}</title>
+        <meta name="title" content={fullTitle} />
         <meta name="description" content={description} />
         <link rel="canonical" href={canonical} />
 
@@ -79,7 +99,7 @@ const canonical = canonicalURL ?? pageURL;
         <meta property="og:site_name" content={siteName} />
         <meta property="og:locale" content="es_CO" />
         <meta property="og:url" content={pageURL} />
-        <meta property="og:title" content={title} />
+        <meta property="og:title" content={ogTitle} />
         <meta property="og:description" content={description} />
         <meta property="og:image" content={imageURL} />
         {ogType === 'article' && publishedAt && (
@@ -95,7 +115,7 @@ const canonical = canonicalURL ?? pageURL;
         <!-- Twitter -->
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content={pageURL} />
-        <meta property="twitter:title" content={title} />
+        <meta property="twitter:title" content={ogTitle} />
         <meta property="twitter:description" content={description} />
         <meta property="twitter:image" content={imageURL} />
 
