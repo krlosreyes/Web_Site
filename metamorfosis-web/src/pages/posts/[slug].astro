@@ -163,11 +163,14 @@ const jsonLd = {
             </div>
 
             <div class="container mx-auto px-6 relative z-20 max-w-4xl pb-16">
+                {/* SPEC-072: badges en pill style del sistema (rounded-md +
+                    bg-accent/10 + text-[11px] tracking proporcionado). Sin
+                    gradient ni shadow azul. */}
                 <div class="flex items-center gap-2 mb-6 flex-wrap">
                     <span
-                        class="px-3 py-1 bg-gradient-to-r from-blue-600 to-[#00C49A] text-white text-[9px] font-black uppercase tracking-[0.3em] rounded shadow-lg shadow-blue-500/20"
+                        class="inline-flex items-center px-2.5 py-1 rounded-md bg-accent/10 border border-accent/20 text-accent text-[11px] font-bold uppercase tracking-[0.18em]"
                     >
-                        Protocolo de Autoridad IMR
+                        Protocolo IMR
                     </span>
                     {/* SPEC-046: badge del pilar */}
                     {(() => {
@@ -175,7 +178,7 @@ const jsonLd = {
                         if (!p) return null;
                         return (
                             <span
-                                class="px-3 py-1 bg-black/40 backdrop-blur-md border border-white/20 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded inline-flex items-center gap-1.5"
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.1] text-text-secondary text-[11px] font-semibold uppercase tracking-[0.15em]"
                             >
                                 <span class="text-sm leading-none">{p.emoji}</span>
                                 {p.name}
@@ -183,25 +186,30 @@ const jsonLd = {
                         );
                     })()}
                 </div>
+                {/* H1 expresivo (italic uppercase gradient) — regla del system:
+                    UN h1 por vista puede ser expresivo. Este es el "hero"
+                    del artículo. */}
                 <h1
                     class="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-heading font-black leading-[1.05] mb-8 tracking-tighter drop-shadow-2xl italic uppercase bg-gradient-to-br from-white via-white to-[#00C49A] bg-clip-text text-transparent break-words"
                 >
                     {processedTitle}
                 </h1>
+                {/* SPEC-072: metadata legible. Antes tracking-widest text-[10px]
+                    (NASA telemetry). Ahora text-xs font-medium tracking-natural. */}
                 <div
-                    class="flex flex-wrap items-center gap-8 text-[10px] text-gray-500 font-bold uppercase tracking-widest border-t border-white/5 pt-8"
+                    class="flex flex-wrap items-center gap-5 text-xs text-text-muted font-medium border-t border-white/[0.06] pt-6"
                 >
                     {
                         formattedDate && (
                             <div class="flex items-center gap-2">
-                                <Calendar size={12} class="text-[#00C49A]" />
+                                <Calendar size={14} class="text-accent" />
                                 <span>{formattedDate}</span>
                             </div>
                         )
                     }
                     <div class="flex items-center gap-2">
-                        <Clock size={12} class="text-[#00C49A]" />
-                        <span>Estudio de {readingMinutes} min</span>
+                        <Clock size={14} class="text-accent" />
+                        <span>{readingMinutes} min de lectura</span>
                     </div>
                 </div>
             </div>
@@ -235,24 +243,26 @@ const jsonLd = {
                 Padding equivalente a PostReactions (p-6 md:p-8) para peso
                 visual coherente. Mobile-first: flex-col con CTA pill abajo;
                 en sm+ pasa a row con el → compacto a la derecha. */}
+            {/* SPEC-072: card con accent teal (no azul brillante), eyebrow
+                proporcionado, copy tuteo neutro (sin voseo "Querés"). */}
             <a
                 href={`/comunidad?createWithPost=${encodeURIComponent(slug ?? '')}&title=${encodeURIComponent(processedTitle)}${article.pillar ? `&pillar=${encodeURIComponent(article.pillar)}` : ''}`}
-                class="mt-8 md:mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 sm:gap-6 p-6 md:p-8 rounded-2xl bg-blue-600/5 border border-blue-500/20 hover:bg-blue-600/10 hover:border-blue-500/40 transition-all group"
+                class="mt-8 md:mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 sm:gap-6 p-5 md:p-6 rounded-xl bg-bg-surface border border-accent/20 hover:border-accent/40 transition-colors group"
             >
                 <div class="flex items-center gap-4 min-w-0">
-                    <div class="w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-xl shrink-0">
+                    <div class="w-10 h-10 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-lg shrink-0">
                         💬
                     </div>
                     <div class="min-w-0">
-                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-1">
+                        <p class="text-[11px] font-bold text-accent uppercase tracking-[0.18em] mb-1">
                             La Tribu
                         </p>
-                        <p class="text-sm md:text-base font-bold text-white break-words leading-snug">
-                            ¿Querés discutir este artículo con la comunidad?
+                        <p class="text-sm md:text-base font-semibold text-text-primary break-words leading-snug">
+                            ¿Quieres discutir este artículo con la comunidad?
                         </p>
                     </div>
                 </div>
-                <span class="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 sm:px-3 sm:py-1.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[11px] sm:text-xs font-bold uppercase tracking-widest group-hover:bg-blue-500/25 group-hover:translate-x-1 transition-all shrink-0">
+                <span class="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-bg-base text-xs font-semibold group-hover:bg-accent-strong transition-colors shrink-0">
                     Abrir tema →
                 </span>
             </a>
@@ -270,31 +280,29 @@ const jsonLd = {
                 )
             }
 
-            {/* Scientific References */}
+            {/* Scientific References — SPEC-072: card del sistema, sin italic
+                ni decoración 100px absoluta. Numeración accent teal. */}
             {
                 article.references && article.references.length > 0 && (
-                    <div class="mt-16 p-8 bg-white/[0.02] border border-white/5 rounded-2xl relative overflow-hidden">
-                        <div class="absolute top-0 right-0 p-8 opacity-5">
-                            <LinkIcon size={100} />
-                        </div>
-                        <div class="flex items-center gap-4 mb-8">
-                            <div class="p-2.5 bg-blue-600/20 rounded-xl">
-                                <LinkIcon size={20} class="text-blue-500" />
+                    <div class="mt-12 md:mt-16 p-6 md:p-8 bg-bg-surface border border-white/[0.06] rounded-xl">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-9 h-9 bg-accent/10 border border-accent/20 rounded-lg flex items-center justify-center">
+                                <LinkIcon size={16} class="text-accent" />
                             </div>
-                            <h3 class="text-xl font-black text-white uppercase tracking-tighter italic">
-                                Evidencia Científica
+                            <h3 class="text-base font-semibold text-text-primary tracking-tight">
+                                Evidencia científica
                             </h3>
                         </div>
-                        <ul class="space-y-4 m-0 p-0 list-none">
+                        <ul class="space-y-3 m-0 p-0 list-none">
                             {article.references.map(
                                 (ref: string, idx: number) => (
-                                    <li class="flex items-start gap-4 text-sm text-gray-400 group m-0">
-                                        <span class="text-blue-500 font-mono font-bold text-xs pt-1">
+                                    <li class="flex items-start gap-3 text-sm text-text-secondary group m-0 leading-relaxed">
+                                        <span class="text-accent font-mono font-semibold text-xs pt-0.5 shrink-0">
                                             {(idx + 1)
                                                 .toString()
                                                 .padStart(2, "0")}
                                         </span>
-                                        <span class="leading-relaxed group-hover:text-gray-200 transition-colors">
+                                        <span class="group-hover:text-text-primary transition-colors">
                                             {ref}
                                         </span>
                                     </li>
@@ -305,108 +313,84 @@ const jsonLd = {
                 )
             }
 
-            {/* CTA Final (Sleek Destination) */}
+            {/* CTA Final — SPEC-072: card simple, sin radial gradient ni
+                shadow-2xl ni halo blur en el botón. Texto proporcionado. */}
             <div
-                class="mt-16 p-10 md:p-14 bg-[#050a1f] border border-white/10 rounded-2xl text-center relative overflow-hidden group shadow-2xl"
+                class="mt-12 md:mt-16 p-6 md:p-10 bg-bg-surface border border-white/[0.06] rounded-xl text-center"
             >
-                <!-- Efectos de Fondo -->
                 <div
-                    class="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(0,196,154,0.1),transparent)]"
+                    class="inline-flex items-center gap-2 px-3 py-1.5 bg-accent/10 border border-accent/20 rounded-md text-[11px] font-bold text-accent uppercase tracking-[0.18em] mb-6"
                 >
+                    <BookOpen size={13} />
+                    Siguiente paso
                 </div>
 
-                <div class="relative z-10">
-                    <div
-                        class="inline-flex items-center gap-3 px-4 py-2 bg-[#00C49A]/10 border border-[#00C49A]/20 rounded-full text-[10px] font-black text-[#00C49A] uppercase tracking-[0.3em] mb-10"
-                    >
-                        <BookOpen size={14} />
-                        Siguiente Nivel Alcanzado
-                    </div>
+                <h3
+                    class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-3"
+                >
+                    Lleva esto a <span class="text-accent">la práctica</span>
+                </h3>
 
-                    <h3
-                        class="text-3xl md:text-4xl font-black text-white mb-4 tracking-tighter uppercase italic leading-none"
-                    >
-                        Lleva esto a <span class="text-[#00C49A]"
-                            >la práctica</span
-                        >
-                    </h3>
+                <p
+                    class="text-text-secondary mb-7 max-w-md mx-auto text-base leading-relaxed"
+                >
+                    El conocimiento sin aplicación es solo información. Calcula tu IMR y empieza a medir lo que importa.
+                </p>
 
-                    <p
-                        class="text-gray-400 mb-10 max-w-sm mx-auto text-base leading-relaxed font-serif italic"
-                    >
-                        "El conocimiento sin aplicación es solo información. La
-                        maestría biológica nace de la acción."
-                    </p>
-
-                    <a href="/quiz" class="group/btn relative inline-block">
-                        <div
-                            class="absolute -inset-1 bg-gradient-to-r from-[#00C49A] to-blue-600 rounded-xl blur opacity-20 group-hover/btn:opacity-100 transition duration-1000"
-                        >
-                        </div>
-                        <div
-                            class="relative px-10 py-4 bg-black border border-white/20 rounded-xl flex items-center gap-4 text-white font-black text-xs uppercase tracking-[0.3em] transition-all hover:border-white/40"
-                        >
-                            Iniciar Protocolo IMR
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="3"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                ><path d="M5 12h14m-7-7 7 7-7 7"></path></svg
-                            >
-                        </div>
-                    </a>
-                </div>
+                <a
+                    href="/quiz"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-sm hover:bg-accent-strong transition-colors"
+                >
+                    Iniciar diagnóstico IMR
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    ><path d="M5 12h14m-7-7 7 7-7 7"></path></svg>
+                </a>
             </div>
-            {/* Sección de Comunidad / Foro Persuasiva */}
+
+            {/* Sección de Comunidad / Foro — SPEC-072: rounded-xl (no [3rem]),
+                sin blur-[100px] ni gradient cargado, paleta del sistema. */}
             <div
                 id="community-cta"
-                class="mt-24 p-12 rounded-[3rem] bg-gradient-to-br from-blue-900/40 to-[#00C49A]/10 border border-white/10 relative overflow-hidden group"
+                class="mt-12 md:mt-16 p-6 md:p-10 rounded-xl bg-bg-surface border border-white/[0.06]"
             >
-                <div
-                    class="absolute -top-24 -right-24 w-64 h-64 bg-blue-600/20 blur-[100px] rounded-full group-hover:bg-blue-600/30 transition-all"
-                >
-                </div>
-
-                <div class="relative z-10 text-center">
+                <div class="text-center max-w-xl mx-auto">
                     <span
-                        class="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-4 block"
-                        >El Nexo de Biohacking</span
+                        class="text-[11px] font-bold text-accent uppercase tracking-[0.18em] mb-3 block"
+                        >La Tribu</span
                     >
                     <h3
-                        class="text-3xl md:text-4xl font-black text-white italic uppercase tracking-tighter mb-6"
+                        class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-4"
                     >
-                        ¿Cómo te ha transformado este <span
-                            class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00C49A]"
-                            >Protocolo</span
-                        >?
+                        ¿Cómo te ha cambiado este tema?
                     </h3>
                     <p
-                        class="text-gray-400 max-w-xl mx-auto mb-10 text-lg leading-relaxed"
+                        class="text-text-secondary mb-7 text-base leading-relaxed"
                     >
-                        Únete a la discusión con otros biohackers. Comparte tus
-                        biomarcadores, dudas y victorias sobre este tema en
-                        nuestra comunidad privada.
+                        Únete a la discusión con otros biohackers. Comparte tus dudas, victorias y biomarcadores en la comunidad privada.
                     </p>
                     <a
                         href="/comunidad"
-                        class="inline-block bg-white text-blue-600 px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:scale-[1.05] active:scale-95 transition-all shadow-2xl"
+                        class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-sm hover:bg-accent-strong transition-colors"
                     >
-                        Participar en el Foro
+                        Entrar a la comunidad →
                     </a>
                 </div>
             </div>
 
-            <div class="flex justify-center mt-16">
+            <div class="flex justify-center mt-12">
                 <a
                     href="/biblioteca"
-                    class="text-xs font-black text-gray-600 hover:text-white uppercase tracking-widest transition-all"
-                    >← Volver a la Biblioteca</a
+                    class="text-sm font-medium text-text-muted hover:text-text-primary transition-colors"
+                    >← Volver a la biblioteca</a
                 >
             </div>
         </div>
