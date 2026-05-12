@@ -243,11 +243,26 @@ const BioDashboard = () => {
                             </div>
                         </div>
 
-                        <p className="text-sm text-text-secondary max-w-[280px] mx-auto leading-relaxed mb-8">
+                        <p className="text-sm text-text-secondary max-w-[280px] mx-auto leading-relaxed mb-5">
                             {stats.imr < 40 ? 'Tu metabolismo necesita ajustes estructurales profundos.' :
                              stats.imr < 60 ? 'Estás en zona de transición. Hay fundamentos por corregir.' :
                              'Tu metabolismo opera con alta eficiencia.'}
                         </p>
+
+                        {/* SPEC-085: link explicativo a /imr. El usuario nuevo ve un
+                            número sin contexto si no le damos puerta a la pedagogía.
+                            Estilo destacado (bg-accent/10 + border accent) para que se
+                            note sin pelearse con el círculo del puntaje. */}
+                        <a
+                            href="/imr"
+                            data-umami-event="cta_imr_explicacion"
+                            data-umami-event-source="dashboard"
+                            className="inline-flex items-center gap-2 px-4 py-2.5 mb-8 rounded-lg bg-accent/[0.08] border border-accent/30 text-accent text-xs font-semibold hover:bg-accent/[0.15] hover:border-accent/50 transition-colors"
+                        >
+                            <span>🤔</span>
+                            ¿Qué significa este puntaje?
+                            <span className="ml-0.5">→</span>
+                        </a>
 
                         {/* Grid pilares — cards compactas rounded-lg, sin italic */}
                         <div className="grid grid-cols-3 gap-2">

@@ -528,7 +528,22 @@ const IMRQuiz = () => {
     return (
         <div className="max-w-md w-full mx-auto py-10 px-6 sm:px-8 bg-bg-surface border border-white/[0.06] rounded-2xl text-center">
             <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight mb-2">Análisis completado</h2>
-            <p className="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] mb-8">Vincula tu identidad para recibir tu reporte IMR</p>
+            <p className="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] mb-5">Vincula tu identidad para recibir tu reporte IMR</p>
+
+            {/* SPEC-085: pedagogía pre-registro. El user acaba de completar el
+                quiz y va a ver un puntaje IMR — conviene que sepa qué es antes
+                de comprometerse al registro. Link sutil para no robarle peso
+                al CTA principal del form. */}
+            <a
+                href="/imr"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => track('cta_imr_explicacion', { source: 'quiz_resultado' })}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:text-accent-strong transition-colors mb-7"
+            >
+                ¿Qué es el IMR? Conoce qué medimos →
+            </a>
+
             <form onSubmit={handleFinalRegister} className="space-y-3 text-left">
                 <input required type="text" placeholder="Tu nombre" className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-3 px-4 text-text-primary outline-none focus:border-accent text-base transition-colors placeholder:text-text-muted" value={regData.name} onChange={e => setRegData({...regData, name: e.target.value})} />
                 <input required type="email" placeholder="Email" className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-3 px-4 text-text-primary outline-none focus:border-accent text-base transition-colors placeholder:text-text-muted" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} />
