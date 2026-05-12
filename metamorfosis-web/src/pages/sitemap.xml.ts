@@ -24,6 +24,7 @@ interface StaticPage {
 
 const STATIC_PAGES: StaticPage[] = [
     { path: '/', priority: 1.0, changefreq: 'weekly' },
+    { path: '/imr', priority: 0.95, changefreq: 'monthly' },
     { path: '/biblioteca', priority: 0.9, changefreq: 'daily' },
     { path: '/quiz', priority: 0.9, changefreq: 'monthly' },
     { path: '/comunidad', priority: 0.7, changefreq: 'monthly' },
@@ -33,6 +34,7 @@ const STATIC_PAGES: StaticPage[] = [
     // descubrirá fuera del sitemap como 301/404 y dejará de indexarlas.
     { path: '/terminos', priority: 0.2, changefreq: 'yearly' },
     { path: '/privacidad', priority: 0.2, changefreq: 'yearly' },
+    { path: '/disclaimer-medico', priority: 0.2, changefreq: 'yearly' },
 ];
 
 /** Escapa caracteres XML especiales en un string. */

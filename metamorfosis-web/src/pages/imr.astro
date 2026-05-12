@@ -1,0 +1,364 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import MedicalDisclaimer from "../components/MedicalDisclaimer.astro";
+
+const description =
+    "El Índice de Metamorfosis Real (IMR) evalúa tu salud metabólica combinando composición corporal, hábitos y conducta. Más útil que el IMC: mide lo que sí podés mejorar.";
+---
+
+<BaseLayout title="Qué es el IMR" description={description}>
+    <main class="min-h-screen bg-bg-base pt-28 pb-24 px-6">
+        <article class="max-w-3xl mx-auto">
+            {/* HERO */}
+            <header class="mb-12 text-center">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-accent/10 border border-accent/20 text-accent text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+                    🧬 Tu índice metabólico
+                </div>
+                <h1 class="text-3xl md:text-4xl lg:text-5xl font-heading font-black italic uppercase tracking-tight leading-[1.1] text-text-primary mb-5 break-words">
+                    El IMR mide tus <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00C49A] to-emerald-400">hábitos reales</span>, no tu peso
+                </h1>
+                <p class="text-text-secondary text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+                    El Índice de Metamorfosis Real es una herramienta de auto-evaluación que combina composición corporal y hábitos diarios en un solo puntaje accionable.
+                </p>
+                <div class="mt-8">
+                    <a
+                        href="/quiz"
+                        class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-base hover:bg-accent-strong transition-colors"
+                    >
+                        Calcular mi IMR (2 minutos)
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </a>
+                </div>
+            </header>
+
+            <div class="space-y-12 text-gray-300 leading-relaxed">
+                {/* QUÉ ES */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-4">
+                        Qué es el IMR
+                    </h2>
+                    <p class="text-base md:text-lg leading-relaxed mb-4">
+                        El IMR es un puntaje entre <strong class="text-text-primary font-semibold">0 y 100</strong> que refleja el estado actual de tu salud metabólica integrando tres dimensiones que la ciencia identifica como las más predictivas de longevidad y calidad de vida:
+                        <strong class="text-text-primary font-semibold"> tu estructura física</strong>,
+                        <strong class="text-text-primary font-semibold"> tu metabolismo activo</strong> y
+                        <strong class="text-text-primary font-semibold"> tu conducta diaria</strong>.
+                    </p>
+                    <p class="text-base md:text-lg leading-relaxed">
+                        A diferencia de métricas tradicionales como el IMC (que solo divide peso entre estatura al cuadrado), el IMR reconoce que tu metabolismo es un sistema dinámico influenciado por hábitos modificables. Lo que comes, cuánto dormís, cómo ayunás y cuánto te movés cambian tu biología de manera medible — y el IMR los integra.
+                    </p>
+                </section>
+
+                {/* IMR vs IMC */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-4">
+                        IMR vs IMC: por qué importa la diferencia
+                    </h2>
+                    <p class="mb-5">
+                        El IMC (Índice de Masa Corporal) fue diseñado en 1830 por un astrónomo belga (Adolphe Quetelet) para estudios poblacionales — no para evaluar la salud individual. Sin embargo durante 200 años se ha usado como si lo fuera. Sus limitaciones están documentadas en la literatura científica moderna:
+                    </p>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm md:text-base">
+                            <thead>
+                                <tr class="border-b border-white/[0.08]">
+                                    <th class="text-left py-3 pr-4 text-[11px] font-bold uppercase tracking-[0.15em] text-text-muted">Característica</th>
+                                    <th class="text-left py-3 px-4 text-[11px] font-bold uppercase tracking-[0.15em] text-text-muted">IMC tradicional</th>
+                                    <th class="text-left py-3 pl-4 text-[11px] font-bold uppercase tracking-[0.15em] text-accent">IMR</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/[0.04]">
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Qué considera</td>
+                                    <td class="py-3 px-4 text-gray-300">Solo peso y estatura</td>
+                                    <td class="py-3 pl-4 text-gray-300">Composición corporal + hábitos + conducta</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Distingue músculo y grasa</td>
+                                    <td class="py-3 px-4 text-status-bad">No</td>
+                                    <td class="py-3 pl-4 text-status-good">Sí (vía perímetros)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Detecta grasa visceral</td>
+                                    <td class="py-3 px-4 text-status-bad">No</td>
+                                    <td class="py-3 pl-4 text-status-good">Indirectamente (cintura)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Refleja hábitos</td>
+                                    <td class="py-3 px-4 text-status-bad">No</td>
+                                    <td class="py-3 pl-4 text-status-good">Sí</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Es accionable</td>
+                                    <td class="py-3 px-4 text-status-warn">Limitadamente</td>
+                                    <td class="py-3 pl-4 text-status-good">Sí (identifica qué pilar mejorar)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Validez clínica</td>
+                                    <td class="py-3 px-4 text-gray-300">Screening poblacional (no individual)</td>
+                                    <td class="py-3 pl-4 text-gray-300">Auto-evaluación educativa</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                {/* LOS 3 PILARES */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-5">
+                        Los 3 pilares que integra el IMR
+                    </h2>
+                    <p class="mb-6">
+                        El IMR no es una sola medición — es la convergencia de tres dimensiones que la ciencia metabólica considera predictoras del envejecimiento saludable.
+                    </p>
+
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-5">
+                            <div class="w-10 h-10 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent mb-3 text-xl">🏗</div>
+                            <h3 class="text-base font-semibold text-text-primary mb-2">Estructura</h3>
+                            <p class="text-sm text-gray-300 leading-relaxed">
+                                Tu composición corporal real: relación entre masa magra, grasa total y, especialmente, grasa visceral medida vía perímetro de cintura. Es el indicador más predictivo de riesgo cardiovascular.
+                            </p>
+                        </div>
+
+                        <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-5">
+                            <div class="w-10 h-10 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent mb-3 text-xl">⚡</div>
+                            <h3 class="text-base font-semibold text-text-primary mb-2">Metabolismo</h3>
+                            <p class="text-sm text-gray-300 leading-relaxed">
+                                Cómo procesa tu cuerpo la energía: tu patrón de ayuno (ventanas digestivas), tu hidratación, tu nivel de actividad física. Estos factores modulan la sensibilidad a la insulina y la flexibilidad metabólica.
+                            </p>
+                        </div>
+
+                        <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-5">
+                            <div class="w-10 h-10 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent mb-3 text-xl">🧠</div>
+                            <h3 class="text-base font-semibold text-text-primary mb-2">Conducta</h3>
+                            <p class="text-sm text-gray-300 leading-relaxed">
+                                Tus hábitos de regulación: calidad y cantidad de sueño, ritmo circadiano, horarios de alimentación. La conducta sostenida en el tiempo es lo que produce los cambios estructurales reales.
+                            </p>
+                        </div>
+                    </div>
+
+                    <p class="mt-5 text-sm text-text-muted leading-relaxed">
+                        El algoritmo específico del IMR (cómo se ponderan los inputs, qué fórmulas se aplican, cómo se normalizan los valores en un puntaje 0-100) es propiedad intelectual de Metamorfosis Real y no se publica. Lo que sí se documenta es <strong class="text-text-secondary">qué dimensiones evalúa</strong> y <strong class="text-text-secondary">qué literatura científica respalda cada una</strong>.
+                    </p>
+                </section>
+
+                {/* LO QUE SÍ Y NO MIDE */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-5">
+                        Lo que el IMR sí mide — y lo que no
+                    </h2>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-status-good/[0.05] border border-status-good/20 rounded-xl p-5">
+                            <h3 class="text-base font-semibold text-status-good mb-3 flex items-center gap-2">
+                                <span>✓</span> El IMR SÍ mide
+                            </h3>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex gap-2"><span class="text-status-good shrink-0">•</span> Tu composición corporal estimada</li>
+                                <li class="flex gap-2"><span class="text-status-good shrink-0">•</span> El estado actual de tus hábitos metabólicos</li>
+                                <li class="flex gap-2"><span class="text-status-good shrink-0">•</span> Qué pilar (Estructura/Metabolismo/Conducta) está más débil</li>
+                                <li class="flex gap-2"><span class="text-status-good shrink-0">•</span> Tu progreso a lo largo del tiempo (si lo recalculas cada 2-4 semanas)</li>
+                                <li class="flex gap-2"><span class="text-status-good shrink-0">•</span> Una zona biológica general (deteriorado / transición / óptimo)</li>
+                                <li class="flex gap-2"><span class="text-status-good shrink-0">•</span> Una edad metabólica estimada como referencia comparativa</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-status-bad/[0.05] border border-status-bad/20 rounded-xl p-5">
+                            <h3 class="text-base font-semibold text-status-bad mb-3 flex items-center gap-2">
+                                <span>✗</span> El IMR NO mide
+                            </h3>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex gap-2"><span class="text-status-bad shrink-0">•</span> No es un diagnóstico clínico ni médico</li>
+                                <li class="flex gap-2"><span class="text-status-bad shrink-0">•</span> No detecta enfermedades específicas</li>
+                                <li class="flex gap-2"><span class="text-status-bad shrink-0">•</span> No mide biomarcadores en sangre (glucosa, lípidos, hormonas)</li>
+                                <li class="flex gap-2"><span class="text-status-bad shrink-0">•</span> No reemplaza un chequeo médico anual</li>
+                                <li class="flex gap-2"><span class="text-status-bad shrink-0">•</span> No predice tu esperanza de vida</li>
+                                <li class="flex gap-2"><span class="text-status-bad shrink-0">•</span> No es validado para uso clínico ni farmacológico</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                {/* POR QUÉ IMPORTA */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-5">
+                        Por qué calcular tu IMR
+                    </h2>
+
+                    <div class="space-y-4">
+                        <div class="flex gap-4 items-start">
+                            <div class="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-sm shrink-0">1</div>
+                            <div>
+                                <h3 class="font-semibold text-text-primary mb-1">Ves grasa visceral antes que la báscula</h3>
+                                <p class="text-sm text-gray-300 leading-relaxed">El IMR detecta cambios en cintura y composición que la báscula tradicional no captura. Podés estar mejorando metabólicamente aunque el peso no se mueva — y el IMR te lo muestra.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 items-start">
+                            <div class="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-sm shrink-0">2</div>
+                            <div>
+                                <h3 class="font-semibold text-text-primary mb-1">Identificas tu pilar más débil</h3>
+                                <p class="text-sm text-gray-300 leading-relaxed">El desglose por dimensión (Estructura, Metabolismo, Conducta) te dice exactamente dónde enfocar tu energía. No es "mejorar todo" — es "este es tu eslabón débil hoy".</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 items-start">
+                            <div class="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-sm shrink-0">3</div>
+                            <div>
+                                <h3 class="font-semibold text-text-primary mb-1">Trackeás progreso real</h3>
+                                <p class="text-sm text-gray-300 leading-relaxed">Recalcular cada 2-4 semanas te da una métrica objetiva del impacto de los cambios que hiciste. Es feedback medible — no opinión subjetiva.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 items-start">
+                            <div class="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-sm shrink-0">4</div>
+                            <div>
+                                <h3 class="font-semibold text-text-primary mb-1">Es gratuito y privado</h3>
+                                <p class="text-sm text-gray-300 leading-relaxed">No requiere análisis de sangre, no tiene costo, no necesita consultorio. Solo dos minutos y datos que ya conocés. Tus resultados son privados y nunca se comparten.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* CÓMO USAR TU RESULTADO */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-5">
+                        Cómo interpretar tu puntaje
+                    </h2>
+
+                    <div class="space-y-3">
+                        <div class="bg-bg-elevated border-l-4 border-status-bad rounded-r-lg p-5">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-2xl font-bold text-status-bad">0–39</span>
+                                <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-status-bad">Zona deteriorada</span>
+                            </div>
+                            <p class="text-sm text-gray-300 leading-relaxed">
+                                Tu metabolismo necesita ajustes estructurales. La intervención debe ser sostenida pero gradual: identificá el pilar más débil y trabajálo durante 4-6 semanas antes de atacar el siguiente.
+                            </p>
+                        </div>
+
+                        <div class="bg-bg-elevated border-l-4 border-status-warn rounded-r-lg p-5">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-2xl font-bold text-status-warn">40–59</span>
+                                <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-status-warn">Zona de transición</span>
+                            </div>
+                            <p class="text-sm text-gray-300 leading-relaxed">
+                                Hay fundamentos por corregir. Probablemente uno o dos pilares funcionan razonablemente bien y el tercero te limita. Trabajá ese eslabón débil con foco.
+                            </p>
+                        </div>
+
+                        <div class="bg-bg-elevated border-l-4 border-status-good rounded-r-lg p-5">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-2xl font-bold text-status-good">60–100</span>
+                                <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-status-good">Zona óptima</span>
+                            </div>
+                            <p class="text-sm text-gray-300 leading-relaxed">
+                                Tu metabolismo opera con eficiencia alta. El foco pasa de "reparar" a "mantener y refinar". Recalcular cada 4-8 semanas te alerta si algo se sale de su línea base.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* RESPALDO CIENTÍFICO */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-4">
+                        Respaldo científico de los conceptos que integra
+                    </h2>
+                    <p class="mb-5">
+                        El algoritmo específico del IMR es propietario, pero los <strong class="text-text-primary">conceptos científicos</strong> que evalúa están sostenidos por décadas de literatura biomédica revisada por pares. A continuación las referencias clave que respaldan cada dimensión.
+                    </p>
+
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-text-primary mb-3">Estructura (composición corporal)</h3>
+                            <ul class="space-y-2 text-sm text-gray-300">
+                                <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">01</span><span>de Koning, L. et al. (2007). <em>Waist circumference and waist-to-hip ratio as predictors of cardiovascular events.</em> European Heart Journal, 28(7), 850-856. <span class="text-text-muted">— el perímetro de cintura predice mortalidad cardiovascular mejor que el IMC.</span></span></li>
+                                <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">02</span><span>Stefan, N. (2020). <em>Causes, consequences, and treatment of metabolically unhealthy fat distribution.</em> The Lancet Diabetes &amp; Endocrinology, 8(7), 616-627. <span class="text-text-muted">— la distribución de grasa importa más que la cantidad.</span></span></li>
+                                <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">03</span><span>World Health Organization (2008). <em>Waist circumference and waist-hip ratio: report of a WHO expert consultation.</em> Geneva: WHO. <span class="text-text-muted">— umbrales internacionales de riesgo metabólico.</span></span></li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-text-primary mb-3">Metabolismo (ayuno, hidratación, ejercicio)</h3>
+                            <ul class="space-y-2 text-sm text-gray-300">
+                                <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">04</span><span>Longo, V. D. &amp; Mattson, M. P. (2014). <em>Fasting: molecular mechanisms and clinical applications.</em> Cell Metabolism, 19(2), 181-192. <span class="text-text-muted">— mecanismos por los que el ayuno modula sensibilidad a insulina y autofagia.</span></span></li>
+                                <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">05</span><span>Mattson, M. P. et al. (2019). <em>Effects of Intermittent Fasting on Health, Aging, and Disease.</em> New England Journal of Medicine, 381, 2541-2551. <span class="text-text-muted">— revisión clínica de evidencia de ayuno intermitente.</span></span></li>
+                                <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">06</span><span>San-Millán, I. &amp; Brooks, G. A. (2018). <em>Assessment of metabolic flexibility by means of measuring blood lactate, fat, and carbohydrate oxidation responses.</em> Sports Medicine, 48(2), 467-479. <span class="text-text-muted">— flexibilidad metabólica como marcador de salud.</span></span></li>
+                                <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">07</span><span>Memme, J. M. et al. (2021). <em>Exercise and mitochondrial health.</em> Journal of Physiology, 599(3), 803-817. <span class="text-text-muted">— biogénesis mitocondrial inducida por ejercicio aeróbico.</span></span></li>
+                                <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">08</span><span>Ganio, M. S. et al. (2011). <em>Mild dehydration impairs cognitive performance and mood of men.</em> British Journal of Nutrition, 106(10), 1535-1543. <span class="text-text-muted">— deshidratación leve afecta rendimiento cognitivo y metabólico.</span></span></li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-text-primary mb-3">Conducta (sueño, ritmo circadiano)</h3>
+                            <ul class="space-y-2 text-sm text-gray-300">
+                                <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">09</span><span>Spiegel, K. et al. (2004). <em>Sleep curtailment in healthy young men is associated with decreased leptin levels, elevated ghrelin levels, and increased hunger and appetite.</em> Annals of Internal Medicine, 141(11), 846-850. <span class="text-text-muted">— sueño insuficiente desregula apetito y composición corporal.</span></span></li>
+                                <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">10</span><span>Leproult, R. &amp; Van Cauter, E. (2011). <em>Effect of 1 week of sleep restriction on testosterone levels in young healthy men.</em> JAMA, 305(21), 2173-2174. <span class="text-text-muted">— privación de sueño impacta perfil hormonal.</span></span></li>
+                                <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">11</span><span>Panda, S. (2016). <em>Circadian physiology of metabolism.</em> Science, 354(6315), 1008-1015. <span class="text-text-muted">— ritmo circadiano regula expresión génica metabólica.</span></span></li>
+                                <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">12</span><span>Xie, L. et al. (2013). <em>Sleep drives metabolite clearance from the adult brain.</em> Science, 342(6156), 373-377. <span class="text-text-muted">— sistema glinfático limpia el cerebro durante el sueño profundo.</span></span></li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-text-primary mb-3">Modelos multifactoriales de salud</h3>
+                            <ul class="space-y-2 text-sm text-gray-300">
+                                <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">13</span><span>D'Agostino, R. B. et al. (2008). <em>General cardiovascular risk profile for use in primary care: the Framingham Heart Study.</em> Circulation, 117(6), 743-753. <span class="text-text-muted">— precedente de score multifactorial validado en cardiología.</span></span></li>
+                                <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">14</span><span>Goff, D. C. et al. (2014). <em>2013 ACC/AHA guideline on the assessment of cardiovascular risk.</em> Journal of the American College of Cardiology, 63(25 Pt B), 2935-2959. <span class="text-text-muted">— metodología de scores multifactoriales para evaluación de riesgo.</span></span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                {/* LIMITACIONES */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-4">
+                        Limitaciones del IMR
+                    </h2>
+                    <p class="mb-3">
+                        En honor a la transparencia que exige cualquier herramienta de salud responsable, las limitaciones del IMR son:
+                    </p>
+                    <ul class="space-y-2 text-sm md:text-base">
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">Depende de auto-reporte:</strong> peso, cintura, horas de ayuno y sueño son datos que tú ingresas. Si los reportas incorrectamente, el resultado refleja esa imprecisión.</span></li>
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">No es validado clínicamente:</strong> el IMR es una herramienta educativa, no un test diagnóstico aprobado por agencias regulatorias (FDA, INVIMA, EMA).</span></li>
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">No reemplaza biomarcadores:</strong> un análisis de sangre con glucosa, HbA1c, lípidos y hormonas siempre será más preciso para detectar enfermedad.</span></li>
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">Sensible a contexto:</strong> embarazo, lactancia, atletas de élite, personas con condiciones médicas crónicas pueden obtener resultados que no reflejan su realidad — porque el modelo está calibrado para adultos sanos de población general.</span></li>
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">Es una foto, no un veredicto:</strong> el IMR cambia con los hábitos. Un puntaje bajo hoy no es una sentencia; un puntaje alto hoy no es garantía permanente.</span></li>
+                    </ul>
+                </section>
+
+                <MedicalDisclaimer variant="full" />
+
+                {/* CTA FINAL */}
+                <section class="bg-bg-elevated border border-white/[0.1] rounded-xl p-6 md:p-10 text-center">
+                    <p class="text-[11px] font-bold text-accent uppercase tracking-[0.18em] mb-3">Empieza ahora</p>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-3">
+                        Calcula tu IMR en 2 minutos
+                    </h2>
+                    <p class="text-gray-300 leading-relaxed mb-6 max-w-md mx-auto">
+                        Sin registro previo, sin análisis de sangre, sin costo. Solo necesitas conocer tu peso, estatura y perímetro de cintura.
+                    </p>
+                    <a
+                        href="/quiz"
+                        class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-base hover:bg-accent-strong transition-colors"
+                    >
+                        Iniciar diagnóstico IMR
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </a>
+                </section>
+            </div>
+
+            <footer class="mt-12 pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <a
+                    href="/"
+                    class="text-sm font-medium text-text-secondary hover:text-accent transition-colors"
+                >
+                    ← Volver al inicio
+                </a>
+                <div class="flex gap-4 text-sm">
+                    <a href="/biblioteca" class="text-text-secondary hover:text-accent transition-colors">Biblioteca</a>
+                    <a href="/disclaimer-medico" class="text-text-secondary hover:text-accent transition-colors">Aviso médico</a>
+                </div>
+            </footer>
+        </article>
+    </main>
+</BaseLayout>
