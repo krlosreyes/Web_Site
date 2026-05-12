@@ -1,64 +1,294 @@
 ---
 import Layout from "../layouts/Layout.astro";
+
+const description =
+    "Términos y condiciones de uso de Metamorfosis Real. Información sobre la naturaleza del servicio, límites de responsabilidad y obligaciones del usuario.";
 ---
 
-<Layout title="Términos y condiciones">
-    <section class="max-w-4xl mx-auto px-6 py-12 prose prose-slate">
-        <h1 class="text-3xl font-bold mb-8">TÉRMINOS Y CONDICIONES DE USO</h1>
+<Layout title="Términos y condiciones" description={description}>
+    <main class="min-h-screen bg-bg-base pt-28 pb-24 px-6">
+        <article class="max-w-3xl mx-auto">
+            <header class="mb-10 pb-8 border-b border-white/[0.06]">
+                <p class="text-[11px] font-bold text-accent uppercase tracking-[0.2em] mb-3">
+                    Documento legal
+                </p>
+                <h1 class="text-3xl md:text-4xl font-bold text-text-primary tracking-tight mb-4 leading-tight">
+                    Términos y condiciones de uso
+                </h1>
+                <p class="text-text-secondary text-base leading-relaxed">
+                    Última actualización: 12 de mayo de 2026
+                </p>
+                <div class="mt-4 bg-amber-500/[0.06] border border-amber-500/30 rounded-lg p-4 text-sm text-text-secondary leading-relaxed">
+                    <strong class="text-amber-400 font-semibold">Aviso:</strong>
+                    Este documento es la versión vigente del acuerdo entre el usuario y Metamorfosis Real. Sin embargo, pendiente revisión por asesoría jurídica especializada en derecho digital y protección al consumidor en Colombia. Si encuentras una inconsistencia o necesitas aclaración, contáctanos.
+                </div>
+            </header>
 
-        <h2 class="text-xl font-semibold mt-6">NATURALEZA DEL SERVICIO</h2>
-        <p>
-            La plataforma es una herramienta tecnológica de acompañamiento de
-            hábitos y educación en bienestar. No es un servicio médico ni de
-            telemedicina.
-        </p>
+            <div class="space-y-8 text-gray-300 leading-relaxed">
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        1. Aceptación de los términos
+                    </h2>
+                    <p>
+                        Al acceder y utilizar el sitio web metamorfosisvital.com.co
+                        (en adelante, "el Sitio") o cualquier servicio asociado
+                        (incluyendo ElenaApp, foro de comunidad, newsletter y
+                        herramientas como el Quiz IMR), aceptas estos Términos y
+                        Condiciones en su totalidad. Si NO estás de acuerdo con
+                        alguno de ellos, debes abstenerte de utilizar el Sitio.
+                    </p>
+                </section>
 
-        <h2 class="text-xl font-semibold mt-6">RESPONSABILIDAD DEL USUARIO</h2>
-        <p>
-            El usuario es el único responsable de las decisiones relacionadas
-            con su salud. Debe consultar profesionales de salud antes de
-            realizar cambios significativos en alimentación, ejercicio o ayuno.
-        </p>
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        2. Naturaleza del servicio
+                    </h2>
+                    <p>
+                        Metamorfosis Real es un ecosistema digital de
+                        <strong class="text-text-primary font-semibold"
+                            >información educativa</strong
+                        > sobre hábitos metabólicos: ayuno intermitente, nutrición,
+                        hidratación, sueño y ejercicio. El contenido publicado
+                        (artículos, videos, herramientas como el IMR, comunidad) tiene
+                        finalidad exclusivamente educativa y NO constituye:
+                    </p>
+                    <ul class="mt-3 space-y-1 list-disc list-inside">
+                        <li>Consulta médica, nutricional ni de cualquier disciplina sanitaria regulada</li>
+                        <li>Diagnóstico clínico</li>
+                        <li>Tratamiento farmacológico ni terapéutico</li>
+                        <li>Asesoría profesional individualizada</li>
+                    </ul>
+                    <p class="mt-3">
+                        Ver{" "}
+                        <a
+                            href="/disclaimer-medico"
+                            class="text-accent hover:text-accent-strong underline underline-offset-4"
+                            >Aviso médico</a
+                        > para el detalle completo.
+                    </p>
+                </section>
 
-        <h2 class="text-xl font-semibold mt-6">
-            LIMITACIÓN DE RESPONSABILIDAD
-        </h2>
-        <p>
-            El titular no será responsable por efectos adversos derivados del
-            uso de la información, interpretación incorrecta o aplicación de
-            recomendaciones educativas.
-        </p>
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        3. Edad mínima
+                    </h2>
+                    <p>
+                        Para registrarte en el Sitio y utilizar las herramientas que
+                        recopilan datos (Quiz IMR, dashboard, foro), debes ser mayor
+                        de
+                        <strong class="text-text-primary font-semibold">18 años</strong>.
+                        El registro de menores de edad requeriría autorización
+                        expresa de sus padres o tutores legales según la Ley 1581 de
+                        2012 de Colombia. NO recopilamos información de menores
+                        intencionalmente; si detectamos un usuario menor, eliminaremos
+                        su cuenta y datos asociados.
+                    </p>
+                </section>
 
-        <h2 class="text-xl font-semibold mt-6">EDAD MÍNIMA</h2>
-        <p>Solo pueden usar la plataforma mayores de 18 años.</p>
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        4. Cuenta de usuario
+                    </h2>
+                    <p>Al crear una cuenta, te comprometes a:</p>
+                    <ul class="mt-3 space-y-1 list-disc list-inside">
+                        <li>Proporcionar información real y actualizada</li>
+                        <li>Mantener la confidencialidad de tu contraseña</li>
+                        <li>Notificarnos de inmediato si detectas uso no autorizado</li>
+                        <li>No compartir tu cuenta con terceros</li>
+                        <li>No suplantar a otra persona</li>
+                    </ul>
+                </section>
 
-        <h2 class="text-xl font-semibold mt-6">CUENTAS</h2>
-        <p>
-            El usuario es responsable de la confidencialidad de su cuenta y
-            contraseña.
-        </p>
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        5. Cohorte fundador y beneficios futuros
+                    </h2>
+                    <p>
+                        Los primeros 1000 usuarios registrados conforman el
+                        "cohorte fundador" de ElenaApp y reciben acceso a beneficios
+                        en la suscripción anual cuando la app esté disponible. Estos
+                        beneficios:
+                    </p>
+                    <ul class="mt-3 space-y-1 list-disc list-inside">
+                        <li>
+                            Se otorgan exclusivamente a la cuenta original
+                            registrada — no son transferibles
+                        </li>
+                        <li>
+                            Se mantienen vigentes mientras el usuario mantenga
+                            su cuenta activa
+                        </li>
+                        <li>
+                            NO incluyen acceso anticipado garantizado a la app;
+                            las fechas de lanzamiento son estimativas y pueden
+                            cambiar
+                        </li>
+                        <li>
+                            Pueden ajustarse en su detalle final al momento del
+                            lanzamiento de la app, manteniendo siempre el espíritu
+                            de ventaja respecto a usuarios estándar
+                        </li>
+                    </ul>
+                </section>
 
-        <h2 class="text-xl font-semibold mt-6">PROPIEDAD INTELECTUAL</h2>
-        <p>
-            El contenido, algoritmos, estructura, diseño y marca pertenecen al
-            titular y no pueden copiarse ni redistribuirse sin autorización.
-        </p>
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        6. Uso aceptable
+                    </h2>
+                    <p>NO está permitido:</p>
+                    <ul class="mt-3 space-y-1 list-disc list-inside">
+                        <li>Copiar, reproducir o redistribuir contenido sin autorización</li>
+                        <li>Realizar ingeniería inversa del Sitio o sus componentes</li>
+                        <li>Intentar acceder a áreas restringidas (admin, datos de otros usuarios)</li>
+                        <li>Enviar spam, malware o contenido ofensivo a través del foro</li>
+                        <li>Suplantar al equipo de Metamorfosis Real o a otros usuarios</li>
+                        <li>Utilizar el Sitio para fines ilícitos o que vulneren derechos de terceros</li>
+                    </ul>
+                </section>
 
-        <h2 class="text-xl font-semibold mt-6">CANCELACIÓN</h2>
-        <p>
-            El usuario puede eliminar su cuenta en cualquier momento, lo cual
-            eliminará sus datos de la plataforma dentro de un plazo razonable.
-        </p>
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        7. Propiedad intelectual
+                    </h2>
+                    <p>
+                        Todo el contenido del Sitio (textos, gráficos, logos,
+                        ilustraciones, código fuente, marcas comerciales) es
+                        propiedad de Carlos Reyes y Metamorfosis Real, y está
+                        protegido por las leyes de derechos de autor de Colombia
+                        (Ley 23 de 1982 y la Decisión Andina 351 de 1993).
+                    </p>
+                    <p class="mt-3">
+                        Se permite la cita parcial de artículos con atribución
+                        clara al sitio. Para uso comercial, traducción o
+                        redistribución, requieres autorización previa por escrito.
+                    </p>
+                </section>
 
-        <h2 class="text-xl font-semibold mt-6">MODIFICACIONES DEL SERVICIO</h2>
-        <p>
-            La plataforma puede modificar funciones sin previo aviso para
-            mejorar el servicio.
-        </p>
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        8. Contenido del foro y comunidad
+                    </h2>
+                    <p>
+                        Al participar en el foro de "La Tribu Biohacker":
+                    </p>
+                    <ul class="mt-3 space-y-1 list-disc list-inside">
+                        <li>
+                            Eres el único responsable del contenido que publicas
+                        </li>
+                        <li>
+                            Otorgas a Metamorfosis Real una licencia no exclusiva
+                            para mostrar, distribuir y archivar tu contenido en
+                            el sitio
+                        </li>
+                        <li>
+                            Aceptas que tu nombre de usuario y publicaciones
+                            sean visibles para otros miembros
+                        </li>
+                        <li>
+                            Nos reservamos el derecho de moderar, editar o eliminar
+                            contenido que viole estos términos, sin previo aviso
+                        </li>
+                    </ul>
+                </section>
 
-        <h2 class="text-xl font-semibold mt-6">LEGISLACIÓN APLICABLE</h2>
-        <p>
-            Estos términos se rigen por las leyes de la República de Colombia.
-        </p>
-    </section>
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        9. Limitación de responsabilidad
+                    </h2>
+                    <p>
+                        En la máxima medida permitida por la ley aplicable,
+                        Metamorfosis Real y Carlos Reyes NO serán responsables
+                        por daños directos, indirectos, incidentales, especiales,
+                        consecuentes ni punitivos derivados de:
+                    </p>
+                    <ul class="mt-3 space-y-1 list-disc list-inside">
+                        <li>El uso o la imposibilidad de uso del Sitio</li>
+                        <li>Decisiones de salud tomadas con base en el contenido del Sitio</li>
+                        <li>Interrupciones, errores técnicos o pérdida de datos</li>
+                        <li>Acciones de terceros (servicios de hosting, proveedores de pago)</li>
+                        <li>Cambios o discontinuación de servicios futuros (incluyendo ElenaApp)</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        10. Suspensión y terminación
+                    </h2>
+                    <p>
+                        Nos reservamos el derecho de suspender o cancelar el
+                        acceso de cualquier usuario que viole estos Términos,
+                        sin obligación de previo aviso. Tú puedes cancelar tu
+                        cuenta en cualquier momento solicitándolo a
+                        metamorfosisvitaloficial@gmail.com.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        11. Cambios a los términos
+                    </h2>
+                    <p>
+                        Podemos actualizar estos Términos para reflejar cambios
+                        legales, técnicos o de servicio. La fecha de "Última
+                        actualización" indica la versión vigente. Para cambios
+                        materiales (que afecten significativamente tus derechos),
+                        notificaremos por email a usuarios registrados con al
+                        menos 30 días de anticipación.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        12. Ley aplicable y jurisdicción
+                    </h2>
+                    <p>
+                        Estos Términos se rigen por las leyes de la República
+                        de Colombia. Cualquier disputa derivada del uso del
+                        Sitio se resolverá ante los jueces competentes de la
+                        ciudad de domicilio del responsable (Carlos Reyes,
+                        Colombia), salvo norma imperativa en contrario aplicable
+                        al usuario consumidor.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        13. Contacto
+                    </h2>
+                    <p>
+                        Para consultas sobre estos términos:{" "}
+                        <a
+                            href="mailto:metamorfosisvitaloficial@gmail.com"
+                            class="text-accent hover:text-accent-strong underline underline-offset-4"
+                        >
+                            metamorfosisvitaloficial@gmail.com
+                        </a>
+                    </p>
+                </section>
+            </div>
+
+            <footer class="mt-12 pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <a
+                    href="/"
+                    class="text-sm font-medium text-text-secondary hover:text-accent transition-colors"
+                >
+                    ← Volver al inicio
+                </a>
+                <div class="flex gap-4 text-sm">
+                    <a
+                        href="/privacidad"
+                        class="text-text-secondary hover:text-accent transition-colors"
+                    >
+                        Privacidad
+                    </a>
+                    <a
+                        href="/disclaimer-medico"
+                        class="text-text-secondary hover:text-accent transition-colors"
+                    >
+                        Aviso médico
+                    </a>
+                </div>
+            </footer>
+        </article>
+    </main>
 </Layout>

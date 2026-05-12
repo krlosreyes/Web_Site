@@ -1,0 +1,97 @@
+---
+/**
+ * SPEC-080: banner de disclaimer médico reusable.
+ *
+ * Aparece de forma persistente en cualquier página donde se presenta
+ * información de salud (quiz, dashboard con IMR, posts/[slug]).
+ *
+ * Posibles variantes via prop `variant`:
+ *   - "compact": una línea horizontal, footer-style
+ *   - "full":    bloque destacado con borde naranja, hero-style
+ *   - "inline":  pill chiquita, in-context
+ *
+ * Carlos NO es médico — esto NO es un detalle: en Colombia el ejercicio
+ * ilegal de la medicina (Ley 23 de 1981) es delito. El disclaimer debe
+ * ser inequívoco y visible en cada punto donde un usuario podría
+ * interpretar la información como diagnóstico o tratamiento.
+ */
+
+interface Props {
+    variant?: "compact" | "full" | "inline";
+    /** Texto custom si el caso lo requiere. */
+    customText?: string;
+}
+
+const { variant = "compact", customText } = Astro.props;
+
+const DEFAULT_TEXT_FULL =
+    "El contenido de Metamorfosis Real es informativo y educativo, NO constituye consejo médico, diagnóstico ni tratamiento. El IMR es una herramienta de auto-evaluación basada en hábitos, NO un examen clínico. Antes de hacer cambios en tu dieta, ejercicio, ayuno o medicación, consulta con un profesional de la salud calificado. Si tienes una condición médica preexistente o tomas medicamentos, NO interrumpas tu tratamiento. En caso de emergencia, llama a tu servicio local.";
+
+const DEFAULT_TEXT_COMPACT =
+    "Contenido educativo, no consejo médico. El IMR es auto-evaluación de hábitos, no diagnóstico clínico. Consulta a un profesional antes de hacer cambios en salud.";
+
+const DEFAULT_TEXT_INLINE = "Información educativa, no médica.";
+
+const text =
+    customText ??
+    (variant === "full"
+        ? DEFAULT_TEXT_FULL
+        : variant === "inline"
+          ? DEFAULT_TEXT_INLINE
+          : DEFAULT_TEXT_COMPACT);
+---
+
+{variant === "full" && (
+    <aside
+        class="bg-amber-500/[0.08] border-l-4 border-amber-500/70 rounded-r-xl p-5 md:p-6 my-8"
+        role="note"
+        aria-label="Aviso médico importante"
+    >
+        <div class="flex items-start gap-3">
+            <div class="text-amber-400 text-xl shrink-0" aria-hidden="true">⚠</div>
+            <div class="min-w-0">
+                <p class="text-amber-300 text-[11px] font-bold uppercase tracking-[0.2em] mb-2">
+                    Aviso médico importante
+                </p>
+                <p class="text-gray-300 text-sm leading-relaxed">
+                    {text}
+                </p>
+                <a
+                    href="/disclaimer-medico"
+                    class="inline-block mt-3 text-xs text-amber-400 hover:text-amber-300 font-medium underline underline-offset-4"
+                >
+                    Leer el disclaimer médico completo →
+                </a>
+            </div>
+        </div>
+    </aside>
+)}
+
+{variant === "compact" && (
+    <aside
+        class="bg-bg-elevated border border-amber-500/30 rounded-lg p-3 md:p-4 my-6 flex items-start gap-3"
+        role="note"
+        aria-label="Aviso médico"
+    >
+        <span class="text-amber-400 text-base shrink-0 leading-tight" aria-hidden="true">⚠</span>
+        <p class="text-xs md:text-sm text-text-secondary leading-relaxed">
+            <span class="text-amber-400 font-semibold">Aviso:</span> {text}{" "}
+            <a
+                href="/disclaimer-medico"
+                class="text-accent hover:text-accent-strong font-medium underline underline-offset-2"
+            >
+                Más información
+            </a>
+        </p>
+    </aside>
+)}
+
+{variant === "inline" && (
+    <span
+        class="inline-flex items-center gap-1.5 text-[11px] font-medium text-amber-400/90 bg-amber-500/[0.06] border border-amber-500/20 px-2.5 py-1 rounded-md"
+        role="note"
+    >
+        <span aria-hidden="true">⚠</span>
+        {text}
+    </span>
+)}

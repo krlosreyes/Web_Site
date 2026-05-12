@@ -1,0 +1,231 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const description =
+    "Aviso médico de Metamorfosis Real: el contenido del sitio es informativo y educativo, no constituye consejo médico ni reemplaza la atención profesional.";
+---
+
+<BaseLayout title="Aviso médico" description={description}>
+    <main class="min-h-screen bg-bg-base pt-28 pb-24 px-6">
+        <article class="max-w-3xl mx-auto">
+            <header class="mb-10 pb-8 border-b border-white/[0.06]">
+                <p class="text-[11px] font-bold text-amber-400 uppercase tracking-[0.2em] mb-3">
+                    Aviso legal médico
+                </p>
+                <h1 class="text-3xl md:text-4xl font-bold text-text-primary tracking-tight mb-4 leading-tight">
+                    El contenido de Metamorfosis Real es educativo, no médico
+                </h1>
+                <p class="text-text-secondary text-base leading-relaxed">
+                    Última actualización: 12 de mayo de 2026
+                </p>
+            </header>
+
+            <div class="space-y-8 text-gray-300 leading-relaxed">
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        1. Naturaleza del contenido
+                    </h2>
+                    <p>
+                        Toda la información publicada en este sitio web (artículos,
+                        videos, podcasts, gráficos, herramientas como el Quiz IMR, la
+                        plataforma ElenaApp y cualquier material asociado a la marca
+                        Metamorfosis Real) tiene
+                        <strong class="text-text-primary font-semibold"
+                            >fines exclusivamente informativos y educativos</strong
+                        >. NO sustituye, NO reemplaza y NO constituye:
+                    </p>
+                    <ul class="mt-4 space-y-2 list-disc list-inside text-gray-300">
+                        <li>Consulta médica profesional</li>
+                        <li>Diagnóstico clínico</li>
+                        <li>Tratamiento médico, farmacológico ni quirúrgico</li>
+                        <li>Asesoría nutricional individualizada</li>
+                        <li>Plan de entrenamiento físico personalizado</li>
+                        <li>Terapia psicológica o psiquiátrica</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        2. Sobre el responsable del contenido
+                    </h2>
+                    <p>
+                        Carlos Reyes es <strong class="text-text-primary font-semibold"
+                            >ingeniero de software</strong
+                        >, no es médico, nutricionista licenciado, ni profesional de la
+                        salud habilitado. Su contenido se basa en su experiencia
+                        personal de optimización metabólica, su estudio de literatura
+                        científica de acceso público, y la recopilación de protocolos
+                        ya documentados en libros, papers científicos y consensos
+                        académicos.
+                    </p>
+                    <p class="mt-3">
+                        Ninguna afirmación en este sitio debe interpretarse como
+                        ejercicio profesional de la medicina, la nutrición ni
+                        cualquier otra disciplina de la salud regulada por la Ley 23
+                        de 1981 de la República de Colombia o equivalentes en otras
+                        jurisdicciones.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        3. Sobre el Índice de Metamorfosis Real (IMR)
+                    </h2>
+                    <p>
+                        El IMR es una <strong class="text-text-primary font-semibold"
+                            >herramienta de auto-evaluación</strong
+                        > de hábitos metabólicos. Combina datos auto-reportados por el
+                        usuario (peso, perímetro de cintura, horas de sueño, ayuno,
+                        ejercicio) y devuelve un puntaje numérico junto con una zona
+                        cualitativa.
+                    </p>
+                    <p class="mt-3">
+                        El IMR:
+                    </p>
+                    <ul class="mt-3 space-y-2 list-disc list-inside text-gray-300">
+                        <li>
+                            <strong class="text-text-primary font-semibold">NO es</strong>
+                            un examen médico, un diagnóstico clínico ni un screening
+                            validado para detectar enfermedades.
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold">NO está</strong>
+                            aprobado por la FDA, INVIMA, EMA ni ningún ente regulatorio
+                            sanitario.
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold">NO debe</strong>
+                            usarse para tomar decisiones médicas, suspender medicación
+                            ni reemplazar evaluaciones clínicas estándar.
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        4. Cuándo debes consultar a un profesional de la salud
+                    </h2>
+                    <p>Antes de aplicar cualquier recomendación de este sitio, especialmente si:</p>
+                    <ul class="mt-3 space-y-2 list-disc list-inside text-gray-300">
+                        <li>
+                            Tienes una condición médica diagnosticada (diabetes, hipertensión,
+                            enfermedad cardiovascular, tiroidea, renal, hepática, autoinmune,
+                            psiquiátrica, etc.)
+                        </li>
+                        <li>
+                            Estás embarazada, en período de lactancia o intentando concebir
+                        </li>
+                        <li>
+                            Tomas medicación prescrita (incluyendo anticonceptivos,
+                            antidepresivos, antihipertensivos, insulina, anticoagulantes,
+                            entre otros)
+                        </li>
+                        <li>Eres menor de 18 años</li>
+                        <li>Eres mayor de 65 años</li>
+                        <li>Tienes historial de trastornos alimentarios</li>
+                        <li>Vas a someterte a una cirugía en las próximas 12 semanas</li>
+                    </ul>
+                    <p class="mt-4">
+                        En cualquiera de estos casos, <strong
+                            class="text-text-primary font-semibold"
+                            >NO inicies ayuno intermitente, dietas restrictivas,
+                            entrenamiento intenso ni cambios drásticos de hábitos</strong
+                        > sin la aprobación previa de un médico que conozca tu historia
+                        clínica.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        5. Limitación de responsabilidad
+                    </h2>
+                    <p>
+                        El usuario asume bajo su propia responsabilidad cualquier acción
+                        que decida tomar a partir del contenido publicado en Metamorfosis
+                        Real. Carlos Reyes y Metamorfosis Real NO serán responsables
+                        por:
+                    </p>
+                    <ul class="mt-3 space-y-2 list-disc list-inside text-gray-300">
+                        <li>
+                            Daños directos, indirectos, incidentales o consecuentes
+                            derivados de la aplicación de la información del sitio
+                        </li>
+                        <li>
+                            Resultados de salud distintos a los esperados por el usuario
+                        </li>
+                        <li>
+                            Interacciones medicamentosas no anticipadas
+                        </li>
+                        <li>
+                            Empeoramiento de condiciones preexistentes
+                        </li>
+                        <li>
+                            Decisiones tomadas exclusivamente con base en el IMR o
+                            cualquier herramienta del sitio
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        6. En caso de emergencia médica
+                    </h2>
+                    <p>
+                        Si presentas síntomas agudos (dolor de pecho, dificultad para
+                        respirar, mareo severo, pérdida de conciencia, sangrado
+                        inusual, confusión, etc.) NO uses este sitio: llama
+                        inmediatamente a tu servicio local de emergencias o acude al
+                        servicio médico más cercano. En Colombia, marca <strong
+                            class="text-text-primary font-semibold">123</strong
+                        >. En México, <strong class="text-text-primary font-semibold"
+                            >911</strong
+                        >. En España, <strong class="text-text-primary font-semibold"
+                            >112</strong
+                        >. En Argentina, <strong class="text-text-primary font-semibold"
+                            >107</strong
+                        > o <strong class="text-text-primary font-semibold">911</strong>.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        7. Contacto
+                    </h2>
+                    <p>
+                        Para preguntas sobre este aviso médico o el contenido del
+                        sitio:{" "}
+                        <a
+                            href="mailto:metamorfosisvitaloficial@gmail.com"
+                            class="text-accent hover:text-accent-strong underline underline-offset-4"
+                        >
+                            metamorfosisvitaloficial@gmail.com
+                        </a>
+                    </p>
+                </section>
+            </div>
+
+            <footer class="mt-12 pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <a
+                    href="/"
+                    class="text-sm font-medium text-text-secondary hover:text-accent transition-colors"
+                >
+                    ← Volver al inicio
+                </a>
+                <div class="flex gap-4 text-sm">
+                    <a
+                        href="/terminos"
+                        class="text-text-secondary hover:text-accent transition-colors"
+                    >
+                        Términos
+                    </a>
+                    <a
+                        href="/privacidad"
+                        class="text-text-secondary hover:text-accent transition-colors"
+                    >
+                        Privacidad
+                    </a>
+                </div>
+            </footer>
+        </article>
+    </main>
+</BaseLayout>

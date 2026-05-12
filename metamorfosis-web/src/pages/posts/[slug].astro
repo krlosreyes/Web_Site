@@ -9,6 +9,7 @@ import PostReactions from "../../components/blog/PostReactions";
 import { Clock, Calendar, BookOpen, Link as LinkIcon } from "lucide-astro";
 import { marked } from "marked";
 import { enrichArticleHtml } from "../../lib/utils/enrichArticleHtml";
+import MedicalDisclaimer from "../../components/MedicalDisclaimer.astro";
 
 export const prerender = false;
 
@@ -391,6 +392,11 @@ const jsonLd = {
                     </a>
                 </div>
             </div>
+
+            {/* SPEC-080: disclaimer médico al final de cada artículo. Variant compact
+                porque ya hay disclaimer general en el footer del sitio, y full en /quiz
+                y /disclaimer-medico — acá es un recordatorio contextual. */}
+            <MedicalDisclaimer variant="compact" />
 
             <div class="flex justify-center mt-12">
                 <a

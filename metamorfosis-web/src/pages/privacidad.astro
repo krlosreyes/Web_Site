@@ -1,50 +1,389 @@
 ---
 import Layout from "../layouts/Layout.astro";
+
+const description =
+    "Política de tratamiento de datos personales de Metamorfosis Real, conforme a la Ley 1581 de 2012 de Colombia.";
 ---
 
-<Layout title="Política de privacidad">
-    <section
-        class="max-w-4xl mx-auto px-6 py-12 prose prose-slate text-sm sm:text-base"
-    >
-        <h1 class="text-3xl font-bold mb-8">
-            POLÍTICA DE TRATAMIENTO DE DATOS PERSONALES
-        </h1>
+<Layout title="Política de privacidad" description={description}>
+    <main class="min-h-screen bg-bg-base pt-28 pb-24 px-6">
+        <article class="max-w-3xl mx-auto">
+            <header class="mb-10 pb-8 border-b border-white/[0.06]">
+                <p class="text-[11px] font-bold text-accent uppercase tracking-[0.2em] mb-3">
+                    Documento legal
+                </p>
+                <h1 class="text-3xl md:text-4xl font-bold text-text-primary tracking-tight mb-4 leading-tight">
+                    Política de tratamiento de datos personales
+                </h1>
+                <p class="text-text-secondary text-base leading-relaxed">
+                    Última actualización: 12 de mayo de 2026 · Conforme a Ley 1581 de 2012 (Colombia) y mejores prácticas internacionales (GDPR).
+                </p>
+                <div class="mt-4 bg-amber-500/[0.06] border border-amber-500/30 rounded-lg p-4 text-sm text-text-secondary leading-relaxed">
+                    <strong class="text-amber-400 font-semibold">Aviso:</strong>
+                    Este documento describe nuestro tratamiento real de datos a la fecha. Pendiente revisión por abogado especializado en derecho digital y protección de datos en Colombia antes del lanzamiento comercial pleno.
+                </div>
+            </header>
 
-        <h2 class="text-xl font-semibold mt-6">RESPONSABLE DEL TRATAMIENTO</h2>
-        <p>
-            El responsable del tratamiento de los datos personales es el titular
-            de la plataforma Metamorfosis Vital / Metamorfosis Real, conforme a
-            la Ley 1581 de 2012 de la República de Colombia.<br />
-            <strong>Correo de contacto:</strong> metamorfosisvitaloficial@gmail.com
-        </p>
+            <div class="space-y-8 text-gray-300 leading-relaxed">
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        1. Responsable del tratamiento
+                    </h2>
+                    <p>
+                        <strong class="text-text-primary font-semibold"
+                            >Responsable:</strong
+                        > Carlos Reyes (en representación de Metamorfosis Real).<br />
+                        <strong class="text-text-primary font-semibold">Contacto:</strong>
+                        <a
+                            href="mailto:metamorfosisvitaloficial@gmail.com"
+                            class="text-accent hover:text-accent-strong underline underline-offset-4"
+                            >metamorfosisvitaloficial@gmail.com</a
+                        ><br />
+                        <strong class="text-text-primary font-semibold">País:</strong> Colombia
+                    </p>
+                </section>
 
-        <h2 class="text-xl font-semibold mt-6">DATOS RECOLECTADOS</h2>
-        <p>
-            La Plataforma podrá recolectar: datos de identificación, datos de
-            uso y datos sensibles de salud (peso, medidas, tiempos de ayuno). El
-            suministro de datos sensibles es facultativo.
-        </p>
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        2. Datos que recopilamos
+                    </h2>
+                    <p>Recopilamos las siguientes categorías de datos personales:</p>
+                    <ul class="mt-3 space-y-2 list-disc list-inside">
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Datos de identidad:</strong
+                            > nombre o seudónimo, correo electrónico.
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Datos biométricos auto-reportados:</strong
+                            > género, edad, peso, estatura, perímetro de cintura, % de grasa
+                            corporal estimado, horas de sueño, horas de ayuno, minutos de
+                            ejercicio, calidad de sueño percibida, litros de agua, hora
+                            de cena. Estos datos se usan exclusivamente para calcular tu
+                            Índice IMR y mostrarte tu dashboard personal.
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Datos de actividad en el sitio:</strong
+                            > artículos leídos, quizzes completados, publicaciones en el
+                            foro, reacciones a artículos. Información de navegación
+                            anónima (Umami Analytics).
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Datos técnicos:</strong
+                            > dirección IP (no almacenada de forma identificable), tipo
+                            de navegador, sistema operativo. Estos datos se usan para
+                            seguridad y debug.
+                        </li>
+                    </ul>
+                </section>
 
-        <h2 class="text-xl font-semibold mt-6">FINALIDAD DEL TRATAMIENTO</h2>
-        <ul class="list-disc ml-6">
-            <li>Permitir el funcionamiento de la plataforma.</li>
-            <li>Generar métricas de progreso.</li>
-            <li>
-                Personalizar la experiencia y mostrar recomendaciones
-                educativas.
-            </li>
-            <li>Enviar comunicaciones relacionadas.</li>
-        </ul>
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        3. Finalidad del tratamiento
+                    </h2>
+                    <p>Usamos tus datos para:</p>
+                    <ul class="mt-3 space-y-1 list-disc list-inside">
+                        <li>Crear y mantener tu cuenta de usuario</li>
+                        <li>Calcular tu IMR personalizado y mostrar tu dashboard</li>
+                        <li>Enviarte el correo de bienvenida y notificaciones esenciales del servicio</li>
+                        <li>Operar el foro de la comunidad ("La Tribu")</li>
+                        <li>Mejorar el contenido y la experiencia del sitio (analítica agregada, anónima)</li>
+                        <li>Cumplir obligaciones legales aplicables</li>
+                    </ul>
+                    <p class="mt-3">
+                        <strong class="text-text-primary font-semibold"
+                            >NO usamos tus datos para:</strong
+                        > venderlos a terceros, ceder tu información a anunciantes,
+                        enviarte publicidad de productos no relacionados, ni para
+                        ningún fin distinto a los enumerados arriba.
+                    </p>
+                </section>
 
-        <h2 class="text-xl font-semibold mt-6">DERECHOS DEL TITULAR</h2>
-        <p>
-            El usuario podrá conocer, actualizar, rectificar o solicitar la
-            eliminación de sus datos enviando un correo a: <strong
-                >metamorfosisvitaloficial@gmail.com</strong>
-        </p>
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        4. Base legal del tratamiento
+                    </h2>
+                    <p>
+                        El tratamiento de tus datos se basa en tu consentimiento
+                        previo, expreso e informado, otorgado al crear tu cuenta y
+                        aceptar esta política. Conforme a la Ley 1581 de 2012 de
+                        Colombia (Habeas Data), tu consentimiento es revocable en
+                        cualquier momento, sin retroactividad.
+                    </p>
+                </section>
 
-        <p class="mt-8 text-xs text-gray-500 italic text-center">
-            Última actualización: Febrero 2026
-        </p>
-    </section>
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        5. Con quién compartimos tus datos
+                    </h2>
+                    <p>
+                        Para operar el servicio utilizamos los siguientes proveedores
+                        ("encargados del tratamiento"):
+                    </p>
+                    <ul class="mt-3 space-y-2 list-disc list-inside">
+                        <li>
+                            <strong class="text-text-primary font-semibold">Firebase (Google Cloud)</strong> —
+                            almacenamiento de tus datos de cuenta, perfil y resultados IMR.
+                            Política de Google:
+                            <a
+                                href="https://policies.google.com/privacy"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-accent hover:text-accent-strong underline underline-offset-2"
+                                >policies.google.com/privacy</a
+                            >
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold">Resend</strong> — envío
+                            de correos transaccionales (bienvenida, notificaciones de cuenta).
+                            <a
+                                href="https://resend.com/legal/privacy-policy"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-accent hover:text-accent-strong underline underline-offset-2"
+                                >resend.com/legal/privacy-policy</a
+                            >
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold">Hostinger</strong> —
+                            proveedor de hosting del sitio web.
+                            <a
+                                href="https://www.hostinger.com/legal/privacy-policy"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-accent hover:text-accent-strong underline underline-offset-2"
+                                >hostinger.com/legal/privacy-policy</a
+                            >
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold">Umami Analytics</strong> —
+                            analítica de tráfico privacy-friendly (no usa cookies de tracking, no recopila datos personales identificables).
+                        </li>
+                    </ul>
+                    <p class="mt-3">
+                        No compartimos tus datos con ningún otro tercero, salvo
+                        obligación legal expresa por autoridad competente.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        6. Transferencia internacional de datos
+                    </h2>
+                    <p>
+                        Algunos de nuestros proveedores (Google/Firebase, Resend,
+                        Hostinger) almacenan datos en servidores ubicados fuera de
+                        Colombia (Estados Unidos, Unión Europea). Estas
+                        transferencias se realizan amparadas en:
+                    </p>
+                    <ul class="mt-3 space-y-1 list-disc list-inside">
+                        <li>
+                            El consentimiento informado que otorgas al registrarte
+                        </li>
+                        <li>
+                            Las garantías contractuales de protección de datos
+                            ofrecidas por los proveedores (Standard Contractual
+                            Clauses, certificaciones SOC 2 / ISO 27001)
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        7. Tus derechos (Ley 1581 / Decreto 1377)
+                    </h2>
+                    <p>Como titular de tus datos personales tienes derecho a:</p>
+                    <ul class="mt-3 space-y-2 list-disc list-inside">
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Conocer</strong
+                            > qué datos tuyos tenemos y cómo los usamos.
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Actualizar y rectificar</strong
+                            > datos inexactos o incompletos.
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Solicitar la supresión</strong
+                            > de tus datos cuando consideres que no son tratados
+                            conforme a los principios, derechos y garantías
+                            constitucionales y legales.
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Revocar el consentimiento</strong
+                            > otorgado para el tratamiento.
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Acceder gratuitamente</strong
+                            > a tus datos.
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Solicitar copia</strong
+                            > de la autorización otorgada.
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Ser informado</strong
+                            > sobre el uso que se le ha dado a tus datos.
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Presentar quejas</strong
+                            > ante la Superintendencia de Industria y Comercio (SIC)
+                            por incumplimiento de la normatividad.
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        8. Cómo ejercer tus derechos
+                    </h2>
+                    <p>
+                        Envía un correo a{" "}
+                        <a
+                            href="mailto:metamorfosisvitaloficial@gmail.com"
+                            class="text-accent hover:text-accent-strong underline underline-offset-4"
+                            >metamorfosisvitaloficial@gmail.com</a
+                        > indicando:
+                    </p>
+                    <ul class="mt-3 space-y-1 list-disc list-inside">
+                        <li>Tu nombre completo</li>
+                        <li>Email asociado a tu cuenta</li>
+                        <li>Derecho que deseas ejercer (consulta, rectificación, supresión, revocación)</li>
+                        <li>Detalle de tu solicitud</li>
+                    </ul>
+                    <p class="mt-3">
+                        Responderemos en un plazo máximo de 15 días hábiles
+                        (consultas) o 10 días hábiles (reclamos), conforme al
+                        Artículo 14 de la Ley 1581 de 2012.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        9. Plazo de conservación
+                    </h2>
+                    <p>
+                        Tus datos se conservan mientras mantengas una cuenta activa.
+                        Si cancelas tu cuenta o solicitas la supresión, eliminaremos
+                        tu información personal en un plazo de 30 días, salvo que
+                        debamos conservarla por obligación legal específica (por
+                        ejemplo, registros contables si realizaste compras).
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        10. Seguridad de los datos
+                    </h2>
+                    <p>Implementamos medidas técnicas y organizativas razonables:</p>
+                    <ul class="mt-3 space-y-1 list-disc list-inside">
+                        <li>Conexión cifrada HTTPS/TLS 1.3 en todo el sitio</li>
+                        <li>Autenticación con Firebase Auth (estándar de Google)</li>
+                        <li>Contraseñas hasheadas (nunca almacenamos contraseñas en texto plano)</li>
+                        <li>Cookies de sesión HttpOnly + Secure + SameSite=Strict</li>
+                        <li>Acceso al panel administrativo con autenticación de doble verificación</li>
+                        <li>Reglas de Firestore que impiden lectura/escritura no autorizada</li>
+                    </ul>
+                    <p class="mt-3">
+                        Ningún sistema es 100% impenetrable. En caso de incidente
+                        de seguridad que afecte tus datos, te notificaremos por
+                        email dentro de las 72 horas de detectado el incidente,
+                        conforme a las mejores prácticas internacionales.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        11. Cookies y tecnologías similares
+                    </h2>
+                    <p>Usamos las siguientes categorías de cookies:</p>
+                    <ul class="mt-3 space-y-2 list-disc list-inside">
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Esenciales:</strong
+                            > cookie de sesión para mantenerte logueado. Sin esta,
+                            el sitio no funciona.
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Analíticas (Umami):</strong
+                            > NO usan cookies de tracking; envían datos agregados
+                            anónimos para entender qué contenido es útil.
+                        </li>
+                        <li>
+                            <strong class="text-text-primary font-semibold"
+                                >Preferencias (localStorage):</strong
+                            > guardamos tu decisión sobre el banner de cookies y
+                            preferencias del sitio.
+                        </li>
+                    </ul>
+                    <p class="mt-3">
+                        NO usamos cookies de publicidad ni rastreadores
+                        cross-site. Puedes gestionar tus preferencias desde la
+                        configuración de tu navegador.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        12. Datos de menores de edad
+                    </h2>
+                    <p>
+                        El sitio NO está dirigido a personas menores de 18 años. NO
+                        recopilamos información de menores intencionalmente. Si
+                        detectamos una cuenta de un menor, eliminaremos sus datos
+                        sin demora. Si eres padre, madre o tutor y crees que tu
+                        hijo nos proporcionó información, contáctanos para que
+                        procedamos a la eliminación.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-semibold text-text-primary tracking-tight mb-3">
+                        13. Cambios a esta política
+                    </h2>
+                    <p>
+                        Esta política puede actualizarse para reflejar cambios
+                        legales, técnicos o de servicios. La fecha de "Última
+                        actualización" indica la versión vigente. Para cambios
+                        materiales, notificaremos a usuarios registrados por
+                        email con 30 días de anticipación.
+                    </p>
+                </section>
+            </div>
+
+            <footer class="mt-12 pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <a
+                    href="/"
+                    class="text-sm font-medium text-text-secondary hover:text-accent transition-colors"
+                >
+                    ← Volver al inicio
+                </a>
+                <div class="flex gap-4 text-sm">
+                    <a
+                        href="/terminos"
+                        class="text-text-secondary hover:text-accent transition-colors"
+                    >
+                        Términos
+                    </a>
+                    <a
+                        href="/disclaimer-medico"
+                        class="text-text-secondary hover:text-accent transition-colors"
+                    >
+                        Aviso médico
+                    </a>
+                </div>
+            </footer>
+        </article>
+    </main>
 </Layout>

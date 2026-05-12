@@ -116,11 +116,35 @@ const SOCIAL_LINKS = {
                             >Política de privacidad</a
                         >
                     </li>
+                    <li>
+                        <a
+                            href="/disclaimer-medico"
+                            class="hover:text-accent transition-colors"
+                            >Aviso médico</a
+                        >
+                    </li>
                     <li class="pt-2 text-xs text-text-muted">
                         metamorfosisvitaloficial@gmail.com
                     </li>
                 </ul>
             </div>
+        </div>
+
+        <!-- SPEC-080: disclaimer médico inline al pie del footer.
+             Garantiza que el aviso aparece en TODAS las páginas del sitio
+             aunque el usuario no entre a /disclaimer-medico. -->
+        <div class="border-t border-white/[0.06] mt-8 pt-6 text-center">
+            <p class="text-xs text-text-muted leading-relaxed max-w-3xl mx-auto">
+                ⚠ Información educativa, no médica. Metamorfosis Real publica contenido
+                informativo y herramientas de auto-evaluación. NO constituye diagnóstico,
+                tratamiento ni asesoría médica profesional. Consulta a un profesional
+                de la salud antes de cambiar tu dieta, ejercicio o medicación.{" "}
+                <a
+                    href="/disclaimer-medico"
+                    class="text-accent hover:text-accent-strong underline underline-offset-2"
+                    >Leer disclaimer completo</a
+                >.
+            </p>
         </div>
 
         <!-- Copyright & Admin Entry -->

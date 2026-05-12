@@ -178,6 +178,17 @@ const IMRQuiz = () => {
     }, []);
 
     const nextSubStep = () => {
+        // SPEC-080: bloqueo en step 1 si edad < 18. Ley 1581 de 2012 (Colombia)
+        // exige autorización de tutor para tratamiento de datos de menores que
+        // no podemos verificar online.
+        if (subStep === 1 && bioData.age > 0 && bioData.age < 18) {
+            alert(
+                'Lo sentimos, debes tener 18 años o más para continuar. ' +
+                'Por protección de datos personales no podemos crear cuentas para menores ' +
+                'sin autorización de un tutor legal verificable.'
+            );
+            return;
+        }
         if (subStep < 8) setSubStep(subStep + 1);
         else handleFinish();
     };
@@ -326,7 +337,31 @@ const IMRQuiz = () => {
                             </div>
                             <div className="text-left mt-6">
                                 <label className="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] ml-1">¿Cuántos años tienes?</label>
-                                <input type="number" placeholder="Ej. 35" className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-4 px-5 text-text-primary outline-none focus:border-accent text-xl font-semibold mt-2 transition-colors" onChange={e => setBioData({...bioData, age: parseInt(e.target.value)})} value={bioData.age || ''} />
+                                <input
+                                    type="number"
+                                    placeholder="Ej. 35"
+                                    min={18}
+                                    max={100}
+                                    className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-4 px-5 text-text-primary outline-none focus:border-accent text-xl font-semibold mt-2 transition-colors"
+                                    onChange={e => setBioData({...bioData, age: parseInt(e.target.value)})}
+                                    value={bioData.age || ''}
+                                />
+                                {/* SPEC-080: edad mínima 18. Si menor, mostrar mensaje
+                                    bloqueante. Conforme Ley 1581 Art. 7 (datos de menores
+                                    requieren autorización de padres/tutores que no podemos
+                                    verificar). */}
+                                {bioData.age > 0 && bioData.age < 18 && (
+                                    <div className="mt-3 p-3 rounded-lg bg-status-bad/10 border border-status-bad/30">
+                                        <p className="text-sm text-status-bad font-semibold mb-1">Necesitas tener 18 años o más</p>
+                                        <p className="text-xs text-text-secondary leading-relaxed">
+                                            Por protección de datos personales (Ley 1581 de 2012), no podemos crear cuentas para menores sin autorización de tutor legal. Si tienes menos de 18 años, pídele a un adulto que use tu información.
+                                        </p>
+                                    </div>
+                                )}
+                                <p className="text-[11px] text-text-muted mt-2">
+                                    Al continuar declaras que tienes 18 años o más y aceptas el{' '}
+                                    <a href="/disclaimer-medico" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent-strong underline underline-offset-2">aviso médico</a>.
+                                </p>
                             </div>
                         </div>
                     )}

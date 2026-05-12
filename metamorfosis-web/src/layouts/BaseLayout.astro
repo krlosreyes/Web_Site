@@ -3,6 +3,7 @@ import "../styles/global.css";
 import Navbar from "../components/Navbar.astro";
 import Footer from "../components/Footer.astro";
 import UmamiScript from "../components/UmamiScript.astro";
+import CookieBanner from "../components/CookieBanner.tsx";
 
 interface Props {
     /** Título de la página. Si está vacío, se usa solo el nombre del sitio. */
@@ -186,5 +187,9 @@ const ogTitle = fullTitle;
 
         <!-- Footer único — SPEC-011/013: redes reales + navegación legal -->
         <Footer />
+
+        <!-- SPEC-080: Banner de consentimiento cookies (Ley 1581 + GDPR friendly).
+             client:idle para que aparezca después del LCP, no compita por main thread. -->
+        <CookieBanner client:idle />
     </body>
 </html>

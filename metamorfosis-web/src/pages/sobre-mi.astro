@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import MedicalDisclaimer from "../components/MedicalDisclaimer.astro";
 ---
 
 <Layout
@@ -75,10 +76,14 @@ import Layout from "../layouts/Layout.astro";
                 <!-- Content Column -->
                 <div class="w-full md:w-1/2 lg:w-7/12">
                     <h2
-                        class="text-3xl md:text-4xl font-bold text-text-primary tracking-tight mb-6"
+                        class="text-3xl md:text-4xl font-bold text-text-primary tracking-tight mb-4"
                     >
                         Hola, soy <span class="text-accent">Carlos Reyes</span>
                     </h2>
+                    {/* SPEC-080: aclaración legal prominente: NO soy médico */}
+                    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-amber-400 mb-5">
+                        Ingeniero · NO soy médico ni profesional de la salud
+                    </p>
                     <div class="space-y-4 text-base md:text-lg leading-relaxed text-gray-300">
                         <p>
                             No soy médico, ni pretendo serlo. Soy

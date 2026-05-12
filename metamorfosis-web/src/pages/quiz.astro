@@ -1,13 +1,19 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import IMRQuiz from "../components/IMRQuiz";
+import MedicalDisclaimer from "../components/MedicalDisclaimer.astro";
 
 const title = "Diagnóstico IMR";
 const description = "Calcula tu Índice de Metamorfosis Real (IMR) y descubre tu estado metabólico actual en menos de 2 minutos.";
 ---
 
 <BaseLayout title={title} description={description}>
-    <main class="min-h-[80vh] flex items-center justify-center py-20 px-6">
-        <IMRQuiz client:load />
+    <main class="min-h-[80vh] py-20 px-6">
+        <div class="max-w-2xl mx-auto mb-6">
+            <MedicalDisclaimer variant="full" />
+        </div>
+        <div class="flex items-center justify-center">
+            <IMRQuiz client:load />
+        </div>
     </main>
 </BaseLayout>
