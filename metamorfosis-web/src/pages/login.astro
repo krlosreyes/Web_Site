@@ -245,6 +245,18 @@ import Layout from '../layouts/Layout.astro';
                 payload.displayName = nameInput;
 
                 await onboardUser(userCredential.user, payload);
+
+                // SPEC-084: tracking de funnel — registro completado vía
+                // /login directo (no via quiz). El que viene del quiz se
+                // trackea en IMRQuiz.tsx con source='quiz'.
+                if (typeof window !== 'undefined' && (window as any).umami) {
+                    try {
+                        (window as any).umami.track('registro_completado', { source: 'login_directo' });
+                    } catch (_) {
+                        // no-op: analytics nunca rompe el flujo
+                    }
+                }
+
                 sessionStorage.removeItem(QUIZ_STORAGE_KEY);
                 sessionStorage.setItem('imr_userName', nameInput);
                 // SPEC-024: persistir quiz pendiente del anónimo en su nuevo perfil

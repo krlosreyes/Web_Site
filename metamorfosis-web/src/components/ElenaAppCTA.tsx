@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { auth } from '../lib/firebase';
 import { onAuthStateChanged, type User } from 'firebase/auth';
+import { track } from '../lib/analytics/track';
 
 /**
  * ElenaApp CTA — botón pill en navbar + modal de waitlist (SPEC-048).
@@ -121,7 +122,13 @@ const ElenaAppCTA: React.FC = () => {
             {/* Botón pill del navbar — reemplaza al <a href="https://elena-app..."> */}
             <button
                 type="button"
-                onClick={() => setOpen(true)}
+                onClick={() => {
+                    // SPEC-084: tracking — apertura intencional del modal
+                    // desde el navbar. El auto-open (SPEC-055) NO se trackea
+                    // porque el user no manifestó intención.
+                    track('cta_elenaapp_abrir');
+                    setOpen(true);
+                }}
                 aria-haspopup="dialog"
                 aria-expanded={open}
                 className="relative inline-flex items-center gap-2 px-4 py-2 rounded-md bg-accent text-bg-base hover:bg-accent-strong font-semibold text-xs transition-colors"
@@ -249,6 +256,13 @@ const ElenaAppCTA: React.FC = () => {
                                 <>
                                     <a
                                         href="/login?fromWaitlist=1"
+                                        onClick={() => {
+                                            // SPEC-084: tracking — intent
+                                            // de reservar (no garantiza
+                                            // que se registre; ese evento
+                                            // se dispara en login.astro).
+                                            track('cta_elenaapp_reservar');
+                                        }}
                                         className="block text-center w-full px-5 py-3 rounded-lg bg-accent text-bg-base hover:bg-accent-strong font-semibold text-base transition-colors"
                                     >
                                         Reserva tu lugar — gratis →

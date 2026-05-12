@@ -254,6 +254,7 @@ const jsonLd = {
                 imperceptible). */}
             <a
                 href={`/comunidad?createWithPost=${encodeURIComponent(slug ?? '')}&title=${encodeURIComponent(processedTitle)}${article.pillar ? `&pillar=${encodeURIComponent(article.pillar)}` : ''}`}
+                data-umami-event="cta_tribu_discutir"
                 class="mt-8 md:mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 sm:gap-6 p-5 md:p-6 rounded-xl bg-bg-elevated border border-accent/30 hover:border-accent/50 transition-colors group"
             >
                 <div class="flex items-center gap-4 min-w-0">
@@ -346,6 +347,8 @@ const jsonLd = {
 
                 <a
                     href="/quiz"
+                    data-umami-event="cta_quiz_iniciar"
+                    data-umami-event-source="articulo"
                     class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-sm hover:bg-accent-strong transition-colors"
                 >
                     Iniciar diagnóstico IMR
@@ -386,6 +389,7 @@ const jsonLd = {
                     </p>
                     <a
                         href="/comunidad"
+                        data-umami-event="cta_tribu_entrar"
                         class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-sm hover:bg-accent-strong transition-colors"
                     >
                         Entrar a la comunidad →

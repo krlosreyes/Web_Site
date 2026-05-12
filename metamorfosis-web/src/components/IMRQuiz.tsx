@@ -7,6 +7,7 @@ import {
 import { auth } from '../lib/firebase';
 import { computeImr, bodyFatNavy, ENGINE_VERSION } from '../lib/imr/engine';
 import type { ImrResult } from '../lib/types/user';
+import { track } from '../lib/analytics/track';
 
 /**
  * Quiz IMR — captura biometría + hábitos del visitante (anónimo o logueado).
@@ -196,6 +197,12 @@ const IMRQuiz = () => {
     const handleFinish = async () => {
         const payload = quizToPayload(bioData);
 
+        // SPEC-084: tracking de funnel — quiz completado (anónimo o logueado).
+        track('quiz_completado', {
+            score: payload.imrResult.imrScore,
+            label: payload.imrResult.label,
+        });
+
         if (currentUser) {
             // User logueado: persistir directo via /api/users/onboard
             setIsSaving(true);
@@ -239,6 +246,9 @@ const IMRQuiz = () => {
             const idToken = await userCred.user.getIdToken();
             await postOnboard(idToken, payload);
 
+            // SPEC-084: tracking de funnel — registro completado vía quiz.
+            track('registro_completado', { source: 'quiz' });
+
             sessionStorage.removeItem(QUIZ_STORAGE_KEY);
             sessionStorage.setItem('imr_score', String(payload.imrResult.imrScore));
             sessionStorage.setItem('imr_label', payload.imrResult.label);
@@ -278,7 +288,11 @@ const IMRQuiz = () => {
 
                 {/* CTA primario — bg-accent sólido, sin gradient ni blur halo. */}
                 <button
-                    onClick={() => setStep(1)}
+                    onClick={() => {
+                        // SPEC-084: tracking de funnel — quiz iniciado.
+                        track('quiz_iniciado');
+                        setStep(1);
+                    }}
                     className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-lg bg-accent text-bg-base font-semibold text-base sm:text-lg hover:bg-accent-strong transition-colors"
                 >
                     Iniciar mi diagnóstico
