@@ -71,10 +71,17 @@ import { ArrowRight } from 'lucide-astro';
           <p class="text-[11px] text-text-muted uppercase tracking-[0.2em] mt-0.5">Mejora metabólica</p>
         </div>
         <div class="w-px h-10 bg-white/[0.08]"></div>
-        <div>
-          <p class="text-2xl font-bold text-text-primary">IMR</p>
-          <p class="text-[11px] text-text-muted uppercase tracking-[0.2em] mt-0.5">Índice propio</p>
-        </div>
+        <a
+          href="/imr"
+          class="group block hover:-translate-y-0.5 transition-transform"
+          aria-label="Conocer el IMR: índice propio de Metamorfosis Real"
+        >
+          <p class="text-2xl font-bold text-text-primary group-hover:text-accent transition-colors">IMR</p>
+          <p class="text-[11px] text-text-muted group-hover:text-text-secondary uppercase tracking-[0.2em] mt-0.5 inline-flex items-center gap-1 transition-colors">
+            Índice propio
+            <span class="text-accent opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+          </p>
+        </a>
       </div>
     </div>
   </div>
