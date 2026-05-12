@@ -244,10 +244,13 @@ const jsonLd = {
                 visual coherente. Mobile-first: flex-col con CTA pill abajo;
                 en sm+ pasa a row con el → compacto a la derecha. */}
             {/* SPEC-072: card con accent teal (no azul brillante), eyebrow
-                proporcionado, copy tuteo neutro (sin voseo "Querés"). */}
+                proporcionado, copy tuteo neutro (sin voseo "Querés").
+                SPEC-072c: bg-bg-elevated para distinguir card del fondo
+                bg-bg-base (la diferencia bg-bg-surface vs bg-bg-base era
+                imperceptible). */}
             <a
                 href={`/comunidad?createWithPost=${encodeURIComponent(slug ?? '')}&title=${encodeURIComponent(processedTitle)}${article.pillar ? `&pillar=${encodeURIComponent(article.pillar)}` : ''}`}
-                class="mt-8 md:mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 sm:gap-6 p-5 md:p-6 rounded-xl bg-bg-surface border border-accent/20 hover:border-accent/40 transition-colors group"
+                class="mt-8 md:mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 sm:gap-6 p-5 md:p-6 rounded-xl bg-bg-elevated border border-accent/30 hover:border-accent/50 transition-colors group"
             >
                 <div class="flex items-center gap-4 min-w-0">
                     <div class="w-10 h-10 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-lg shrink-0">
@@ -284,7 +287,7 @@ const jsonLd = {
                 ni decoración 100px absoluta. Numeración accent teal. */}
             {
                 article.references && article.references.length > 0 && (
-                    <div class="mt-12 md:mt-16 p-6 md:p-8 bg-bg-surface border border-white/[0.06] rounded-xl">
+                    <div class="mt-12 md:mt-16 p-6 md:p-8 bg-bg-elevated border border-white/[0.1] rounded-xl">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="w-9 h-9 bg-accent/10 border border-accent/20 rounded-lg flex items-center justify-center">
                                 <LinkIcon size={16} class="text-accent" />
@@ -316,7 +319,7 @@ const jsonLd = {
             {/* CTA Final — SPEC-072: card simple, sin radial gradient ni
                 shadow-2xl ni halo blur en el botón. Texto proporcionado. */}
             <div
-                class="mt-12 md:mt-16 p-6 md:p-10 bg-bg-surface border border-white/[0.06] rounded-xl text-center"
+                class="mt-12 md:mt-16 p-6 md:p-10 bg-bg-elevated border border-white/[0.1] rounded-xl text-center"
             >
                 <div
                     class="inline-flex items-center gap-2 px-3 py-1.5 bg-accent/10 border border-accent/20 rounded-md text-[11px] font-bold text-accent uppercase tracking-[0.18em] mb-6"
@@ -360,7 +363,7 @@ const jsonLd = {
                 sin blur-[100px] ni gradient cargado, paleta del sistema. */}
             <div
                 id="community-cta"
-                class="mt-12 md:mt-16 p-6 md:p-10 rounded-xl bg-bg-surface border border-white/[0.06]"
+                class="mt-12 md:mt-16 p-6 md:p-10 rounded-xl bg-bg-elevated border border-white/[0.1]"
             >
                 <div class="text-center max-w-xl mx-auto">
                     <span
