@@ -28,7 +28,7 @@ import Layout from "../layouts/Layout.astro";
             >
                 Más que salud, <br class="hidden sm:block" />
                 <span
-                    class="text-transparent bg-clip-text bg-gradient-to-r from-[#00C49A] to-emerald-400"
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-accent to-emerald-400"
                 >
                     Ingeniería de Vida
                 </span>

@@ -255,7 +255,7 @@ const IMRQuiz = () => {
                 {/* H1 expresivo: italic uppercase + gradient en palabra clave
                     (regla del system: UN h1 expresivo por vista). */}
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-text-primary italic uppercase tracking-tight leading-[1.1] mb-6 max-w-3xl break-words">
-                    ¿Qué edad tiene tu <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00C49A] to-emerald-400">metabolismo</span>?
+                    ¿Qué edad tiene tu <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-emerald-400">metabolismo</span>?
                 </h1>
 
                 <p className="text-text-secondary text-base sm:text-lg max-w-xl mx-auto mb-3 font-medium leading-relaxed">

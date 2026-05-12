@@ -8,7 +8,7 @@ import Layout from '../layouts/Layout.astro';
       <div class="text-center mb-8">
         <img src="/logoSite.webp" alt="Metamorfosis Real" width="64" height="64" class="h-16 w-auto mx-auto mb-5 drop-shadow-[0_0_20px_rgba(0,196,154,0.35)]" />
         <h1 id="portal-title" class="text-3xl md:text-4xl font-black text-text-primary italic uppercase tracking-tight leading-tight">
-            Acceso <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00C49A] to-emerald-400">Premium</span>
+            Acceso <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent to-emerald-400">Premium</span>
         </h1>
         <p id="portal-subtitle" class="mt-3 text-[11px] font-bold text-text-muted uppercase tracking-[0.2em]">Tu identidad metabólica</p>
       </div>
