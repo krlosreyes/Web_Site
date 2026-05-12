@@ -1,14 +1,14 @@
 ---
 import { Zap } from 'lucide-astro';
 ---
-<div class="border-l-4 border-health-green bg-bg-surface/50 p-6 rounded-r-2xl my-10 group hover:bg-bg-surface transition-all shadow-xl shadow-health-green/5">
-    <div class="flex items-center gap-3 mb-4">
-        <div class="w-10 h-10 rounded-full bg-health-green/10 flex items-center justify-center text-health-green group-hover:scale-110 transition-transform">
-            <Zap size={20} />
+<div class="border-l-2 border-accent bg-bg-elevated p-5 md:p-6 rounded-lg my-8 group hover:border-accent/70 transition-colors">
+    <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent">
+            <Zap size={18} />
         </div>
-        <h4 class="font-heading font-bold text-lg text-text-primary uppercase tracking-wider">Estrategia Práctica</h4>
+        <h4 class="font-heading font-semibold text-base text-text-primary tracking-tight">Estrategia práctica</h4>
     </div>
-    <div class="text-text-secondary leading-relaxed text-sm">
+    <div class="text-gray-300 leading-relaxed text-sm">
         <slot />
     </div>
 </div>

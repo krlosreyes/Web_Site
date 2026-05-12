@@ -22,93 +22,92 @@ const description =
   <!-- METABOLIC PILLARS -->
   <Pillars />
 
-  <!-- ELENA APP PREVIEW / CONVERSION SECTION -->
-  <section id="protocolos" class="py-24 px-6 relative overflow-hidden">
+  <!-- ELENA APP PREVIEW / CONVERSION SECTION — SPEC-078: migrado a system -->
+  <section id="protocolos" class="py-20 md:py-24 px-6">
     <div class="container mx-auto max-w-5xl">
       <div
-        class="glass p-12 relative z-10 grid md:grid-cols-2 gap-12 items-center"
+        class="bg-bg-elevated border border-white/[0.08] rounded-2xl p-6 md:p-10 grid md:grid-cols-2 gap-8 md:gap-12 items-center"
       >
         <div>
           <div
-            class="flex items-center gap-2 text-accent-blue font-bold text-xs uppercase tracking-widest mb-4"
+            class="flex items-center gap-2 text-accent text-[11px] font-bold uppercase tracking-[0.2em] mb-4"
           >
-            <Smartphone size={16} />
-            El Próximo Nivel: ElenaApp
+            <Smartphone size={14} />
+            El próximo nivel: ElenaApp
           </div>
-          <h2 class="text-4xl font-heading font-bold text-text-primary mb-6">
-            Tu Coach Metabólico <br /> en tu bolsillo
+          <h2 class="text-3xl md:text-4xl font-heading font-bold text-text-primary tracking-tight mb-5">
+            Tu coach metabólico en tu bolsillo
           </h2>
-          <p class="text-text-secondary text-lg mb-8 leading-relaxed">
-            Metamorfosis Real integra el motor de inteligencia de <span
-              class="text-text-primary font-bold italic">ElenaApp</span
-            > para ofrecerte protocolos hiper-personalizados basados en tu IMR (Índice
+          <p class="text-gray-300 text-base md:text-lg mb-7 leading-relaxed">
+            Metamorfosis Real integra el motor de inteligencia de
+            <span class="text-text-primary font-semibold">ElenaApp</span>
+            para ofrecerte protocolos hiper-personalizados basados en tu IMR (Índice
             de Metamorfosis Real).
           </p>
 
-          <ul class="space-y-4 mb-10">
+          <ul class="space-y-3 mb-8">
             <li class="flex items-start gap-3">
               <div
-                class="w-6 h-6 rounded-full bg-accent-blue/20 flex items-center justify-center text-accent-blue mt-1 shrink-0"
+                class="w-7 h-7 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent mt-0.5 shrink-0"
               >
                 <LayoutDashboard size={14} />
               </div>
-              <p class="text-sm text-text-secondary">
-                <strong class="text-text-primary"
-                  >Dynamic Protocol Logging:</strong
-                > Tu dieta cambia en tiempo real según tu bio-feedback diario.
+              <p class="text-sm text-gray-300 leading-relaxed">
+                <strong class="text-text-primary font-semibold">Dynamic Protocol Logging:</strong>
+                tu dieta cambia en tiempo real según tu bio-feedback diario.
               </p>
             </li>
             <li class="flex items-start gap-3">
               <div
-                class="w-6 h-6 rounded-full bg-accent-blue/20 flex items-center justify-center text-accent-blue mt-1 shrink-0"
+                class="w-7 h-7 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent mt-0.5 shrink-0"
               >
                 <Database size={14} />
               </div>
-              <p class="text-sm text-text-secondary">
-                <strong class="text-text-primary">Biometric Sync:</strong> Se integra
-                con tus métricas de salud profunda para ajustar la intensidad.
+              <p class="text-sm text-gray-300 leading-relaxed">
+                <strong class="text-text-primary font-semibold">Biometric Sync:</strong>
+                se integra con tus métricas de salud profunda para ajustar la intensidad.
               </p>
             </li>
           </ul>
 
-          <a href="/quiz" class="btn-gradient inline-flex px-10 py-4 text-center">
-            Iniciar Diagnóstico IMR
+          <a href="/quiz" class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-base hover:bg-accent-strong transition-colors">
+            Iniciar diagnóstico IMR →
           </a>
         </div>
 
         <div class="relative">
           <div
-            class="w-full aspect-[4/5] bg-bg-base/50 rounded-3xl border border-text-primary/5 shadow-2xl flex items-center justify-center overflow-hidden group"
+            class="w-full aspect-[4/5] bg-bg-base rounded-xl border border-white/[0.08] overflow-hidden group"
           >
             <img
               src="/elena-mockup.webp"
-              alt="ElenaApp Metabolic Dashboard Mockup"
+              alt="ElenaApp metabolic dashboard"
               width="1024"
               height="1024"
               loading="lazy"
               decoding="async"
-              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div
-              class="absolute inset-0 bg-gradient-to-t from-bg-base/80 via-transparent to-transparent z-10"
+              class="absolute inset-0 bg-gradient-to-t from-bg-base/60 via-transparent to-transparent z-10"
             >
             </div>
           </div>
 
-          <!-- Floating UI Elements for premium feel -->
+          <!-- Floating UI Elements — system tokens, sin animate-bounce ni shadow-2xl -->
           <div
-            class="absolute top-12 -right-12 z-20 glass p-4 shadow-2xl animate-bounce hover:animate-none hidden lg:block rotate-3"
+            class="absolute top-8 -right-4 lg:-right-8 z-20 bg-bg-surface border border-white/[0.1] rounded-lg p-3 hidden lg:block"
           >
-            <div class="text-accent-blue font-bold text-lg">+14%</div>
-            <div class="text-[10px] text-text-secondary uppercase tracking-tighter">
-              Sensibilidad Insulínica
+            <div class="text-accent font-bold text-lg leading-none">+14%</div>
+            <div class="text-[10px] text-text-muted uppercase tracking-wider mt-1">
+              Sensibilidad insulínica
             </div>
           </div>
 
-          <div class="absolute bottom-12 -left-12 z-20 glass p-4 shadow-2xl hidden lg:block -rotate-3 border-health-green/20">
-            <div class="text-health-green font-bold text-lg">OPTIMIZADO</div>
-            <div class="text-[10px] text-text-secondary uppercase tracking-tighter">
-              Estado Cetogénico
+          <div class="absolute bottom-8 -left-4 lg:-left-8 z-20 bg-bg-surface border border-status-good/20 rounded-lg p-3 hidden lg:block">
+            <div class="text-status-good font-bold text-lg leading-none">Óptimo</div>
+            <div class="text-[10px] text-text-muted uppercase tracking-wider mt-1">
+              Estado cetogénico
             </div>
           </div>
         </div>

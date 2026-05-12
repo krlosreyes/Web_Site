@@ -37,11 +37,6 @@
     --color-status-warn: #f59e0b;
     --color-status-bad: #ef4444;
 
-    /* Legacy aliases — DEPRECATED, mantenidos para no romper código
-       existente. Migrar a `accent` / `status-*` en SPEC-072+. */
-    --color-accent-blue: #007BFF;
-    --color-health-green: #10e5a0;
-
     /* ---------- TYPOGRAPHY ---------- */
     --font-heading: "Space Grotesk", "Inter", sans-serif;
     --font-body: "Inter", "Helvetica Neue", sans-serif;
@@ -113,20 +108,6 @@
     /* Visually force short paragraphs for content. */
     .content-reading p {
         @apply mb-4 leading-relaxed text-text-secondary;
-    }
-
-    /* DEPRECATED: las cards nuevas usan bg-bg-surface sólido + border,
-       no glass. Mantenido para no romper componentes vivos durante la
-       migración de SPEC-072+. */
-    .glass {
-        @apply bg-bg-surface/60 backdrop-blur-md border border-white/10 rounded-2xl;
-    }
-
-    /* DEPRECATED: usar accent teal sólido en código nuevo. */
-    .btn-gradient {
-        @apply px-6 py-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105;
-        background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
-        color: var(--color-bg-base);
     }
 
     .header-bg-image {
