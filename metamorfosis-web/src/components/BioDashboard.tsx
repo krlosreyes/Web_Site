@@ -24,7 +24,12 @@ interface DashboardStats {
     metabolicAge: number | null;
     completedQuizzes?: any[];
     isLoading: boolean;
+    /** Sin perfil completo: el user nunca onboardeó en ningún lado. */
     needsOnboarding?: boolean;
+    /** SPEC-088: tiene perfil completo pero `imr.current` aún no se escribió.
+     *  Caso típico: user registrado en ElenaApp que aún no completó su
+     *  primera medición o cuya app aún no deployó canonical-mirror. */
+    hasProfileNoImr?: boolean;
     /** SPEC-057: si el user es fundador, mostramos su número + beneficios. */
     founderNumber: number | null;
 }
@@ -61,16 +66,23 @@ const BioDashboard = () => {
                     return;
                 }
 
-                // SPEC-087: si el doc viene en shape legacy de ElenaApp,
-                // lo canonicalizamos en memoria para esta render. La
-                // persistencia al doc Firestore ocurre en /api/users/me
-                // cuando el cliente lo invoca; acá solo evitamos el
-                // primer-render vacío.
+                // SPEC-087 + SPEC-088: si el doc viene en shape legacy de
+                // ElenaApp, mapeamos campos canónicos en memoria
+                // (displayName, bio, habits, meta) para esta render. El
+                // patch NO incluye `imr.current` — el sitio NO calcula
+                // IMR: la BD es fuente única. Si el doc no tiene
+                // imr.current, mostramos copy honesto.
                 const rawData = userSnap.data() as Record<string, unknown>;
                 const { patch } = buildCanonicalPatch(rawData);
                 const mergedData = patch ? { ...rawData, ...patch } : rawData;
                 const data = mergedData as UserDoc;
                 const current = data.imr?.current;
+
+                // SPEC-088: distinguimos "user sin perfil" de "user con
+                // perfil pero sin IMR escrito por nadie todavía".
+                const hasProfile =
+                    !!data.bio?.heightCm ||
+                    typeof (data as any).height === 'number';
 
                 setStats({
                     imr: current?.imrScore ?? 0,
@@ -82,7 +94,8 @@ const BioDashboard = () => {
                     metabolicAge: current?.metabolicAge ?? null,
                     completedQuizzes: (data as any).completedQuizzes ?? [],
                     isLoading: false,
-                    needsOnboarding: !current,
+                    needsOnboarding: !current && !hasProfile,
+                    hasProfileNoImr: !current && hasProfile,
                     // SPEC-057: fallback visual de los beneficios fundador
                     // si el email transaccional no llegó al user.
                     founderNumber: data.founder?.isFounder
@@ -183,7 +196,7 @@ const BioDashboard = () => {
                 </div>
             )}
 
-            {/* Banner cuando no hay diagnóstico aún */}
+            {/* Banner: user sin perfil (nunca onboardeó). */}
             {stats.needsOnboarding && !stats.isLoading && (
                 <div className="bg-bg-surface border border-accent/20 rounded-xl p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-5">
                     <div className="flex items-center gap-4 min-w-0">
@@ -198,6 +211,28 @@ const BioDashboard = () => {
                     <a href="/quiz" className="bg-accent hover:bg-accent-strong text-bg-base font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap shrink-0">
                         Iniciar diagnóstico →
                     </a>
+                </div>
+            )}
+
+            {/* SPEC-088: banner cuando el user tiene perfil completo
+                pero ningún cliente (app o sitio) escribió todavía
+                imr.current. Caso típico: user registrado en ElenaApp
+                que aún no completó su primera medición o cuya app aún
+                no deployó canonical-mirror. Copy honesto, sin números
+                inventados. */}
+            {stats.hasProfileNoImr && !stats.isLoading && (
+                <div className="bg-bg-surface border border-accent/20 rounded-xl p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-5">
+                    <div className="flex items-center gap-4 min-w-0">
+                        <div className="w-12 h-12 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent shrink-0">
+                            <Icons.Metabolismo />
+                        </div>
+                        <div className="min-w-0">
+                            <h3 className="text-base font-semibold text-text-primary mb-1">Tu IMR aún no está disponible</h3>
+                            <p className="text-sm text-text-secondary leading-relaxed">
+                                Completa tu primera medición en <span className="text-text-primary font-semibold">ElenaApp</span> y tu Índice Metabólico Real aparecerá aquí automáticamente.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             )}
 

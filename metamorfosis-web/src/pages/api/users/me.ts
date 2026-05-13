@@ -52,10 +52,13 @@ export const GET: APIRoute = async ({ request }) => {
 
         const rawData = snap.data() ?? {};
 
-        // SPEC-087: si el doc viene en shape legacy de ElenaApp (Flutter),
-        // lo canonicalizamos al vuelo y persistimos los campos canónicos
-        // al doc para que próximas lecturas sean directas. Idempotente:
-        // si ya está canónico, `patch` viene null y no escribimos.
+        // SPEC-087 + SPEC-088: si el doc viene en shape legacy de
+        // ElenaApp (Flutter), canonicalizamos los campos derivables
+        // (displayName, bio, habits, meta) y los persistimos. El IMR
+        // NO se calcula acá; lo escribe quien onboardea primero (la
+        // app vía canonical-mirror, o el quiz web). Si el doc no tiene
+        // imr.current, el dashboard muestra "Tu IMR aún no está
+        // disponible" en lugar de un número inventado.
         const { patch } = buildCanonicalPatch(rawData);
         let mergedData = rawData;
         if (patch) {

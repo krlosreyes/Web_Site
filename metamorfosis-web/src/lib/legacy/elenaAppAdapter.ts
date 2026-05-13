@@ -1,5 +1,5 @@
 /**
- * Adapter del shape legacy de ElenaApp al schema canónico (SPEC-087).
+ * Adapter del shape legacy de ElenaApp al schema canónico (SPEC-087 + SPEC-088).
  *
  * ElenaApp (Flutter) escribe `users/{uid}` con un shape plano:
  *   { name, age, gender: 'M'|'F', height, weight, waistCircumference,
@@ -14,16 +14,21 @@
  * Este módulo es PURE TS: no importa Firebase ni hace I/O. Se invoca
  * desde `/api/users/me` (server) y desde `BioDashboard` (client) con el
  * objeto crudo que llega de Firestore, y produce los campos canónicos
- * derivados — incluido un IMR baseline calculado con el motor del sitio.
+ * derivados (rename + agrupación + coerción de tipos).
+ *
+ * SPEC-088: el adapter NO calcula IMR. La BD es fuente única del IMR.
+ * Quien onboardea primero (app o quiz web) calcula y persiste; los
+ * demás leen. Si `imr.current` no existe en el doc, el sitio NO lo
+ * inventa; muestra "Tu IMR aún no está disponible" en la UI.
  *
  * Idempotente: si el doc ya tiene shape canónico, las funciones lo
  * detectan y no modifican nada (retornan `{}` o `null` según el caso).
  *
- * Ver specs/SPEC-087-adapter-elenaapp-shape.md
+ * Ver specs/SPEC-087-adapter-elenaapp-shape.md y
+ *     specs/SPEC-088-bd-fuente-unica-imr.md
  */
 
-import { computeImr } from '../imr/engine';
-import type { ImrResult, Gender } from '../types/user';
+import type { Gender } from '../types/user';
 
 /** Doc crudo de Firestore — record genérico. */
 export type RawDoc = Record<string, unknown>;
@@ -191,88 +196,28 @@ export function adaptElenaAppToCanonical(doc: RawDoc): Partial<RawDoc> {
 }
 
 /**
- * Calcula un IMR baseline usando el motor del sitio (`computeImr`) con
- * los inputs disponibles en el shape legacy.
+ * Pipeline completo: detecta legacy → mapea al canónico.
  *
- * Retorna `null` si faltan inputs mínimos (height, weight, waist, age).
- * El neck es opcional: si falta, se estima conservadoramente para que
- * Body Fat Navy no falle (38cm hombre, 32cm mujer — aproximaciones
- * promedio adulto sano).
- */
-export function computeBaselineImrFromLegacy(doc: RawDoc): ImrResult | null {
-    const heightCm = typeof doc.height === 'number' ? doc.height : null;
-    const weightKg = typeof doc.weight === 'number' ? doc.weight : null;
-    const waistCm =
-        typeof doc.waistCircumference === 'number' ? doc.waistCircumference : null;
-    const age = typeof doc.age === 'number' ? doc.age : null;
-    const gender = coerceGender(doc.gender);
-
-    if (heightCm === null || weightKg === null || waistCm === null || age === null) {
-        return null;
-    }
-
-    const neckCm =
-        typeof doc.neckCircumference === 'number'
-            ? doc.neckCircumference
-            : gender === 'male'
-                ? 38
-                : 32;
-
-    const bodyFatPct =
-        typeof doc.bodyFatPercentage === 'number'
-            ? doc.bodyFatPercentage
-            : undefined;
-
-    return computeImr({
-        heightCm,
-        weightKg,
-        waistCm,
-        neckCm,
-        age,
-        gender,
-        bodyFatPct,
-        // Hábitos: defaults razonables si no vienen explícitos.
-        fastingHours: parseFastingProtocol(doc.fastingProtocol),
-        dinnerHour: toHourFloat((doc.profile as RawDoc | undefined)?.lastMealGoal) ?? 20,
-        exerciseMinutes:
-            typeof doc.exerciseGoalMinutes === 'number'
-                ? doc.exerciseGoalMinutes
-                : 20,
-        sleepQuality: 0.7,
-        hydrationLitres: 2,
-        hydrationGoal: 3,
-        lastMealHour:
-            toHourFloat((doc.profile as RawDoc | undefined)?.lastMealGoal) ?? 20,
-    });
-}
-
-/**
- * Pipeline completo: detecta legacy → mapea canónico → computa baseline IMR.
+ * SPEC-088: el adapter NO calcula IMR. La BD es fuente única.
+ * El patch contiene SOLO los campos canónicos derivados del mapping
+ * (displayName, gender, bio, habits, meta). El campo `imr.current`
+ * lo escribe quien onboardee primero (app vía canonical-mirror, o
+ * quiz web vía /api/users/onboard).
  *
- * Devuelve `{ patch, imrCurrent }` donde:
- *   - `patch` es lo que hay que mergear al doc en Firestore (campos
- *     canónicos + opcionalmente imr.current si se pudo computar).
- *   - `imrCurrent` es el ImrResult para mostrar inmediatamente al user
- *     en la respuesta de `/api/users/me`. Null si no se pudo computar.
+ * Devuelve:
+ *   - `patch`: campos canónicos a mergear al doc. `null` si el doc
+ *     no necesita adaptación (ya está canónico).
  *
- * Si el doc ya está en shape canónico, retorna `{ patch: null, imrCurrent: null }`
+ * Si el doc ya está en shape canónico, retorna `{ patch: null }`
  * y el caller no debe hacer nada.
  */
 export function buildCanonicalPatch(doc: RawDoc | null | undefined): {
     patch: Partial<RawDoc> | null;
-    imrCurrent: ImrResult | null;
 } {
     if (!doc || !isElenaAppLegacyShape(doc)) {
-        return { patch: null, imrCurrent: null };
+        return { patch: null };
     }
 
     const canonical = adaptElenaAppToCanonical(doc);
-    const imrCurrent = computeBaselineImrFromLegacy(doc);
-
-    const patch: Partial<RawDoc> = { ...canonical };
-    if (imrCurrent) {
-        patch.imr = { current: imrCurrent, history: [] };
-    }
-
-    return { patch, imrCurrent };
+    return { patch: { ...canonical } };
 }

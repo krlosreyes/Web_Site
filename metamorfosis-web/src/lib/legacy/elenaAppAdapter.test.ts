@@ -9,7 +9,6 @@ import { describe, test, expect } from 'vitest';
 import {
     isElenaAppLegacyShape,
     adaptElenaAppToCanonical,
-    computeBaselineImrFromLegacy,
     buildCanonicalPatch,
 } from './elenaAppAdapter';
 
@@ -191,67 +190,37 @@ describe('adaptElenaAppToCanonical', () => {
     });
 });
 
-describe('computeBaselineImrFromLegacy', () => {
-    test('computa IMR válido para el doc de prueba1', () => {
-        const imr = computeBaselineImrFromLegacy(PRUEBA1_LEGACY_DOC);
-        expect(imr).not.toBeNull();
-        expect(typeof imr!.imrScore).toBe('number');
-        expect(imr!.imrScore).toBeGreaterThanOrEqual(0);
-        expect(imr!.imrScore).toBeLessThanOrEqual(100);
-        expect([
-            'OPTIMIZADO',
-            'EFICIENTE',
-            'FUNCIONAL',
-            'INESTABLE',
-            'DETERIORADO',
-        ]).toContain(imr!.label);
-        expect(typeof imr!.imc).toBe('number');
-        expect(imr!.imc).toBeGreaterThan(0);
-        expect(typeof imr!.tmb).toBe('number');
-        expect(imr!.tmb).toBeGreaterThan(0);
-        expect(typeof imr!.metabolicAge).toBe('number');
-    });
-
-    test('retorna null si faltan inputs mínimos', () => {
-        const incomplete = { name: 'X', gender: 'M' };
-        const imr = computeBaselineImrFromLegacy(incomplete);
-        expect(imr).toBeNull();
-    });
-
-    test('usa neckCm estimado si no viene', () => {
-        const noNeck = { ...PRUEBA1_LEGACY_DOC };
-        delete (noNeck as { neckCircumference?: number }).neckCircumference;
-        const imr = computeBaselineImrFromLegacy(noNeck);
-        expect(imr).not.toBeNull();
-    });
-});
-
-describe('buildCanonicalPatch', () => {
-    test('retorna patch completo para shape legacy', () => {
-        const { patch, imrCurrent } = buildCanonicalPatch(PRUEBA1_LEGACY_DOC);
+describe('buildCanonicalPatch (SPEC-088: BD es fuente única)', () => {
+    test('retorna patch con campos canónicos derivables', () => {
+        const { patch } = buildCanonicalPatch(PRUEBA1_LEGACY_DOC);
         expect(patch).not.toBeNull();
         expect(patch!.displayName).toBe('Prueba1');
-        expect(imrCurrent).not.toBeNull();
-        expect(patch!.imr).toBeDefined();
+        expect(patch!.gender).toBe('male');
+        expect(patch!.bio).toBeDefined();
+        expect(patch!.habits).toBeDefined();
+        expect(patch!.meta).toBeDefined();
+    });
+
+    test('SPEC-088: patch NO incluye imr (el sitio no calcula)', () => {
+        const { patch } = buildCanonicalPatch(PRUEBA1_LEGACY_DOC);
+        // La BD es fuente única del IMR. Quien onboardea primero
+        // escribe (ElenaApp vía canonical-mirror o quiz web vía
+        // /api/users/onboard). El adapter NO inventa baselines.
+        expect(patch!.imr).toBeUndefined();
     });
 
     test('retorna null patch para shape canónico (idempotencia)', () => {
-        const { patch, imrCurrent } = buildCanonicalPatch(CANONICAL_DOC);
+        const { patch } = buildCanonicalPatch(CANONICAL_DOC);
         expect(patch).toBeNull();
-        expect(imrCurrent).toBeNull();
     });
 
     test('retorna null patch para null doc', () => {
-        const { patch, imrCurrent } = buildCanonicalPatch(null);
+        const { patch } = buildCanonicalPatch(null);
         expect(patch).toBeNull();
-        expect(imrCurrent).toBeNull();
     });
 
-    test('patch incluye imr.current cuando hay inputs para baseline', () => {
-        const { patch } = buildCanonicalPatch(PRUEBA1_LEGACY_DOC);
-        const imr = patch!.imr as Record<string, unknown>;
-        const current = imr.current as Record<string, unknown>;
-        expect(typeof current.imrScore).toBe('number');
-        expect(typeof current.label).toBe('string');
+    test('retorna null patch para undefined doc', () => {
+        const { patch } = buildCanonicalPatch(undefined);
+        expect(patch).toBeNull();
     });
 });
