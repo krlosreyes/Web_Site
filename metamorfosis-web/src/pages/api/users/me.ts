@@ -17,6 +17,7 @@
 import type { APIRoute } from 'astro';
 import { db, auth } from '../../../lib/firebaseAdmin';
 import { COLLECTIONS } from '../../../lib/constants/firestore';
+import { buildCanonicalPatch } from '../../../lib/legacy/elenaAppAdapter';
 
 export const prerender = false;
 
@@ -42,16 +43,37 @@ export const GET: APIRoute = async ({ request }) => {
     }
 
     try {
-        const snap = await db
-            .collection(COLLECTIONS.USERS)
-            .doc(decoded.uid)
-            .get();
+        const docRef = db.collection(COLLECTIONS.USERS).doc(decoded.uid);
+        const snap = await docRef.get();
 
         if (!snap.exists) {
             return jsonResponse(404, { error: 'User doc not found', uid: decoded.uid });
         }
 
-        return jsonResponse(200, { success: true, user: snap.data() });
+        const rawData = snap.data() ?? {};
+
+        // SPEC-087: si el doc viene en shape legacy de ElenaApp (Flutter),
+        // lo canonicalizamos al vuelo y persistimos los campos canónicos
+        // al doc para que próximas lecturas sean directas. Idempotente:
+        // si ya está canónico, `patch` viene null y no escribimos.
+        const { patch } = buildCanonicalPatch(rawData);
+        let mergedData = rawData;
+        if (patch) {
+            try {
+                await docRef.set(patch, { merge: true });
+                // Mergeamos en memoria también para devolver el shape
+                // canónico en esta misma respuesta, sin segundo fetch.
+                mergedData = { ...rawData, ...patch };
+            } catch (writeErr) {
+                console.error('[me] SPEC-087 canonical persist error:', writeErr);
+                // Fallback: devolvemos el merge en memoria aunque la
+                // persistencia haya fallado. El user ve su IMR; el doc
+                // se canonicalizará en la próxima lectura exitosa.
+                mergedData = { ...rawData, ...patch };
+            }
+        }
+
+        return jsonResponse(200, { success: true, user: mergedData });
     } catch (err) {
         console.error('[me] Error:', err);
         return jsonResponse(500, { error: 'Error interno' });

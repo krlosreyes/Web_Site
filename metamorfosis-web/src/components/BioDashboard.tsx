@@ -4,6 +4,7 @@ import { auth, db } from '../lib/firebase';
 import { COLLECTIONS } from '../lib/constants/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import type { UserDoc } from '../lib/types/user';
+import { buildCanonicalPatch } from '../lib/legacy/elenaAppAdapter';
 
 const Icons = {
     Estructura: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
@@ -60,7 +61,15 @@ const BioDashboard = () => {
                     return;
                 }
 
-                const data = userSnap.data() as UserDoc;
+                // SPEC-087: si el doc viene en shape legacy de ElenaApp,
+                // lo canonicalizamos en memoria para esta render. La
+                // persistencia al doc Firestore ocurre en /api/users/me
+                // cuando el cliente lo invoca; acá solo evitamos el
+                // primer-render vacío.
+                const rawData = userSnap.data() as Record<string, unknown>;
+                const { patch } = buildCanonicalPatch(rawData);
+                const mergedData = patch ? { ...rawData, ...patch } : rawData;
+                const data = mergedData as UserDoc;
                 const current = data.imr?.current;
 
                 setStats({
