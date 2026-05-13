@@ -16,6 +16,8 @@ const AnaliticaIMR = React.lazy(() => import('./AnaliticaIMR'));
 const AuditLog = React.lazy(() => import('./AuditLog'));
 /** SPEC-033: lazy load del visor de moderación del foro. */
 const ForumModeration = React.lazy(() => import('./ForumModeration'));
+/** SPEC-090: tablero de analítica editorial de artículos. */
+const ArticleAnalytics = React.lazy(() => import('./ArticleAnalytics'));
 
 class ErrorBoundary extends React.Component<{children: React.ReactNode, onReset: () => void}, {hasError: boolean, error: string}> {
     constructor(props: any) {
@@ -44,7 +46,14 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode, onReset:
     }
 }
 
-type AdminTab = 'ARCHIVE' | 'LEADS' | 'FOUNDERS' | 'ANALYTICS' | 'AUDIT' | 'FORUM';
+type AdminTab =
+    | 'ARCHIVE'
+    | 'LEADS'
+    | 'FOUNDERS'
+    | 'ARTICLE_ANALYTICS'
+    | 'ANALYTICS'
+    | 'AUDIT'
+    | 'FORUM';
 
 const LazyLoader = () => (
     <div className="flex items-center justify-center min-h-[400px] bg-bg-surface border border-white/[0.08] rounded-xl">
@@ -144,6 +153,14 @@ const AdminApp = () => {
                     <div className="my-2 border-t border-white/[0.04]" />
 
                     <button
+                        onClick={() => setActiveTab('ARTICLE_ANALYTICS')}
+                        className={sidebarBtn(activeTab === 'ARTICLE_ANALYTICS')}
+                    >
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                        Analítica artículos
+                    </button>
+
+                    <button
                         onClick={() => setActiveTab('ANALYTICS')}
                         className={sidebarBtn(activeTab === 'ANALYTICS')}
                     >
@@ -180,14 +197,23 @@ const AdminApp = () => {
                         />
                     ) : (
                         <>
-                            {/* StatsGrid se oculta en ANALYTICS, AUDIT, FORUM y
-                                FOUNDERS para evitar redundancia / saturación visual
-                                (el tab Fundadores tiene su propio header con métricas). */}
-                            {activeTab !== 'ANALYTICS' && activeTab !== 'AUDIT' && activeTab !== 'FORUM' && activeTab !== 'FOUNDERS' && <StatsGrid />}
+                            {/* StatsGrid se oculta en tabs que tienen sus propias
+                                métricas para evitar saturación visual: ANALYTICS,
+                                ARTICLE_ANALYTICS, AUDIT, FORUM y FOUNDERS. */}
+                            {activeTab !== 'ANALYTICS' &&
+                                activeTab !== 'ARTICLE_ANALYTICS' &&
+                                activeTab !== 'AUDIT' &&
+                                activeTab !== 'FORUM' &&
+                                activeTab !== 'FOUNDERS' && <StatsGrid />}
                             <div className="flex-1 animate-fade-in-up">
                                 {activeTab === 'LEADS' && <LeadList />}
                                 {activeTab === 'FOUNDERS' && <FoundersList />}
                                 {activeTab === 'ARCHIVE' && <PostList onEdit={handleEdit} onNew={handleNew} />}
+                                {activeTab === 'ARTICLE_ANALYTICS' && (
+                                    <Suspense fallback={<LazyLoader />}>
+                                        <ArticleAnalytics onEditArticle={handleEdit} />
+                                    </Suspense>
+                                )}
                                 {activeTab === 'ANALYTICS' && (
                                     <Suspense fallback={<LazyLoader />}>
                                         <AnaliticaIMR />
