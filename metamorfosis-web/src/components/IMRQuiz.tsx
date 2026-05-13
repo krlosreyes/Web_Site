@@ -11,6 +11,24 @@ import { track } from '../lib/analytics/track';
 import { calculateAge, maxBirthDateFor18Plus } from '../lib/utils/age';
 
 /**
+ * SPEC-093: dispara un evento del funnel del quiz al endpoint público.
+ * Fire-and-forget: usamos sendBeacon para que sobreviva a la navegación
+ * del registro. Si sendBeacon no está disponible o falla, no rompemos
+ * el flujo del usuario.
+ */
+function fireFunnelEvent(event: 'started' | 'completed' | 'registered') {
+    if (typeof navigator === 'undefined' || typeof window === 'undefined') return;
+    try {
+        const blob = new Blob([JSON.stringify({ event })], {
+            type: 'application/json',
+        });
+        navigator.sendBeacon('/api/quiz/funnel', blob);
+    } catch (_) {
+        // best-effort
+    }
+}
+
+/**
  * Quiz IMR — captura biometría + hábitos del visitante (anónimo o logueado).
  *
  * Flujo:
@@ -225,6 +243,8 @@ const IMRQuiz = () => {
             score: payload.imrResult.imrScore,
             label: payload.imrResult.label,
         });
+        // SPEC-093: counter propio del funnel.
+        fireFunnelEvent('completed');
 
         if (currentUser) {
             // User logueado: persistir directo via /api/users/onboard
@@ -271,6 +291,8 @@ const IMRQuiz = () => {
 
             // SPEC-084: tracking de funnel — registro completado vía quiz.
             track('registro_completado', { source: 'quiz' });
+            // SPEC-093: counter propio del funnel.
+            fireFunnelEvent('registered');
 
             sessionStorage.removeItem(QUIZ_STORAGE_KEY);
             sessionStorage.setItem('imr_score', String(payload.imrResult.imrScore));
@@ -312,8 +334,10 @@ const IMRQuiz = () => {
                 {/* CTA primario — bg-accent sólido, sin gradient ni blur halo. */}
                 <button
                     onClick={() => {
-                        // SPEC-084: tracking de funnel — quiz iniciado.
+                        // SPEC-084: tracking de funnel — quiz iniciado (Umami).
                         track('quiz_iniciado');
+                        // SPEC-093: counter propio del funnel (Firestore).
+                        fireFunnelEvent('started');
                         setStep(1);
                     }}
                     className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-lg bg-accent text-bg-base font-semibold text-base sm:text-lg hover:bg-accent-strong transition-colors"

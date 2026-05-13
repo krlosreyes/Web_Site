@@ -162,6 +162,77 @@ const ArticleAnalytics: React.FC<ArticleAnalyticsProps> = ({ onEditArticle }) =>
                 />
             </div>
 
+            {/* SPEC-093: Funnel del quiz IMR. Antes del top de artículos
+                porque es el indicador clave de conversión del sitio. */}
+            <section className="bg-bg-surface border border-white/[0.06] rounded-xl p-6">
+                <div className="flex flex-wrap items-baseline justify-between gap-2 mb-6">
+                    <h3 className="text-sm font-bold tracking-widest uppercase text-text-secondary">
+                        Funnel del quiz IMR
+                    </h3>
+                    <span className="text-[10px] text-text-muted">
+                        Conversión global:{' '}
+                        <span className="text-text-primary font-semibold">
+                            {formatPct(data.quizFunnel.conversionPct)}
+                        </span>
+                    </span>
+                </div>
+
+                {/* Barra visual de los 3 escalones */}
+                <FunnelBar funnel={data.quizFunnel} />
+
+                {/* 3 KPIs del funnel */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
+                    <FunnelStep
+                        label="1. Iniciaron quiz"
+                        value={data.quizFunnel.started}
+                        sublabel="Click 'Iniciar mi diagnóstico'"
+                    />
+                    <FunnelStep
+                        label="2. Completaron quiz"
+                        value={data.quizFunnel.completed}
+                        sublabel={`${formatPct(data.quizFunnel.completionPct)} de los que iniciaron`}
+                    />
+                    <FunnelStep
+                        label="3. Se registraron"
+                        value={data.quizFunnel.registered}
+                        sublabel={`${formatPct(data.quizFunnel.registerRatePct)} de los que completaron`}
+                        accent
+                    />
+                </div>
+
+                {/* Cards de abandono — el indicador clave que pidió SPEC-093 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    <div className="bg-status-warn/[0.06] border border-status-warn/30 rounded-lg p-4">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-status-warn mb-1">
+                            Abandono durante el quiz
+                        </p>
+                        <p className="text-2xl font-bold text-text-primary">
+                            {data.quizFunnel.dropOffAtQuiz}
+                        </p>
+                        <p className="text-[11px] text-text-secondary mt-1">
+                            Empezaron pero NO completaron las preguntas.
+                        </p>
+                    </div>
+                    <div className="bg-status-bad/[0.08] border border-status-bad/30 rounded-lg p-4">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-status-bad mb-1">
+                            Abandono pre-registro
+                        </p>
+                        <p className="text-2xl font-bold text-text-primary">
+                            {data.quizFunnel.dropOffAtRegister}
+                        </p>
+                        <p className="text-[11px] text-text-secondary mt-1">
+                            Completaron quiz pero NO crearon cuenta.
+                        </p>
+                    </div>
+                </div>
+
+                {data.quizFunnel.started === 0 && (
+                    <p className="text-[11px] text-text-muted mt-4 text-center">
+                        Aún no hay datos del funnel. Empieza a contar tras el primer click en "Iniciar mi diagnóstico".
+                    </p>
+                )}
+            </section>
+
             {/* Distribución por pilar */}
             <section className="bg-bg-surface border border-white/[0.06] rounded-xl p-6">
                 <h3 className="text-sm font-bold tracking-widest uppercase text-text-secondary mb-6">
@@ -422,6 +493,94 @@ const ArticleAnalytics: React.FC<ArticleAnalyticsProps> = ({ onEditArticle }) =>
         </div>
     );
 };
+
+/**
+ * SPEC-093: barra visual del funnel del quiz. Los tres bloques
+ * representan started/completed/registered con anchos proporcionales
+ * (started = 100% del ancho disponible, completed % de started,
+ * registered % de started).
+ */
+const FunnelBar: React.FC<{
+    funnel: AnalyticsResponse['quizFunnel'];
+}> = ({ funnel }) => {
+    const startedWidth = 100;
+    const completedWidth =
+        funnel.started > 0 ? (funnel.completed / funnel.started) * 100 : 0;
+    const registeredWidth =
+        funnel.started > 0 ? (funnel.registered / funnel.started) * 100 : 0;
+
+    return (
+        <div className="space-y-2">
+            <FunnelBarRow
+                label="Iniciaron"
+                width={startedWidth}
+                count={funnel.started}
+                colorClass="bg-accent/30 border-accent"
+            />
+            <FunnelBarRow
+                label="Completaron"
+                width={completedWidth}
+                count={funnel.completed}
+                colorClass="bg-status-warn/30 border-status-warn"
+            />
+            <FunnelBarRow
+                label="Registrados"
+                width={registeredWidth}
+                count={funnel.registered}
+                colorClass="bg-status-good/30 border-status-good"
+            />
+        </div>
+    );
+};
+
+const FunnelBarRow: React.FC<{
+    label: string;
+    width: number;
+    count: number;
+    colorClass: string;
+}> = ({ label, width, count, colorClass }) => (
+    <div className="flex items-center gap-4">
+        <div className="w-28 text-xs font-medium text-text-secondary shrink-0">
+            {label}
+        </div>
+        <div className="flex-1 h-7 bg-bg-base/60 rounded-md overflow-hidden relative">
+            <div
+                className={`h-full border-r transition-all ${colorClass}`}
+                style={{ width: `${Math.max(0, Math.min(100, width))}%` }}
+            />
+            <div className="absolute inset-0 flex items-center px-3 text-[11px] font-mono text-text-primary">
+                {count.toLocaleString('es-ES')}
+            </div>
+        </div>
+    </div>
+);
+
+const FunnelStep: React.FC<{
+    label: string;
+    value: number;
+    sublabel: string;
+    accent?: boolean;
+}> = ({ label, value, sublabel, accent }) => (
+    <div
+        className={`p-4 rounded-lg border ${
+            accent
+                ? 'bg-accent/[0.06] border-accent/30'
+                : 'bg-bg-base/40 border-white/[0.06]'
+        }`}
+    >
+        <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1">
+            {label}
+        </p>
+        <p
+            className={`text-2xl font-bold tracking-tight ${
+                accent ? 'text-accent' : 'text-text-primary'
+            }`}
+        >
+            {value.toLocaleString('es-ES')}
+        </p>
+        <p className="text-[11px] text-text-secondary mt-1">{sublabel}</p>
+    </div>
+);
 
 const KpiCard: React.FC<{ label: string; value: string; accent?: boolean }> = ({
     label,

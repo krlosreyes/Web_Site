@@ -81,8 +81,25 @@ export interface AnalyticsKpis {
     globalEngagementPct: number;
 }
 
+export interface QuizFunnelMetrics {
+    started: number;
+    completed: number;
+    registered: number;
+    /** Empezaron quiz pero NO lo completaron. started - completed. */
+    dropOffAtQuiz: number;
+    /** Completaron quiz pero NO se registraron — el KPI clave de SPEC-093. */
+    dropOffAtRegister: number;
+    /** Conversion end-to-end: registered/started en %. -1 si started=0. */
+    conversionPct: number;
+    /** % de quienes empezaron que completaron el quiz. -1 si started=0. */
+    completionPct: number;
+    /** % de quienes completaron que se registraron. -1 si completed=0. */
+    registerRatePct: number;
+}
+
 export interface AnalyticsResponse {
     kpis: AnalyticsKpis;
+    quizFunnel: QuizFunnelMetrics;
     topArticles: ArticleMetric[];
     topReaders: ReaderMetric[];
     byPillar: PillarMetric[];
@@ -246,12 +263,48 @@ export function findWithoutQuiz(posts: RawPost[]) {
 }
 
 /**
+ * Construye las métricas del funnel del quiz a partir del doc
+ * `system/counters.quizFunnel`. Función pura.
+ *
+ * Tolerante a campos ausentes: si el counter aún no existe en
+ * Firestore (caso pre-deploy de SPEC-093), todos los valores
+ * arrancan en 0.
+ */
+export function buildQuizFunnel(
+    rawCounter: Record<string, unknown> | null | undefined,
+): QuizFunnelMetrics {
+    const namespace = (rawCounter?.quizFunnel ?? {}) as Record<string, unknown>;
+    const started = typeof namespace.started === 'number' ? namespace.started : 0;
+    const completed = typeof namespace.completed === 'number' ? namespace.completed : 0;
+    const registered = typeof namespace.registered === 'number' ? namespace.registered : 0;
+
+    const dropOffAtQuiz = Math.max(0, started - completed);
+    const dropOffAtRegister = Math.max(0, completed - registered);
+
+    const conversionPct = started > 0 ? (registered / started) * 100 : -1;
+    const completionPct = started > 0 ? (completed / started) * 100 : -1;
+    const registerRatePct = completed > 0 ? (registered / completed) * 100 : -1;
+
+    return {
+        started,
+        completed,
+        registered,
+        dropOffAtQuiz,
+        dropOffAtRegister,
+        conversionPct,
+        completionPct,
+        registerRatePct,
+    };
+}
+
+/**
  * Pipeline completo: toma posts y users crudos y produce el
  * payload de respuesta. Función pura — fácil de testear.
  */
 export function buildAnalyticsResponse(
     posts: RawPost[],
     users: RawUser[],
+    rawCounter?: Record<string, unknown> | null,
 ): AnalyticsResponse {
     const quizIndex = indexQuizzesByArticle(users);
     const articleMetrics = posts.map((p) => buildArticleMetric(p, quizIndex));
@@ -279,6 +332,7 @@ export function buildAnalyticsResponse(
             articlesPublished,
             globalEngagementPct,
         },
+        quizFunnel: buildQuizFunnel(rawCounter ?? null),
         topArticles,
         topReaders: buildTopReaders(users, 10),
         byPillar: buildPillarBreakdown(posts),

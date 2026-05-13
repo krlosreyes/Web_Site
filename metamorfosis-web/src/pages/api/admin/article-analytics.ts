@@ -37,9 +37,11 @@ export const GET: APIRoute = async ({ request }) => {
             });
         }
 
-        const [postsSnap, usersSnap] = await Promise.all([
+        const [postsSnap, usersSnap, counterSnap] = await Promise.all([
             db.collection(COLLECTIONS.POSTS).limit(500).get(),
             db.collection(COLLECTIONS.USERS).limit(2000).get(),
+            // SPEC-093: doc de counters del sistema (founders + quiz funnel).
+            db.collection('system').doc('counters').get(),
         ]);
 
         const posts: RawPost[] = postsSnap.docs.map((doc) => ({
@@ -62,7 +64,11 @@ export const GET: APIRoute = async ({ request }) => {
             };
         });
 
-        const payload = buildAnalyticsResponse(posts, users);
+        const rawCounter = counterSnap.exists
+            ? (counterSnap.data() as Record<string, unknown>)
+            : null;
+
+        const payload = buildAnalyticsResponse(posts, users, rawCounter);
 
         return new Response(JSON.stringify({ success: true, ...payload }), {
             status: 200,

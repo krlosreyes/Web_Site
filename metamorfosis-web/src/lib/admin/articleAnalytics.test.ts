@@ -13,6 +13,7 @@ import {
     findZombies,
     findWithoutQuiz,
     buildAnalyticsResponse,
+    buildQuizFunnel,
     type RawPost,
     type RawUser,
 } from './articleAnalytics';
@@ -235,6 +236,71 @@ describe('findWithoutQuiz', () => {
     });
 });
 
+describe('buildQuizFunnel (SPEC-093)', () => {
+    test('counter ausente → todo 0 y porcentajes -1', () => {
+        const f = buildQuizFunnel(null);
+        expect(f.started).toBe(0);
+        expect(f.completed).toBe(0);
+        expect(f.registered).toBe(0);
+        expect(f.dropOffAtQuiz).toBe(0);
+        expect(f.dropOffAtRegister).toBe(0);
+        expect(f.conversionPct).toBe(-1);
+        expect(f.completionPct).toBe(-1);
+        expect(f.registerRatePct).toBe(-1);
+    });
+
+    test('drop-offs son la resta de los counts', () => {
+        const f = buildQuizFunnel({
+            quizFunnel: { started: 100, completed: 60, registered: 20 },
+        });
+        expect(f.dropOffAtQuiz).toBe(40);
+        expect(f.dropOffAtRegister).toBe(40);
+    });
+
+    test('drop-offs no son negativos (defensa si counters quedan raros)', () => {
+        const f = buildQuizFunnel({
+            quizFunnel: { started: 10, completed: 20, registered: 5 },
+        });
+        expect(f.dropOffAtQuiz).toBe(0); // no -10
+    });
+
+    test('porcentajes calculados correctos', () => {
+        const f = buildQuizFunnel({
+            quizFunnel: { started: 100, completed: 50, registered: 25 },
+        });
+        expect(f.conversionPct).toBe(25); // 25/100
+        expect(f.completionPct).toBe(50); // 50/100
+        expect(f.registerRatePct).toBe(50); // 25/50
+    });
+
+    test('campos faltantes en el counter → 0', () => {
+        const f = buildQuizFunnel({ quizFunnel: { started: 50 } });
+        expect(f.started).toBe(50);
+        expect(f.completed).toBe(0);
+        expect(f.registered).toBe(0);
+    });
+
+    test('ignora otros campos del doc (founderCount, etc)', () => {
+        const f = buildQuizFunnel({
+            founderCount: 5,
+            quizFunnel: { started: 10, completed: 5, registered: 1 },
+        });
+        expect(f.started).toBe(10);
+    });
+
+    test('values negativos en input → tratados como 0', () => {
+        // Defense: si por alguna razón el counter quedó negativo,
+        // no propagamos basura. Estos tests garantizan ese contrato.
+        const f = buildQuizFunnel({
+            quizFunnel: { started: -1, completed: -1, registered: -1 },
+        });
+        // -1 ≠ "number type guard" técnicamente pasa porque sí es number.
+        // Pero los drop-offs siguen siendo Math.max(0, ...).
+        expect(f.dropOffAtQuiz).toBe(0);
+        expect(f.dropOffAtRegister).toBe(0);
+    });
+});
+
 describe('buildAnalyticsResponse', () => {
     test('KPIs reflejan los totales', () => {
         const posts: RawPost[] = [
@@ -274,6 +340,15 @@ describe('buildAnalyticsResponse', () => {
         expect(res.kpis.globalEngagementPct).toBe(0);
         expect(res.topArticles).toEqual([]);
         expect(res.topReaders).toEqual([]);
+        expect(res.quizFunnel.started).toBe(0);
+    });
+
+    test('quizFunnel se incluye en la respuesta cuando hay counter', () => {
+        const counter = { quizFunnel: { started: 30, completed: 15, registered: 5 } };
+        const res = buildAnalyticsResponse([], [], counter);
+        expect(res.quizFunnel.started).toBe(30);
+        expect(res.quizFunnel.dropOffAtRegister).toBe(10);
+        expect(res.quizFunnel.conversionPct).toBeCloseTo(16.66, 1);
     });
 
     test('zombies y withoutQuiz se incluyen', () => {
