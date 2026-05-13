@@ -18,14 +18,36 @@
 
 import type { APIRoute } from 'astro';
 import { incrementClick } from '../../../../lib/postAnalytics';
+import {
+    isSelfExcluded,
+    readCookiesFromHeader,
+} from '../../../../lib/legacy/adminSelfExclusion';
+import {
+    isAuthenticatedFromCookie,
+    parseCookies,
+} from '../../../../lib/auth';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ params }) => {
+export const POST: APIRoute = async ({ request, params }) => {
     const slug = typeof params.slug === 'string' ? params.slug : '';
     if (!slug) {
         return new Response(null, { status: 204 });
     }
+
+    // SPEC-091: si el dispositivo está auto-excluido (cookie
+    // mr_admin_self=1) o si el admin está logueado (admin_session),
+    // no incrementamos. Devolvemos 204 igual para que el cliente no
+    // vea diferencia.
+    const adminSessionCookies = parseCookies(request);
+    if (isAuthenticatedFromCookie(adminSessionCookies)) {
+        return new Response(null, { status: 204 });
+    }
+    const selfCookies = readCookiesFromHeader(request.headers.get('cookie'));
+    if (isSelfExcluded(selfCookies)) {
+        return new Response(null, { status: 204 });
+    }
+
     // Fire-and-forget desde la perspectiva del browser. Acá sí lo
     // esperamos para asegurar que Firestore registró el increment
     // antes de cerrar la conexión, pero si falla, no lo propagamos.

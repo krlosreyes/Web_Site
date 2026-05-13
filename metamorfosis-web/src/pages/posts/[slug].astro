@@ -5,6 +5,11 @@ import { COLLECTIONS } from "../../lib/constants/firestore";
 import { getPillar } from "../../lib/constants/pillars";
 import { isValidSessionValue } from "../../lib/auth";
 import { incrementView } from "../../lib/postAnalytics";
+import {
+    ADMIN_SELF_COOKIE,
+    isSelfExcluded,
+    decideCookieAction,
+} from "../../lib/legacy/adminSelfExclusion";
 import ArticleQuiz from "../../components/ArticleQuiz";
 import PostReactions from "../../components/blog/PostReactions";
 import { Clock, Calendar, BookOpen, Link as LinkIcon } from "lucide-astro";
@@ -43,6 +48,27 @@ if (isDraft) {
     }
 }
 
+// SPEC-091: opt-in/opt-out de self-exclusion vía ?mr-admin=1|0.
+// Aplica ANTES de la lógica de incremento para que el query param
+// surta efecto en la misma request.
+const cookieAction = decideCookieAction(Astro.url.searchParams);
+if (cookieAction.type === "set") {
+    Astro.cookies.set(ADMIN_SELF_COOKIE, cookieAction.value, {
+        path: "/",
+        httpOnly: false, // accesible para que el cliente lo pueda chequear si lo necesita
+        secure: import.meta.env.PROD,
+        sameSite: "lax",
+        maxAge: cookieAction.maxAge,
+    });
+} else if (cookieAction.type === "delete") {
+    Astro.cookies.delete(ADMIN_SELF_COOKIE, { path: "/" });
+}
+
+// SPEC-091: cookie self-exclusion (Carlos en cualquier dispositivo).
+// Si está activa, no incrementamos nada — el dispositivo está mudo
+// para los counters.
+const isSelfExcludedView = isSelfExcluded(Astro.cookies);
+
 // SPEC-086: contador de vistas real. Dedupe por cookie de sesión
 // `viewed_posts` (CSV de slugs vistos esta sesión) + exclusión del
 // admin. Sin esto, el panel admin mostraba datos random (mocks).
@@ -53,7 +79,12 @@ const slugStr = String(slug || "");
 const viewedRaw = Astro.cookies.get(VIEWED_COOKIE)?.value || "";
 const viewedList = viewedRaw ? viewedRaw.split(",").filter(Boolean) : [];
 const alreadyViewedThisSession = viewedList.includes(slugStr);
-if (!isAdminViewing && !alreadyViewedThisSession && slugStr) {
+if (
+    !isAdminViewing &&
+    !isSelfExcludedView &&
+    !alreadyViewedThisSession &&
+    slugStr
+) {
     // Fire-and-forget: no await; no bloqueamos el render por esto.
     incrementView(slugStr);
     // Actualizamos la cookie con el slug nuevo (rotamos si excede el cap).
@@ -488,6 +519,26 @@ const jsonLd = {
         };
         trackArticleClicks();
     </script>
+
+    {/* SPEC-091: banner discreto cuando este dispositivo está
+        auto-excluido de los counters. Solo lo ve Carlos. Si quiere
+        salir, click en el "×" linkea a ?mr-admin=0 que borra la
+        cookie. Fixed bottom-right, mínimo, sin robar atención. */}
+    {
+        isSelfExcludedView && (
+            <div class="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 px-3 py-2 rounded-full bg-bg-elevated/95 border border-accent/30 backdrop-blur-sm shadow-lg text-[11px] font-medium text-text-secondary">
+                <span class="w-1.5 h-1.5 rounded-full bg-accent" />
+                Métricas excluidas en este dispositivo
+                <a
+                    href={`/posts/${slugStr}?mr-admin=0`}
+                    aria-label="Desactivar exclusión"
+                    class="ml-1 w-5 h-5 inline-flex items-center justify-center rounded text-text-muted hover:text-text-primary hover:bg-white/[0.06] transition-colors"
+                >
+                    ×
+                </a>
+            </div>
+        )
+    }
 </BaseLayout>
 
 <style is:global>
