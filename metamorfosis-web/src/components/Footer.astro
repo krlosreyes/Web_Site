@@ -12,17 +12,21 @@ const isAdmin = isValidSessionValue(sessionCookie?.value);
 // Si en el futuro agregás/quitás una red, editá solo este bloque.
 const SOCIAL_LINKS = {
     youtube: "https://www.youtube.com/@Metamorfosisreal",
-    instagram: "https://www.instagram.com/metamorfosisreal",
+    facebook: "https://www.facebook.com/metamorfosisrealoficial/",
     tiktok: "https://www.tiktok.com/@metamorfosisreal",
 } as const;
 ---
 
-<footer class="bg-bg-surface text-text-secondary py-12 border-t border-white/[0.06]">
+<footer
+    class="bg-bg-surface text-text-secondary py-12 border-t border-white/[0.06]"
+>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <!-- Brand -->
             <div>
-                <h3 class="text-text-primary text-base font-semibold mb-3 tracking-tight">
+                <h3
+                    class="text-text-primary text-base font-semibold mb-3 tracking-tight"
+                >
                     Metamorfosis Real
                 </h3>
                 <p class="text-sm leading-relaxed">
@@ -43,11 +47,11 @@ const SOCIAL_LINKS = {
                         <span class="sr-only">YouTube</span>
                     </a>
                     <a
-                        href={SOCIAL_LINKS.instagram}
+                        href={SOCIAL_LINKS.facebook}
                         target="_blank"
                         rel="noopener noreferrer"
                         class="text-text-muted hover:text-accent transition-colors"
-                        aria-label="Instagram"
+                        aria-label="Facebook"
                     >
                         <Instagram class="w-5 h-5" />
                         <span class="sr-only">Instagram</span>
@@ -68,7 +72,7 @@ const SOCIAL_LINKS = {
                         >
                             <path
                                 d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.1z"
-                            />
+                            ></path>
                         </svg>
                         <span class="sr-only">TikTok</span>
                     </a>
@@ -77,7 +81,11 @@ const SOCIAL_LINKS = {
 
             <!-- Navigation -->
             <div>
-                <h4 class="text-text-primary text-sm font-semibold mb-3 tracking-tight">Navegación</h4>
+                <h4
+                    class="text-text-primary text-sm font-semibold mb-3 tracking-tight"
+                >
+                    Navegación
+                </h4>
                 <ul class="space-y-2 text-sm">
                     <li>
                         <a href="/" class="hover:text-accent transition-colors"
@@ -85,14 +93,17 @@ const SOCIAL_LINKS = {
                         >
                     </li>
                     <li>
-                        <a href="/biblioteca" class="hover:text-accent transition-colors"
+                        <a
+                            href="/biblioteca"
+                            class="hover:text-accent transition-colors"
                             >Artículos</a
                         >
                     </li>
                     <li>
                         <a
                             href="/sobre-mi"
-                            class="hover:text-accent transition-colors">Sobre mí</a
+                            class="hover:text-accent transition-colors"
+                            >Sobre mí</a
                         >
                     </li>
                 </ul>
@@ -100,7 +111,11 @@ const SOCIAL_LINKS = {
 
             <!-- Legal -->
             <div>
-                <h4 class="text-text-primary text-sm font-semibold mb-3 tracking-tight">Legal</h4>
+                <h4
+                    class="text-text-primary text-sm font-semibold mb-3 tracking-tight"
+                >
+                    Legal
+                </h4>
                 <ul class="space-y-2 text-sm">
                     <li>
                         <a
@@ -134,11 +149,14 @@ const SOCIAL_LINKS = {
              Garantiza que el aviso aparece en TODAS las páginas del sitio
              aunque el usuario no entre a /disclaimer-medico. -->
         <div class="border-t border-white/[0.06] mt-8 pt-6 text-center">
-            <p class="text-xs text-text-muted leading-relaxed max-w-3xl mx-auto">
-                ⚠ Información educativa, no médica. Metamorfosis Real publica contenido
-                informativo y herramientas de auto-evaluación. NO constituye diagnóstico,
-                tratamiento ni asesoría médica profesional. Consulta a un profesional
-                de la salud antes de cambiar tu dieta, ejercicio o medicación.{" "}
+            <p
+                class="text-xs text-text-muted leading-relaxed max-w-3xl mx-auto"
+            >
+                ⚠ Información educativa, no médica. Metamorfosis Real publica
+                contenido informativo y herramientas de auto-evaluación. NO
+                constituye diagnóstico, tratamiento ni asesoría médica
+                profesional. Consulta a un profesional de la salud antes de
+                cambiar tu dieta, ejercicio o medicación.{" "}
                 <a
                     href="/disclaimer-medico"
                     class="text-accent hover:text-accent-strong underline underline-offset-2"
