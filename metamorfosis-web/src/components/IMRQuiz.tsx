@@ -8,6 +8,7 @@ import { auth } from '../lib/firebase';
 import { computeImr, bodyFatNavy, ENGINE_VERSION } from '../lib/imr/engine';
 import type { ImrResult } from '../lib/types/user';
 import { track } from '../lib/analytics/track';
+import { calculateAge, maxBirthDateFor18Plus } from '../lib/utils/age';
 
 /**
  * Quiz IMR — captura biometría + hábitos del visitante (anónimo o logueado).
@@ -31,7 +32,8 @@ const QUIZ_STORAGE_KEY = 'imr_quiz_payload';
 
 interface QuizState {
     gender: 'male' | 'female';
-    age: number;
+    /** SPEC-089: ISO 'YYYY-MM-DD'. `age` se deriva al construir el payload. */
+    birthDate: string;
     weight: number;
     height: number;
     waist: number;
@@ -47,6 +49,10 @@ interface QuizState {
 interface OnboardPayload {
     profile: {
         gender: 'male' | 'female';
+        /** SPEC-089: source-of-truth de la edad. */
+        birthDate: string;
+        /** Derivado de birthDate; lo enviamos para que el motor no
+         *  tenga que parsear birthDate (cualquier cliente lo deriva igual). */
         age: number;
         goals: string[];
         pathologies: string[];
@@ -72,6 +78,11 @@ interface OnboardPayload {
 }
 
 function quizToPayload(quiz: QuizState): OnboardPayload {
+    // SPEC-089: derivar edad cronológica desde birthDate. Si birthDate
+    // es inválido, `calculateAge` retorna 0 y el motor IMR lo manejará
+    // (probablemente dará score bajo). El gate de 18+ se hace antes en UI.
+    const age = calculateAge(quiz.birthDate);
+
     // El quiz captura un bodyFat estimado (4 buckets); puede no ser exacto.
     // Calculamos un fallback Navy si tuviéramos perímetros de cuello, pero por
     // ahora el quiz no los pide explícitos — usamos el valor estimado del quiz.
@@ -84,7 +95,7 @@ function quizToPayload(quiz: QuizState): OnboardPayload {
         // bodyFat explícito del quiz, así que neckCm es indiferente. Pasamos
         // un valor neutro para evitar NaN si el motor lo evalúa.
         neckCm: quiz.gender === 'male' ? 38 : 32,
-        age: quiz.age,
+        age,
         gender: quiz.gender,
         bodyFatPct: bodyFat,
         fastingHours: quiz.fastingHours,
@@ -99,7 +110,8 @@ function quizToPayload(quiz: QuizState): OnboardPayload {
     return {
         profile: {
             gender: quiz.gender,
-            age: quiz.age,
+            birthDate: quiz.birthDate,
+            age,
             goals: [],
             pathologies: [],
         },
@@ -149,7 +161,10 @@ const IMRQuiz = () => {
 
     const [bioData, setBioData] = useState<QuizState>({
         gender: 'male',
-        age: 35,
+        // SPEC-089: vacío al inicio. El user debe ingresar su fecha real.
+        // No usamos default hardcodeado para evitar que un user olvide
+        // cambiarlo y termine con una edad inventada.
+        birthDate: '',
         weight: 75,
         height: 175,
         waist: 85,
@@ -179,16 +194,24 @@ const IMRQuiz = () => {
     }, []);
 
     const nextSubStep = () => {
+        // SPEC-089: derivar edad desde birthDate (source-of-truth).
         // SPEC-080: bloqueo en step 1 si edad < 18. Ley 1581 de 2012 (Colombia)
         // exige autorización de tutor para tratamiento de datos de menores que
         // no podemos verificar online.
-        if (subStep === 1 && bioData.age > 0 && bioData.age < 18) {
-            alert(
-                'Lo sentimos, debes tener 18 años o más para continuar. ' +
-                'Por protección de datos personales no podemos crear cuentas para menores ' +
-                'sin autorización de un tutor legal verificable.'
-            );
-            return;
+        const computedAge = calculateAge(bioData.birthDate);
+        if (subStep === 1) {
+            if (!bioData.birthDate) {
+                alert('Por favor ingresa tu fecha de nacimiento para continuar.');
+                return;
+            }
+            if (computedAge < 18) {
+                alert(
+                    'Lo sentimos, debes tener 18 años o más para continuar. ' +
+                    'Por protección de datos personales no podemos crear cuentas para menores ' +
+                    'sin autorización de un tutor legal verificable.'
+                );
+                return;
+            }
         }
         if (subStep < 8) setSubStep(subStep + 1);
         else handleFinish();
@@ -350,21 +373,31 @@ const IMRQuiz = () => {
                                 <button onClick={() => setBioData({...bioData, gender: 'female'})} className={`p-5 rounded-xl border font-semibold text-base transition-colors ${optionBtn(bioData.gender === 'female')}`}>Soy mujer</button>
                             </div>
                             <div className="text-left mt-6">
-                                <label className="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] ml-1">¿Cuántos años tienes?</label>
+                                <label className="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] ml-1">¿Cuál es tu fecha de nacimiento?</label>
+                                {/* SPEC-089: capturamos fecha de nacimiento como
+                                    source-of-truth. La edad cronológica se deriva
+                                    al construir el payload. Esto alinea con el
+                                    schema canónico compartido con ElenaApp y
+                                    mantiene la edad actualizada año a año sin
+                                    necesidad de re-prompt al user. */}
                                 <input
-                                    type="number"
-                                    placeholder="Ej. 35"
-                                    min={18}
-                                    max={100}
+                                    type="date"
+                                    max={maxBirthDateFor18Plus()}
                                     className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-4 px-5 text-text-primary outline-none focus:border-accent text-xl font-semibold mt-2 transition-colors"
-                                    onChange={e => setBioData({...bioData, age: parseInt(e.target.value)})}
-                                    value={bioData.age || ''}
+                                    onChange={e => setBioData({...bioData, birthDate: e.target.value})}
+                                    value={bioData.birthDate}
                                 />
-                                {/* SPEC-080: edad mínima 18. Si menor, mostrar mensaje
-                                    bloqueante. Conforme Ley 1581 Art. 7 (datos de menores
-                                    requieren autorización de padres/tutores que no podemos
-                                    verificar). */}
-                                {bioData.age > 0 && bioData.age < 18 && (
+                                {bioData.birthDate && (
+                                    <p className="text-xs text-text-muted mt-2 ml-1">
+                                        Tienes <span className="text-text-primary font-semibold">{calculateAge(bioData.birthDate)} años</span>.
+                                    </p>
+                                )}
+                                {/* SPEC-080 + SPEC-089: edad mínima 18, calculada
+                                    desde birthDate. Si menor, mostrar mensaje
+                                    bloqueante. Conforme Ley 1581 Art. 7 (datos
+                                    de menores requieren autorización de
+                                    padres/tutores que no podemos verificar). */}
+                                {bioData.birthDate && calculateAge(bioData.birthDate) < 18 && (
                                     <div className="mt-3 p-3 rounded-lg bg-status-bad/10 border border-status-bad/30">
                                         <p className="text-sm text-status-bad font-semibold mb-1">Necesitas tener 18 años o más</p>
                                         <p className="text-xs text-text-secondary leading-relaxed">

@@ -50,6 +50,19 @@ export interface ImrHistoryEntry extends ImrResult {
 
 export interface UserProfile {
     gender: Gender | null;
+    /**
+     * SPEC-089: source-of-truth de la edad. ISO 8601 date sin tiempo
+     * (`'YYYY-MM-DD'`). El sitio captura esto en el quiz; ElenaApp
+     * eventualmente lo persistirá vía su canonical-mirror.
+     * Si está presente, `age` se deriva con `calculateAge(birthDate)`.
+     * Null en docs legacy de ElenaApp que solo escribieron `age`.
+     */
+    birthDate: string | null;
+    /**
+     * Edad cronológica en años. Derivada de `birthDate` cuando ambos
+     * existen; persistida como cache para compatibilidad con docs
+     * legacy de ElenaApp (que escriben `age` sin `birthDate`).
+     */
     age: number | null;
     /** Tags libres, ej. ["recomposicion", "longevidad"]. */
     goals: string[];

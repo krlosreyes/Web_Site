@@ -95,6 +95,13 @@ export const POST: APIRoute = async ({ request }) => {
             photoURL: decoded.picture ?? existing?.photoURL ?? null,
             profile: {
                 gender: body.profile?.gender ?? existing?.profile?.gender ?? null,
+                // SPEC-089: birthDate es source-of-truth. Si viene, age se
+                // deriva al vuelo (mantenido para compat con docs legacy de
+                // ElenaApp que solo escriben age). Defensa: si frontend
+                // mandó ambos, respetamos el age que mandó (ya derivado
+                // con la misma función calculateAge).
+                birthDate:
+                    body.profile?.birthDate ?? existing?.profile?.birthDate ?? null,
                 age: body.profile?.age ?? existing?.profile?.age ?? null,
                 goals: body.profile?.goals ?? existing?.profile?.goals ?? [],
                 pathologies:
