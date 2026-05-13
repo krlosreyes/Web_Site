@@ -22,6 +22,7 @@ import {
     isSelfExcluded,
     readCookiesFromHeader,
 } from '../../../../lib/legacy/adminSelfExclusion';
+import { isKnownBotUserAgent } from '../../../../lib/legacy/botDetection';
 import {
     isAuthenticatedFromCookie,
     parseCookies,
@@ -45,6 +46,13 @@ export const POST: APIRoute = async ({ request, params }) => {
     }
     const selfCookies = readCookiesFromHeader(request.headers.get('cookie'));
     if (isSelfExcluded(selfCookies)) {
+        return new Response(null, { status: 204 });
+    }
+
+    // SPEC-094: filtrar bots de redes sociales (improbable que clickeen
+    // pero conservador). Crawlers no envían beacons normalmente, pero
+    // si lo hacen no queremos contarlos.
+    if (isKnownBotUserAgent(request.headers.get('user-agent'))) {
         return new Response(null, { status: 204 });
     }
 

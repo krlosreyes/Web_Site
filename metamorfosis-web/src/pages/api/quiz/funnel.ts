@@ -25,6 +25,7 @@ import {
     isSelfExcluded,
     readCookiesFromHeader,
 } from '../../../lib/legacy/adminSelfExclusion';
+import { isKnownBotUserAgent } from '../../../lib/legacy/botDetection';
 
 export const prerender = false;
 
@@ -37,6 +38,12 @@ export const POST: APIRoute = async ({ request }) => {
     }
     const selfCookies = readCookiesFromHeader(request.headers.get('cookie'));
     if (isSelfExcluded(selfCookies)) {
+        return new Response(null, { status: 204 });
+    }
+
+    // SPEC-094: filtrar bots (no deberían disparar sendBeacon pero
+    // por seguridad chequeamos).
+    if (isKnownBotUserAgent(request.headers.get('user-agent'))) {
         return new Response(null, { status: 204 });
     }
 

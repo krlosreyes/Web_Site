@@ -18,6 +18,8 @@
  * que disparar un rebuild completo. `import.meta.env.PUBLIC_*` queda como
  * red de seguridad para `astro dev` y otros contextos build-time-only.
  */
+import { isKnownBotUserAgent } from '../lib/legacy/botDetection';
+
 const path = Astro.url.pathname;
 const isAdminPath = path.startsWith('/admin');
 const websiteId =
@@ -25,7 +27,12 @@ const websiteId =
     import.meta.env.PUBLIC_UMAMI_WEBSITE_ID;
 const isProd =
     process.env.NODE_ENV === 'production' || import.meta.env.PROD;
-const enabled = isProd && !!websiteId && !isAdminPath;
+// SPEC-094: no inyectamos el tracker si el UA es un bot conocido
+// (crawlers de Meta, X, LinkedIn, etc. que hacen link previews).
+// Ahorra ruido en Umami sin costo para el render del HTML.
+const userAgent = Astro.request.headers.get('user-agent');
+const isBot = isKnownBotUserAgent(userAgent);
+const enabled = isProd && !!websiteId && !isAdminPath && !isBot;
 ---
 
 {

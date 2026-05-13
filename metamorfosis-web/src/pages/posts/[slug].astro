@@ -10,6 +10,7 @@ import {
     isSelfExcluded,
     decideCookieAction,
 } from "../../lib/legacy/adminSelfExclusion";
+import { isKnownBotUserAgent } from "../../lib/legacy/botDetection";
 import ArticleQuiz from "../../components/ArticleQuiz";
 import PostReactions from "../../components/blog/PostReactions";
 import { Clock, Calendar, BookOpen, Link as LinkIcon } from "lucide-astro";
@@ -69,6 +70,12 @@ if (cookieAction.type === "set") {
 // para los counters.
 const isSelfExcludedView = isSelfExcluded(Astro.cookies);
 
+// SPEC-094: bots de redes sociales (facebookexternalhit, Twitterbot,
+// etc.) infla counters sin valor real. Los excluimos.
+const isBotView = isKnownBotUserAgent(
+    Astro.request.headers.get("user-agent"),
+);
+
 // SPEC-086: contador de vistas real. Dedupe por cookie de sesión
 // `viewed_posts` (CSV de slugs vistos esta sesión) + exclusión del
 // admin. Sin esto, el panel admin mostraba datos random (mocks).
@@ -82,6 +89,7 @@ const alreadyViewedThisSession = viewedList.includes(slugStr);
 if (
     !isAdminViewing &&
     !isSelfExcludedView &&
+    !isBotView &&
     !alreadyViewedThisSession &&
     slugStr
 ) {
