@@ -140,12 +140,17 @@ function wrapEmailHtml(opts: { subject: string; heading: string; bodyHtml: strin
 }
 
 /**
- * SPEC-057: email de bienvenida para FUNDADORES (primeros 1000).
+ * SPEC-057 + SPEC-096: email de bienvenida para usuarios con ACCESO
+ * ANTICIPADO (primeros 1000 registrados; internamente `founder.isFounder`).
  *
  * Diferenciado del estándar:
- *   - Subject: "Eres fundador #N de Metamorfosis Real"
- *   - Bloque destacado con el número grande + los 2 beneficios garantizados
- *   - Tono celebratorio pero limpio (sin gritos comerciales)
+ *   - Subject: "Tu acceso anticipado a ElenaApp está reservado"
+ *   - Bloque destacado con los 2 beneficios garantizados
+ *   - Tono cálido sin transaccionalidad ("fundador" generaba ansiedad)
+ *
+ * Nota: el nombre de la función `sendFounderWelcomeEmail` y el parámetro
+ * `founderNumber` se mantienen porque son nombres internos del schema.
+ * El usuario solo ve el copy del email, no estos identificadores.
  */
 export async function sendFounderWelcomeEmail(input: {
     to: string;
@@ -153,19 +158,18 @@ export async function sendFounderWelcomeEmail(input: {
     founderNumber: number;
 }): Promise<SendEmailResult> {
     const displayName = input.name?.trim() || 'biohacker';
-    const n = input.founderNumber;
-    const subject = `Eres fundador #${n} de Metamorfosis Real`;
+    const subject = `Tu acceso anticipado a ElenaApp está reservado`;
 
     const text = `Hola ${displayName},
 
-Bienvenido al ecosistema de Metamorfosis Real. Eres uno de los primeros 1000 que confiaron en este proyecto: eres el FUNDADOR #${n}.
+Bienvenido al ecosistema de Metamorfosis Real. Tu lugar entre los primeros usuarios de ElenaApp está reservado.
 
-🎁 BENEFICIOS GARANTIZADOS AL LANZAMIENTO DE ELENAAPP
+🚀 BENEFICIOS GARANTIZADOS AL LANZAMIENTO
 
-1. Precio fundador permanente: descuento de por vida en la suscripción anual de ElenaApp.
-2. Beneficios sorpresa: se revelan el día del lanzamiento de ElenaApp.
+1. Precio preferencial en la suscripción anual de ElenaApp.
+2. Beneficios exclusivos de lanzamiento: ventajas reservadas para usuarios con acceso anticipado.
 
-No tienes que hacer nada — cuando ElenaApp se lance, ingresas con tu mismo correo y la app te identifica automáticamente como fundador.
+No tienes que hacer nada — cuando ElenaApp se lance, ingresas con tu mismo correo y la app te identifica automáticamente.
 
 ${RESOURCES_TEXT}
 
@@ -175,44 +179,44 @@ Cualquier duda, puedes responder directamente a este email.
 Metamorfosis Real`;
 
     const bodyHtml = `
-      <p style="margin:0 0 16px;">Bienvenido al ecosistema de Metamorfosis Real. Eres uno de los <strong style="color:#fde68a;">primeros 1000</strong> que confiaron en este proyecto.</p>
+      <p style="margin:0 0 16px;">Bienvenido al ecosistema de Metamorfosis Real. Tu lugar entre los <strong style="color:#00C49A;">primeros usuarios</strong> de ElenaApp está reservado.</p>
 
-      <!-- NÚMERO DE FUNDADOR -->
+      <!-- BADGE DE ACCESO ANTICIPADO -->
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
         <tr>
-          <td style="padding:28px 22px;background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(0,196,154,0.10));border:1px solid rgba(245,158,11,0.35);border-radius:16px;text-align:center;">
-            <div style="font-size:10px;font-weight:900;color:#f59e0b;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:10px;">🎁 Acceso fundador</div>
-            <div style="font-size:48px;font-weight:900;color:#ffffff;font-style:italic;line-height:1;letter-spacing:-2px;">#<span style="color:#fde68a;">${n}</span></div>
-            <div style="font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.3em;text-transform:uppercase;margin-top:10px;">de los primeros 1000</div>
+          <td style="padding:28px 22px;background:linear-gradient(135deg,rgba(0,196,154,0.15),rgba(0,196,154,0.05));border:1px solid rgba(0,196,154,0.35);border-radius:16px;text-align:center;">
+            <div style="font-size:10px;font-weight:900;color:#00C49A;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:10px;">🚀 Acceso anticipado</div>
+            <div style="font-size:24px;font-weight:900;color:#ffffff;font-style:italic;line-height:1.2;letter-spacing:-0.5px;">Tu lugar está reservado</div>
+            <div style="font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.3em;text-transform:uppercase;margin-top:10px;">en ElenaApp</div>
           </td>
         </tr>
       </table>
 
-      <p style="margin:0 0 14px;font-weight:700;color:#ffffff;">Beneficios garantizados al lanzamiento de ElenaApp:</p>
+      <p style="margin:0 0 14px;font-weight:700;color:#ffffff;">Beneficios garantizados al lanzamiento:</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
         <tr>
-          <td style="padding:16px 18px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.25);border-radius:12px;">
-            <div style="font-size:14px;font-weight:700;color:#fde68a;margin-bottom:4px;">1. Precio fundador permanente</div>
-            <div style="font-size:13px;color:#cbd5e1;line-height:1.5;">Descuento de por vida en la suscripción anual de ElenaApp.</div>
+          <td style="padding:16px 18px;background:rgba(0,196,154,0.06);border:1px solid rgba(0,196,154,0.25);border-radius:12px;">
+            <div style="font-size:14px;font-weight:700;color:#00C49A;margin-bottom:4px;">1. Precio preferencial</div>
+            <div style="font-size:13px;color:#cbd5e1;line-height:1.5;">Condiciones especiales en la suscripción anual de ElenaApp por registro anticipado.</div>
           </td>
         </tr>
         <tr><td style="height:8px;line-height:8px;">&nbsp;</td></tr>
         <tr>
           <td style="padding:16px 18px;background:rgba(0,196,154,0.06);border:1px solid rgba(0,196,154,0.25);border-radius:12px;">
-            <div style="font-size:14px;font-weight:700;color:#00C49A;margin-bottom:4px;">2. Beneficios sorpresa</div>
-            <div style="font-size:13px;color:#cbd5e1;line-height:1.5;">Se revelan el día del lanzamiento de ElenaApp.</div>
+            <div style="font-size:14px;font-weight:700;color:#00C49A;margin-bottom:4px;">2. Beneficios exclusivos de lanzamiento</div>
+            <div style="font-size:13px;color:#cbd5e1;line-height:1.5;">Ventajas reservadas para usuarios que se registraron antes del lanzamiento oficial.</div>
           </td>
         </tr>
       </table>
 
-      <p style="margin:0 0 24px;font-size:13px;color:#94a3b8;line-height:1.5;">No tienes que hacer nada — al iniciar sesión en ElenaApp con tu mismo correo, la app te identifica automáticamente como fundador.</p>
+      <p style="margin:0 0 24px;font-size:13px;color:#94a3b8;line-height:1.5;">No tienes que hacer nada — al iniciar sesión en ElenaApp con tu mismo correo, la app te identifica automáticamente.</p>
 
       ${RESOURCES_HTML}
     `;
 
     const html = wrapEmailHtml({
         subject,
-        heading: `Eres fundador #${n}`,
+        heading: `Tu acceso está reservado`,
         bodyHtml,
     });
 
@@ -220,10 +224,12 @@ Metamorfosis Real`;
 }
 
 /**
- * SPEC-057: email de bienvenida ESTÁNDAR (post-cupo de fundadores).
+ * SPEC-057 + SPEC-096: email de bienvenida ESTÁNDAR (post-cupo de
+ * acceso anticipado).
  *
- * Para usuarios que se registran después del fundador #1000. Tono cálido
- * pero NO menciona los beneficios fundador (sería FOMO sin razón).
+ * Para usuarios que se registran después del cupo de los primeros 1000.
+ * Tono cálido pero NO menciona los beneficios de acceso anticipado
+ * (sería FOMO sin razón, ese cupo ya está cerrado).
  */
 export async function sendStandardWelcomeEmail(input: {
     to: string;

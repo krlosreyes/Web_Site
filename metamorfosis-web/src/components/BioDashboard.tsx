@@ -161,25 +161,28 @@ const BioDashboard = () => {
 
     return (
         <div className="animate-fade-in space-y-12 pb-20">
-            {/* SPEC-057: banner de fundador. Visible solo si el user pertenece
-                al cohorte de los primeros 1000 (founder.isFounder=true).
-                Cumple doble función:
-                  1. Reconocimiento permanente — el user ve su número siempre.
+            {/* SPEC-057 + SPEC-096: banner de acceso anticipado. Visible solo
+                si el user pertenece al cohorte de los primeros 1000
+                (founder.isFounder=true en el schema interno). Cumple doble
+                función:
+                  1. Reconocimiento permanente — el user sabe que está adentro.
                   2. Fallback al email transaccional: si por cualquier motivo
-                     el correo de bienvenida fundador no llegó, los beneficios
-                     siguen visibles en el dashboard. */}
+                     el correo de bienvenida no llegó, los beneficios siguen
+                     visibles en el dashboard.
+                SPEC-096: copy reescrito sin "fundador" para reducir fricción
+                transaccional. El schema interno (founder.*) se mantiene. */}
             {stats.founderNumber !== null && !stats.isLoading && (
-                <div className="bg-bg-surface border border-amber-500/20 rounded-xl p-5 md:p-6 flex flex-col md:flex-row md:items-center gap-5">
+                <div className="bg-bg-surface border border-accent/30 rounded-xl p-5 md:p-6 flex flex-col md:flex-row md:items-center gap-5">
                     <div className="flex items-center gap-4 shrink-0">
-                        <div className="w-12 h-12 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-2xl shrink-0">
-                            🎁
+                        <div className="w-12 h-12 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-2xl shrink-0">
+                            🚀
                         </div>
                         <div>
-                            <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-400 mb-1">
-                                Acceso fundador
+                            <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent mb-1">
+                                Acceso anticipado
                             </div>
                             <div className="text-base font-semibold text-text-primary leading-tight">
-                                Estás dentro del cohorte fundador
+                                Tu lugar en ElenaApp está reservado
                             </div>
                         </div>
                     </div>
@@ -187,7 +190,7 @@ const BioDashboard = () => {
                     {/* Lado derecho — beneficios concisos */}
                     <div className="flex-1 min-w-0 md:border-l md:border-white/[0.06] md:pl-6">
                         <p className="text-sm text-text-secondary leading-relaxed">
-                            <span className="text-text-primary font-semibold">Precio fundador permanente</span> en la suscripción anual de ElenaApp + <span className="text-text-primary font-semibold">beneficios sorpresa</span> que se revelan el día del lanzamiento.
+                            <span className="text-text-primary font-semibold">Precio preferencial</span> en ElenaApp + <span className="text-text-primary font-semibold">beneficios exclusivos</span> de lanzamiento.
                         </p>
                         <p className="mt-2 text-[11px] text-text-muted uppercase tracking-wider">
                             Sin acción requerida — te identificamos por tu correo

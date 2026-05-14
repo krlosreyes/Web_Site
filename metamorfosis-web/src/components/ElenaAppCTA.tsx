@@ -191,42 +191,47 @@ const ElenaAppCTA: React.FC = () => {
                             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-accent/10 border border-accent/20 text-accent text-[11px] font-bold uppercase tracking-[0.18em] mb-4">
                                 🚀 Acceso anticipado
                             </div>
-                            {/* H1 expresivo del modal (italic uppercase). */}
+                            {/* SPEC-096: copy reescrito para reducir fricción
+                                transaccional. Antes decía "Sé fundador / Uno
+                                de los primeros 1000" — la palabra fundador
+                                generaba ansiedad ("¿esto cuesta plata?"). */}
                             <h2
                                 id="elenaapp-modal-title"
                                 className="font-heading font-black text-text-primary italic uppercase tracking-tight leading-tight mb-3 break-words"
                             >
-                                <span className="block text-2xl sm:text-3xl">Sé fundador</span>
+                                <span className="block text-2xl sm:text-3xl">Reserva tu acceso</span>
                                 <span className="block mt-1 text-xs sm:text-sm font-bold tracking-[0.15em] text-accent">
-                                    Uno de los primeros 1000
+                                    Gratis · Sin tarjeta
                                 </span>
                             </h2>
                             <p className="text-text-secondary text-sm leading-relaxed max-w-md mx-auto">
-                                ElenaApp está casi lista. Reserva tu lugar y obtén beneficios exclusivos.
+                                Sé de los primeros en usar ElenaApp y recibe beneficios exclusivos de lanzamiento.
                             </p>
                         </div>
 
-                        {/* Beneficios */}
+                        {/* SPEC-096: cards rediseñadas. Card 1 = valor;
+                            Card 2 = seguridad/sin compromiso (la card que
+                            más reduce la objeción del visitante hispano). */}
                         <div className="px-6 sm:px-8 pb-2 space-y-2.5">
                             <div className="flex items-start gap-3 p-4 rounded-lg bg-accent/[0.06] border border-accent/20">
-                                <span className="text-xl shrink-0 leading-none">🎁</span>
+                                <span className="text-xl shrink-0 leading-none">💎</span>
                                 <div className="min-w-0">
                                     <p className="text-accent font-semibold text-sm mb-0.5">
-                                        Precio fundador
+                                        Precio preferencial
                                     </p>
                                     <p className="text-text-secondary text-xs leading-relaxed">
-                                        Descuento permanente en la suscripción anual. Solo para los primeros 1000.
+                                        Condiciones especiales por registro anticipado.
                                     </p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3 p-4 rounded-lg bg-bg-elevated border border-white/[0.06]">
-                                <span className="text-xl shrink-0 leading-none">🔒</span>
+                                <span className="text-xl shrink-0 leading-none">✅</span>
                                 <div className="min-w-0">
                                     <p className="text-text-primary font-semibold text-sm mb-0.5">
-                                        Beneficios sorpresa
+                                        Sin obligación
                                     </p>
                                     <p className="text-text-secondary text-xs leading-relaxed">
-                                        Se revelan el día del lanzamiento. Vas a querer estar adentro.
+                                        Solo apartas tu lugar. Decides después si quieres continuar.
                                     </p>
                                 </div>
                             </div>
@@ -265,10 +270,10 @@ const ElenaAppCTA: React.FC = () => {
                                         }}
                                         className="block text-center w-full px-5 py-3 rounded-lg bg-accent text-bg-base hover:bg-accent-strong font-semibold text-base transition-colors"
                                     >
-                                        Reserva tu lugar — gratis →
+                                        Reservar mi lugar gratis →
                                     </a>
                                     <p className="text-center text-[11px] text-text-muted mt-3">
-                                        Sin tarjeta · 2 minutos · Sin spam
+                                        Gratis · Sin tarjeta · 2 minutos
                                     </p>
                                 </>
                             )}
