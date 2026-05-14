@@ -191,49 +191,32 @@ const ElenaAppCTA: React.FC = () => {
                             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-accent/10 border border-accent/20 text-accent text-[11px] font-bold uppercase tracking-[0.18em] mb-4">
                                 🚀 Acceso anticipado
                             </div>
-                            {/* SPEC-096: copy reescrito para reducir fricción
-                                transaccional. Antes decía "Sé fundador / Uno
-                                de los primeros 1000" — la palabra fundador
-                                generaba ansiedad ("¿esto cuesta plata?"). */}
+                            {/* SPEC-097: cambio de enfoque del modal. En lugar
+                                de hablar de "reservar acceso" + "precio", el
+                                hook es VALOR inmediato (calcular % grasa
+                                corporal vía IMR). El registro al cohorte de
+                                acceso anticipado ocurre automáticamente al
+                                completar el quiz — no es lo que el modal
+                                vende. Mucho más fácil de "decir sí". */}
                             <h2
                                 id="elenaapp-modal-title"
-                                className="font-heading font-black text-text-primary italic uppercase tracking-tight leading-tight mb-3 break-words"
+                                className="font-heading font-black text-text-primary italic uppercase tracking-tight leading-tight mb-4 break-words"
                             >
-                                <span className="block text-2xl sm:text-3xl">Reserva tu acceso</span>
-                                <span className="block mt-1 text-xs sm:text-sm font-bold tracking-[0.15em] text-accent">
-                                    Gratis · Sin tarjeta
-                                </span>
+                                <span className="block text-2xl sm:text-3xl">Conoce ahora tu</span>
+                                <span className="block text-2xl sm:text-3xl text-accent">% de grasa corporal</span>
                             </h2>
-                            <p className="text-text-secondary text-sm leading-relaxed max-w-md mx-auto">
-                                Sé de los primeros en usar ElenaApp y recibe beneficios exclusivos de lanzamiento.
-                            </p>
                         </div>
 
-                        {/* SPEC-096: cards rediseñadas. Card 1 = valor;
-                            Card 2 = seguridad/sin compromiso (la card que
-                            más reduce la objeción del visitante hispano). */}
-                        <div className="px-6 sm:px-8 pb-2 space-y-2.5">
+                        {/* SPEC-097: una sola card explicativa. Conecta el
+                            valor inmediato (IMR) con el beneficio futuro
+                            (acceso anticipado a ElenaApp) sin que el último
+                            sea el foco. */}
+                        <div className="px-6 sm:px-8 pb-2">
                             <div className="flex items-start gap-3 p-4 rounded-lg bg-accent/[0.06] border border-accent/20">
-                                <span className="text-xl shrink-0 leading-none">💎</span>
-                                <div className="min-w-0">
-                                    <p className="text-accent font-semibold text-sm mb-0.5">
-                                        Precio preferencial
-                                    </p>
-                                    <p className="text-text-secondary text-xs leading-relaxed">
-                                        Condiciones especiales por registro anticipado.
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3 p-4 rounded-lg bg-bg-elevated border border-white/[0.06]">
-                                <span className="text-xl shrink-0 leading-none">✅</span>
-                                <div className="min-w-0">
-                                    <p className="text-text-primary font-semibold text-sm mb-0.5">
-                                        Sin obligación
-                                    </p>
-                                    <p className="text-text-secondary text-xs leading-relaxed">
-                                        Solo apartas tu lugar. Decides después si quieres continuar.
-                                    </p>
-                                </div>
+                                <span className="text-xl shrink-0 leading-none">🎁</span>
+                                <p className="text-text-secondary text-sm leading-relaxed">
+                                    Al calcular tu IMR quedas registrado(a) para estar entre las <span className="text-text-primary font-semibold">primeras 1000 personas</span> en tener ElenaApp con beneficios adicionales.
+                                </p>
                             </div>
                         </div>
 
@@ -259,22 +242,22 @@ const ElenaAppCTA: React.FC = () => {
                                 </>
                             ) : (
                                 <>
+                                    {/* SPEC-097: CTA ahora lleva al quiz IMR
+                                        directo en lugar de a /login. El
+                                        registro al cohorte ocurre al final
+                                        del quiz, naturalmente. Footer
+                                        eliminado por redundancia visual. */}
                                     <a
-                                        href="/login?fromWaitlist=1"
+                                        href="/quiz"
                                         onClick={() => {
-                                            // SPEC-084: tracking — intent
-                                            // de reservar (no garantiza
-                                            // que se registre; ese evento
-                                            // se dispara en login.astro).
+                                            // SPEC-084: tracking — intent de
+                                            // empezar el flujo de captación.
                                             track('cta_elenaapp_reservar');
                                         }}
                                         className="block text-center w-full px-5 py-3 rounded-lg bg-accent text-bg-base hover:bg-accent-strong font-semibold text-base transition-colors"
                                     >
-                                        Reservar mi lugar gratis →
+                                        Calcular mi IMR ahora →
                                     </a>
-                                    <p className="text-center text-[11px] text-text-muted mt-3">
-                                        Gratis · Sin tarjeta · 2 minutos
-                                    </p>
                                 </>
                             )}
                         </div>
