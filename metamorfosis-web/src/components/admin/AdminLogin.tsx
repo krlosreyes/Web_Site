@@ -40,7 +40,7 @@ const AdminLogin: React.FC = () => {
                 if (res.status === 429) {
                     setErrorMsg(
                         data.error ||
-                            'Demasiados intentos. Esperá un minuto y volvé a probar.'
+                            'Demasiados intentos. Espera un minuto e intenta de nuevo.'
                     );
                 } else if (res.status === 401) {
                     setErrorMsg('Código de acceso inválido.');
