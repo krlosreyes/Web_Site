@@ -1,5 +1,26 @@
 ---
 import { ArrowRight } from 'lucide-astro';
+
+/**
+ * SPEC-098: stats row reescrito. Eliminadas las métricas inventadas
+ * ("10K+ Usuarios activos", "94% Mejora metabólica") por riesgo de
+ * credibilidad y posible exposición regulatoria (claim de eficacia
+ * sin metodología publicada).
+ *
+ * Tile 1: suscriptores reales del canal YouTube. Valor configurable
+ * vía env var en Hostinger. Patrón runtime SSR (SPEC-028b) — un
+ * cambio en la env var surte efecto sin rebuild. Si la env var no
+ * está seteada, el tile y su separator se ocultan limpiamente.
+ *
+ * Tile 2: statement honesto del estado del proyecto, sin número.
+ *
+ * Tile 3: IMR / Índice propio — sin cambio.
+ */
+const youtubeSubscribers =
+  process.env.PUBLIC_YOUTUBE_SUBSCRIBERS ||
+  import.meta.env.PUBLIC_YOUTUBE_SUBSCRIBERS ||
+  null;
+const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@Metamorfosisreal';
 ---
 <section class="hero-section relative min-h-[92vh] flex items-center px-6 overflow-hidden">
 
@@ -63,16 +84,32 @@ import { ArrowRight } from 'lucide-astro';
         </a>
       </div>
 
-      {/* Stats row — colores unificados al sistema. */}
+      {/* SPEC-098: stats row honesto. Métricas inventadas reemplazadas
+          por suscriptores YouTube real (condicional) + estado real del
+          proyecto + tile IMR. */}
       <div class="mt-14 flex items-center gap-6 md:gap-8">
+        {youtubeSubscribers && (
+          <>
+            <a
+              href={YOUTUBE_CHANNEL_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-umami-event="cta_youtube_hero"
+              class="group block hover:-translate-y-0.5 transition-transform"
+              aria-label="Visitar el canal de YouTube Metamorfosis Real"
+            >
+              <p class="text-2xl font-bold text-text-primary group-hover:text-accent transition-colors">{youtubeSubscribers}</p>
+              <p class="text-[11px] text-text-muted group-hover:text-text-secondary uppercase tracking-[0.2em] mt-0.5 inline-flex items-center gap-1 transition-colors">
+                Suscriptores en YouTube
+                <span class="text-accent opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
+              </p>
+            </a>
+            <div class="w-px h-10 bg-white/[0.08]"></div>
+          </>
+        )}
         <div>
-          <p class="text-2xl font-bold text-text-primary">10K+</p>
-          <p class="text-[11px] text-text-muted uppercase tracking-[0.2em] mt-0.5">Usuarios activos</p>
-        </div>
-        <div class="w-px h-10 bg-white/[0.08]"></div>
-        <div>
-          <p class="text-2xl font-bold text-accent">94%</p>
-          <p class="text-[11px] text-text-muted uppercase tracking-[0.2em] mt-0.5">Mejora metabólica</p>
+          <p class="text-2xl font-bold text-accent">BETA</p>
+          <p class="text-[11px] text-text-muted uppercase tracking-[0.2em] mt-0.5">Cohorte 2026 activa</p>
         </div>
         <div class="w-px h-10 bg-white/[0.08]"></div>
         <a
