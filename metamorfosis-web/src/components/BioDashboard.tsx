@@ -5,6 +5,7 @@ import { COLLECTIONS } from '../lib/constants/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import type { UserDoc } from '../lib/types/user';
 import { buildCanonicalPatch } from '../lib/legacy/elenaAppAdapter';
+import { identifyWeakPillar } from '../lib/imr/weakPillar';
 
 const Icons = {
     Estructura: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
@@ -139,6 +140,17 @@ const BioDashboard = () => {
     }, []);
 
     const imrColor = stats.imr < 40 ? '#EF4444' : stats.imr < 60 ? '#F59E0B' : '#10B981';
+
+    /**
+     * SPEC-099: pilar débil + acción semanal. Calculado siempre que haya
+     * blocks válidos (incluye caso optimal = todos ≥0.70). Si el dashboard
+     * está en estado isLoading o needsOnboarding o hasProfileNoImr, no
+     * renderizamos la card (los blocks serían 0 y la acción saldría
+     * "óptima" engañosamente).
+     */
+    const hasValidImr =
+        !stats.isLoading && !stats.needsOnboarding && !stats.hasProfileNoImr && stats.imr > 0;
+    const weakPillar = hasValidImr ? identifyWeakPillar(stats.blocks) : null;
 
     const blocksMapping = [
         { key: 'E', label: 'Estructura', icon: <Icons.Estructura /> },
@@ -304,22 +316,71 @@ const BioDashboard = () => {
                             href="/imr"
                             data-umami-event="cta_imr_explicacion"
                             data-umami-event-source="dashboard"
-                            className="inline-flex items-center gap-2 px-4 py-2.5 mb-8 rounded-lg bg-accent/[0.08] border border-accent/30 text-accent text-xs font-semibold hover:bg-accent/[0.15] hover:border-accent/50 transition-colors"
+                            className="inline-flex items-center gap-2 px-4 py-2.5 mb-6 rounded-lg bg-accent/[0.08] border border-accent/30 text-accent text-xs font-semibold hover:bg-accent/[0.15] hover:border-accent/50 transition-colors"
                         >
                             <span>🤔</span>
                             ¿Qué significa este puntaje?
                             <span className="ml-0.5">→</span>
                         </a>
 
-                        {/* Grid pilares — cards compactas rounded-lg, sin italic */}
+                        {/* SPEC-099: pilar débil + acción semanal sustentada.
+                            Convierte el termómetro (score) en brújula (acción).
+                            Se oculta si el dashboard no tiene IMR válido aún. */}
+                        {weakPillar && (
+                            <div
+                                className="bg-accent/[0.06] border border-accent/30 rounded-xl p-4 mb-6 text-left"
+                                data-umami-event="weak_pillar_action_visto"
+                                data-umami-event-pillar={weakPillar.key}
+                                data-umami-event-optimal={String(weakPillar.isOptimal)}
+                            >
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent mb-2">
+                                    {weakPillar.isOptimal
+                                        ? 'Tu balance de la semana'
+                                        : `Tu mayor oportunidad: ${weakPillar.label} · ${weakPillar.scorePct}%`}
+                                </p>
+                                <p className="text-sm font-semibold text-text-primary leading-snug mb-1.5">
+                                    {weakPillar.weeklyAction.title}
+                                </p>
+                                <p className="text-xs text-text-secondary leading-relaxed">
+                                    {weakPillar.weeklyAction.detail}
+                                </p>
+                                {weakPillar.weeklyAction.references.length > 0 && (
+                                    <details className="mt-3">
+                                        <summary className="text-[10px] font-semibold uppercase tracking-wider text-text-muted hover:text-text-secondary cursor-pointer transition-colors">
+                                            Ver referencias ({weakPillar.weeklyAction.references.length})
+                                        </summary>
+                                        <ul className="mt-2 space-y-1">
+                                            {weakPillar.weeklyAction.references.map((ref, i) => (
+                                                <li key={i} className="text-[10px] text-text-muted leading-relaxed pl-3 border-l border-white/[0.06]">
+                                                    {ref}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </details>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Grid pilares — cards compactas rounded-lg, sin italic.
+                            SPEC-099: el pilar débil (no en zona óptima) recibe
+                            ring-2 ring-accent/40 para destacarse visualmente. */}
                         <div className="grid grid-cols-3 gap-2">
-                            {blocksMapping.map((b: any) => (
-                                <div key={b.key} className="bg-bg-base/60 p-3 rounded-lg border border-white/[0.04] flex flex-col items-center gap-1.5">
-                                    <div className="text-accent">{b.icon}</div>
-                                    <div className="text-[9px] font-bold text-text-muted uppercase tracking-wider">{b.label}</div>
-                                    <div className="text-base font-bold text-text-primary">{Math.round((stats.blocks?.[b.key as 'E' | 'M' | 'C'] || 0) * 100)}%</div>
-                                </div>
-                            ))}
+                            {blocksMapping.map((b: any) => {
+                                const isWeakest =
+                                    weakPillar !== null &&
+                                    !weakPillar.isOptimal &&
+                                    weakPillar.key === b.key;
+                                return (
+                                    <div
+                                        key={b.key}
+                                        className={`bg-bg-base/60 p-3 rounded-lg border border-white/[0.04] flex flex-col items-center gap-1.5 ${isWeakest ? 'ring-2 ring-accent/40' : ''}`}
+                                    >
+                                        <div className="text-accent">{b.icon}</div>
+                                        <div className="text-[9px] font-bold text-text-muted uppercase tracking-wider">{b.label}</div>
+                                        <div className="text-base font-bold text-text-primary">{Math.round((stats.blocks?.[b.key as 'E' | 'M' | 'C'] || 0) * 100)}%</div>
+                                    </div>
+                                );
+                            })}
                         </div>
 
                         {/* Composición corporal estimada (SPEC-006) */}

@@ -6,6 +6,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { computeImr, bodyFatNavy, ENGINE_VERSION } from '../lib/imr/engine';
+import { identifyWeakPillar, type WeakPillarResult } from '../lib/imr/weakPillar';
 import type { ImrResult } from '../lib/types/user';
 import { track } from '../lib/analytics/track';
 import { calculateAge, maxBirthDateFor18Plus } from '../lib/utils/age';
@@ -196,6 +197,37 @@ const IMRQuiz = () => {
     });
 
     const [regData, setRegData] = useState({ name: '', email: '', pass: '' });
+
+    /**
+     * SPEC-099: preview del IMR para anónimos en step 2.
+     * Cuando step pasa a 2, leemos el payload calculado de sessionStorage
+     * (sembrado por handleFinish) y derivamos el pilar débil. Esto le da
+     * al anónimo valor visible ANTES de pedirle registro.
+     */
+    const [previewData, setPreviewData] = useState<{
+        imrResult: ImrResult;
+        weakPillar: WeakPillarResult;
+    } | null>(null);
+
+    useEffect(() => {
+        if (step !== 2) return;
+        const stored = sessionStorage.getItem(QUIZ_STORAGE_KEY);
+        if (!stored) return;
+        try {
+            const payload: OnboardPayload = JSON.parse(stored);
+            const weakPillar = identifyWeakPillar(payload.imrResult.blocks);
+            setPreviewData({ imrResult: payload.imrResult, weakPillar });
+            // SPEC-099: trackeo del anónimo que ve el preview accionable.
+            track('quiz_preview_visto', {
+                score: payload.imrResult.imrScore,
+                label: payload.imrResult.label,
+                weakPillar: weakPillar.key,
+                isOptimal: weakPillar.isOptimal,
+            });
+        } catch (err) {
+            console.error('[IMRQuiz] no se pudo parsear payload para preview:', err);
+        }
+    }, [step]);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -582,31 +614,89 @@ const IMRQuiz = () => {
         );
     }
 
+    // SPEC-099: color del score según zona — espejo del patrón de BioDashboard.
+    const imrColor =
+        previewData && previewData.imrResult.imrScore < 40
+            ? '#EF4444'
+            : previewData && previewData.imrResult.imrScore < 60
+                ? '#F59E0B'
+                : '#10B981';
+
     return (
         <div className="max-w-md w-full mx-auto py-10 px-6 sm:px-8 bg-bg-surface border border-white/[0.06] rounded-2xl text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight mb-2">Análisis completado</h2>
-            <p className="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] mb-5">Vincula tu identidad para recibir tu reporte IMR</p>
+            {/* SPEC-099: preview accionable. El anónimo ve su score + zona +
+                pilar débil + acción semanal ANTES del form. El registro pasa
+                a vender "guardar reporte + plan 14 días", no "ver número". */}
+            {previewData && (
+                <div className="mb-8">
+                    <p className="text-[11px] font-bold text-text-muted uppercase tracking-[0.25em] mb-4">Tu IMR</p>
 
-            {/* SPEC-085: pedagogía pre-registro. El user acaba de completar el
-                quiz y va a ver un puntaje IMR — conviene que sepa qué es antes
-                de comprometerse al registro. Link sutil para no robarle peso
-                al CTA principal del form. */}
-            <a
-                href="/imr"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => track('cta_imr_explicacion', { source: 'quiz_resultado' })}
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:text-accent-strong transition-colors mb-7"
-            >
-                ¿Qué es el IMR? Conoce qué medimos →
-            </a>
+                    {/* Gauge compacto — 140px (vs 200px del dashboard). */}
+                    <div className="relative w-[140px] h-[140px] mx-auto mb-3">
+                        <svg className="w-full h-full -rotate-90" viewBox="0 0 240 240">
+                            <circle cx="120" cy="120" r="108" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-white/[0.04]" />
+                            <circle cx="120" cy="120" r="108" stroke={imrColor} strokeWidth="10" fill="transparent"
+                                strokeDasharray={678}
+                                strokeDashoffset={678 - (678 * previewData.imrResult.imrScore) / 100}
+                                strokeLinecap="round"
+                            />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <span className="text-4xl font-bold tracking-tight" style={{ color: imrColor }}>{previewData.imrResult.imrScore}</span>
+                            <span className="text-text-muted text-[9px] font-semibold uppercase tracking-wider mt-0.5">/ 100</span>
+                        </div>
+                    </div>
+
+                    <p className="text-[10px] font-bold uppercase tracking-[0.25em] mb-5" style={{ color: imrColor }}>
+                        Zona {previewData.imrResult.label.toLowerCase()}
+                    </p>
+
+                    {/* Pilar débil + acción semanal. Si los 3 están óptimos,
+                        la acción que sale ya es de mantenimiento (ver
+                        weakPillar.ts isOptimal). */}
+                    <div className="bg-accent/[0.08] border border-accent/30 rounded-xl p-4 text-left mb-5">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent mb-2">
+                            {previewData.weakPillar.isOptimal
+                                ? 'Tu balance de la semana'
+                                : `Tu mayor oportunidad: ${previewData.weakPillar.label} · ${previewData.weakPillar.scorePct}%`}
+                        </p>
+                        <p className="text-sm font-semibold text-text-primary leading-snug mb-1.5">
+                            {previewData.weakPillar.weeklyAction.title}
+                        </p>
+                        <p className="text-xs text-text-secondary leading-relaxed">
+                            {previewData.weakPillar.weeklyAction.detail}
+                        </p>
+                    </div>
+
+                    {/* Disclaimer compacto + link a /imr (preserva SPEC-085). */}
+                    <p className="text-[10px] text-text-muted leading-relaxed mb-2 max-w-[280px] mx-auto">
+                        Recomendación general basada en literatura científica revisada por pares. Si tienes condiciones médicas particulares, consulta a tu profesional de salud.
+                    </p>
+                    <a
+                        href="/imr"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => track('cta_imr_explicacion', { source: 'quiz_resultado' })}
+                        className="inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:text-accent-strong transition-colors"
+                    >
+                        ¿Qué es el IMR? Conoce qué medimos →
+                    </a>
+                </div>
+            )}
+
+            <h2 className="text-xl sm:text-2xl font-bold text-text-primary tracking-tight mb-2">
+                Guarda tu reporte y desbloquea tu plan IMR
+            </h2>
+            <p className="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em] mb-6">
+                Acceso a tu dashboard de seguimiento + plan IMR de 14 días
+            </p>
 
             <form onSubmit={handleFinalRegister} className="space-y-3 text-left">
                 <input required type="text" placeholder="Tu nombre" className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-3 px-4 text-text-primary outline-none focus:border-accent text-base transition-colors placeholder:text-text-muted" value={regData.name} onChange={e => setRegData({...regData, name: e.target.value})} />
                 <input required type="email" placeholder="Email" className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-3 px-4 text-text-primary outline-none focus:border-accent text-base transition-colors placeholder:text-text-muted" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} />
                 <input required type="password" placeholder="Crea una clave (mínimo 8 caracteres)" minLength={8} className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-3 px-4 text-text-primary outline-none focus:border-accent text-base transition-colors placeholder:text-text-muted" value={regData.pass} onChange={e => setRegData({...regData, pass: e.target.value})} />
                 <button disabled={isSaving} type="submit" className="w-full bg-accent disabled:bg-bg-elevated disabled:text-text-muted text-bg-base py-3 rounded-lg font-semibold text-base hover:bg-accent-strong transition-colors mt-2">
-                    {isSaving ? 'Generando reporte…' : 'Ver mis resultados →'}
+                    {isSaving ? 'Guardando reporte…' : 'Guardar mi reporte →'}
                 </button>
             </form>
         </div>
