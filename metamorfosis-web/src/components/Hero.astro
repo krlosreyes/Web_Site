@@ -1,5 +1,5 @@
 ---
-import { ArrowRight } from 'lucide-astro';
+import { ArrowRight, Youtube } from 'lucide-astro';
 
 /**
  * SPEC-098: stats row reescrito. Eliminadas las métricas inventadas
@@ -17,7 +17,7 @@ import { ArrowRight } from 'lucide-astro';
  * Tile 3: IMR / Índice propio — sin cambio.
  */
 // ⬇ ACTUALIZAR AQUÍ cuando el canal de YouTube crezca.
-const YOUTUBE_SUBSCRIBERS = '4500';
+const YOUTUBE_SUBSCRIBERS = '4.5K';
 const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@Metamorfosisreal';
 ---
 <section class="hero-section relative min-h-[92vh] flex items-center px-6 overflow-hidden">
@@ -94,7 +94,13 @@ const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@Metamorfosisreal';
           class="group block hover:-translate-y-0.5 transition-transform"
           aria-label="Visitar el canal de YouTube Metamorfosis Real"
         >
-          <p class="text-2xl font-bold text-text-primary group-hover:text-accent transition-colors">{YOUTUBE_SUBSCRIBERS}</p>
+          {/* Logo YouTube en rojo brand (#FF0000) para reconocimiento
+              instantáneo. Único color off-paleta del Hero — estándar de la
+              industria para iconos de plataformas en stat rows. */}
+          <p class="text-2xl font-bold text-text-primary group-hover:text-accent transition-colors flex items-center gap-2">
+            <Youtube class="w-6 h-6 text-[#FF0000] fill-[#FF0000]" aria-hidden="true" />
+            <span>{YOUTUBE_SUBSCRIBERS}</span>
+          </p>
           <p class="text-[11px] text-text-muted group-hover:text-text-secondary uppercase tracking-[0.2em] mt-0.5 inline-flex items-center gap-1 transition-colors">
             Suscriptores en YouTube
             <span class="text-accent opacity-0 group-hover:opacity-100 transition-opacity">↗</span>

@@ -172,17 +172,23 @@ mitigado. Foso defensible vía honestidad sustituye foso falso vía vanity numbe
 **Implementación 2026-05-19 — código aplicado:**
 
 - `Hero.astro` actualizado:
+  - Import de `Youtube` de lucide-astro (junto al `ArrowRight`
+    existente). Patrón consistente con `Footer.astro:2`.
   - Frontmatter define dos constantes locales con comment claro
     sobre cuál actualizar:
     ```ts
     // ⬇ ACTUALIZAR AQUÍ cuando el canal de YouTube crezca.
-    const YOUTUBE_SUBSCRIBERS = '4500';
+    const YOUTUBE_SUBSCRIBERS = '4.5K';
     const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@Metamorfosisreal';
     ```
   - Tile 1 ("10K+ Usuarios activos") reemplazado por un `<a>` que
     linkea al canal con `target="_blank" rel="noopener noreferrer"`,
     `data-umami-event="cta_youtube_hero"` y arrow `↗` en hover. Tile
-    siempre visible (no condicional).
+    siempre visible (no condicional). El número va precedido por el
+    icono `<Youtube>` de lucide en color rojo brand (`#FF0000`) con
+    `fill` para que se vea como el botón YouTube oficial — único
+    color off-paleta del Hero, justificado por convención de
+    industria (iconos de plataforma usan brand color en stat rows).
   - Tile 2 ("94% Mejora metabólica") reemplazado por copy estático
     "BETA" / "Cohorte 2026 activa". Sin número.
   - Tile 3 (IMR) intacto.
@@ -215,8 +221,9 @@ mitigado. Foso defensible vía honestidad sustituye foso falso vía vanity numbe
    ```
 4. Verificación post-deploy (90-120s):
    - Abrir el home en producción.
-   - Confirmar que el row de stats muestra: `4500 Suscriptores en
-     YouTube ↗  |  BETA Cohorte 2026 activa  |  IMR Índice propio →`.
+   - Confirmar que el row de stats muestra: `▶ 4.5K | Suscriptores
+     en YouTube ↗  |  BETA Cohorte 2026 activa  |  IMR Índice propio →`
+     donde `▶` es el icono YouTube en rojo brand.
    - Click en el tile YouTube debe abrir el canal en pestaña nueva.
 
 **Cierre de spec:** al pasar las 4 verificaciones, cambiar Estado a
