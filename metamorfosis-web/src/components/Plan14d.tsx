@@ -276,6 +276,22 @@ const Plan14d = () => {
 
     return (
         <div className="animate-fade-in space-y-8 pb-20">
+            {/* SPEC-103: breadcrumb "Volver al dashboard". Visible siempre
+                que haya plan accesible (en curso o finalizado). No se
+                muestra en los estados de auth/sinImr — ahí los CTAs
+                principales son prioridad. */}
+            <a
+                href="/dashboard"
+                data-umami-event="cta_volver_dashboard_desde_plan"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-text-secondary hover:text-accent transition-colors"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Volver al dashboard
+            </a>
+
             {/* Header */}
             <div className="border-b border-white/[0.06] pb-6">
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent mb-2">
