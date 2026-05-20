@@ -141,6 +141,52 @@ export interface UserFounder {
 }
 
 /**
+ * SPEC-101: Progreso del Plan IMR de 14 días.
+ *
+ * El usuario completa días secuencialmente; este bloque persiste el
+ * avance entre sesiones y dispositivos. Es OPCIONAL — un usuario que
+ * nunca abrió el plan no tiene este campo en su doc.
+ *
+ * Reglas de mutación:
+ *   - Solo el dueño puede escribir (rules estándar de users/{uid}).
+ *   - El sitio web escribe directamente desde el cliente con `updateDoc`
+ *     (cliente Web SDK). No hay endpoint server-side para esto porque no
+ *     hay validación que requiera privilegios elevados.
+ *   - ElenaApp puede leer este bloque pero no se espera que lo modifique
+ *     (el plan es propiedad de la experiencia web). Si en el futuro la
+ *     app móvil quiere reflejar el progreso, puede leer y mostrar el
+ *     estado.
+ *
+ * Reglas de progresión (enforced en `lib/imr/plan14dProgress.ts`):
+ *   - Secuencial estricto: solo se puede marcar como completado el día
+ *     `max(completedDays) + 1`. El día 1 si el array está vacío.
+ *   - Undo solo del último: `completedDays.pop()` es la única operación
+ *     de descomplete válida.
+ *   - Sin penalización por gap temporal — el día actual no cambia
+ *     aunque pasen semanas sin entrar.
+ *
+ * Re-medición que cambia el pilar débil mientras hay progreso: el plan
+ * que el usuario ve se computa al render con el pilar ACTUAL (vía
+ * `identifyWeakPillar` + `getPlanForPillar`). `initialPillar` se preserva
+ * solo como metadato histórico — no afecta el render.
+ */
+export interface UserPlan14d {
+    /** ISO. null si el usuario aún no marcó ningún día. */
+    startedAt: string | null;
+    /** Días completados, en orden cronológico de completion. Ej. [1, 2, 3]. */
+    completedDays: number[];
+    /**
+     * Pilar al momento de iniciar el plan (preservado como histórico).
+     * La UI usa el pilar débil ACTUAL al render, no este.
+     */
+    initialPillar: 'E' | 'M' | 'C' | null;
+    /** Map "day" → ISO timestamp. Útil para analytics de adherencia. */
+    completedAt: Record<string, string>;
+    /** ISO. null hasta que día 14 se complete. */
+    finishedAt: string | null;
+}
+
+/**
  * Reservado para ElenaApp. La web NO escribe aquí.
  * El equipo de ElenaApp puede ampliar esta interfaz en su propio repo
  * mientras no rompa los campos existentes ni viole `schemaVersion`.
@@ -183,6 +229,8 @@ export interface UserDoc {
     waitlist: UserWaitlist;
     /** SPEC-056: cohorte fundadores (primeros 1000). */
     founder: UserFounder;
+    /** SPEC-101: progreso del Plan IMR 14d. Opcional para back-compat. */
+    plan14d?: UserPlan14d;
     app: UserApp;
     meta: UserMeta;
 }
