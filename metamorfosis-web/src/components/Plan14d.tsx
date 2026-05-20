@@ -425,6 +425,21 @@ const Plan14d = () => {
                                     </div>
                                 </div>
 
+                                {/* SPEC-105: imagen conceptual del día. Solo se
+                                    renderiza si el archivo existe (fallback
+                                    graceful si todavía no se ha subido a
+                                    /public/plan14d/). loading=lazy +
+                                    decoding=async para no bloquear render. */}
+                                {day.image && (
+                                    <img
+                                        src={day.image.src}
+                                        alt={day.image.alt}
+                                        loading="lazy"
+                                        decoding="async"
+                                        className="w-full aspect-video object-cover rounded-lg mb-4 border border-white/[0.06]"
+                                    />
+                                )}
+
                                 <p className="text-sm text-text-secondary leading-relaxed mb-4">
                                     {day.description}
                                 </p>

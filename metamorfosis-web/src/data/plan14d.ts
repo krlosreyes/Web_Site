@@ -31,6 +31,18 @@ export interface DayAction {
     references?: string[];
 }
 
+/**
+ * SPEC-105: imagen conceptual del día. Opcional para back-compat —
+ * si el archivo físico aún no fue subido a /public, el componente
+ * Plan14d.tsx hace fallback graceful y no rompe el render.
+ */
+export interface DayImage {
+    /** Ruta absoluta desde /public. Ej: '/plan14d/dia-01.webp' */
+    src: string;
+    /** Alt text descriptivo en español para accesibilidad + SEO. */
+    alt: string;
+}
+
 export interface DayPlan {
     day: number;
     phase: 'Reset' | 'Consolidación';
@@ -38,6 +50,8 @@ export interface DayPlan {
     title: string;
     /** Descripción común (2-3 oraciones) que explica el porqué del día. */
     description: string;
+    /** SPEC-105: imagen del día (opcional hasta que esté generada). */
+    image?: DayImage;
     /** Acción específica según pilar débil identificado por SPEC-099. */
     actions: {
         E: DayAction;
@@ -71,6 +85,10 @@ export const PLAN_14_DAYS: DayPlan[] = [
         title: 'Activa tu cambio metabólico',
         description:
             'Hoy comienza el proceso. Tu cuerpo va a empezar a usar reservas de energía que llevaba tiempo sin tocar. Es normal sentir picos de hambre — son señales hormonales, no falta de combustible.',
+        image: {
+            src: '/plan14d/dia-01.webp',
+            alt: 'Vaso de agua con sal marina sobre una mesa de madera al amanecer',
+        },
         actions: {
             E: {
                 title: 'Mide y registra tu baseline corporal',
@@ -97,6 +115,10 @@ export const PLAN_14_DAYS: DayPlan[] = [
         title: 'Acceso a tus reservas',
         description:
             'Con la insulina baja, tu cuerpo activa rutas alternas de energía. Es el punto donde dejas de depender del azúcar minuto a minuto para funcionar.',
+        image: {
+            src: '/plan14d/dia-02.webp',
+            alt: 'Cocina vacía a las 8 pm con luz cálida tenue sobre mesa despejada',
+        },
         actions: {
             E: {
                 title: 'Caminata de 20 minutos antes de tu primera comida',
@@ -123,6 +145,10 @@ export const PLAN_14_DAYS: DayPlan[] = [
         title: 'Limpieza interna',
         description:
             'Cuando dejas de comer por intervalos largos, tu cuerpo activa autofagia: recicla células dañadas y proteínas viejas. Es el mecanismo de renovación que muchos buscan con ayuno.',
+        image: {
+            src: '/plan14d/dia-03.webp',
+            alt: 'Té verde traslúcido en taza de vidrio con vapor suave y luz matinal',
+        },
         actions: {
             E: {
                 title: 'Sesión ligera de fuerza: 3 sets de sentadillas + flexiones',
@@ -148,6 +174,10 @@ export const PLAN_14_DAYS: DayPlan[] = [
         title: 'Sincroniza tu reloj interno',
         description:
             'Tu metabolismo es un reloj. Comer y dormir a horas consistentes le da a tu cuerpo señales claras de cuándo gastar energía y cuándo reparar.',
+        image: {
+            src: '/plan14d/dia-04.webp',
+            alt: 'Reloj analógico minimalista a las 6:30 am con cama tendida al fondo y luz cruzada',
+        },
         actions: {
             E: {
                 title: 'Pesa porciones de tus 3 comidas hoy',
@@ -173,6 +203,10 @@ export const PLAN_14_DAYS: DayPlan[] = [
         title: 'Activa el músculo',
         description:
             'Sin estímulo mecánico, tu cuerpo no preserva masa magra. Dos sesiones cortas por semana son suficientes para mantener la señal hormonal.',
+        image: {
+            src: '/plan14d/dia-05.webp',
+            alt: 'Kettlebell solitaria sobre piso de madera con luz lateral dramática',
+        },
         actions: {
             E: {
                 title: 'Sesión completa de fuerza: sentadillas, flexiones, dominadas asistidas',
@@ -198,6 +232,10 @@ export const PLAN_14_DAYS: DayPlan[] = [
         title: 'Calidad por encima de cantidad',
         description:
             'Cuando comes menos veces, cada comida pesa más. Hoy enfócate en alimentos densos en nutrientes: carnes, pescados, vegetales verdes, grasas saludables.',
+        image: {
+            src: '/plan14d/dia-06.webp',
+            alt: 'Plato denso visto desde arriba con salmón a la parrilla, aguacate y vegetales verdes oscuros',
+        },
         actions: {
             E: {
                 title: 'Una sola comida densa: proteína (35 g) + grasa (20 g) + vegetales sin límite',
@@ -223,6 +261,10 @@ export const PLAN_14_DAYS: DayPlan[] = [
         title: 'Primer corte: dónde estás',
         description:
             'Has completado la primera semana. Mide y compara con el día 1. El siguiente paso no es más intensidad — es más consistencia con lo mismo.',
+        image: {
+            src: '/plan14d/dia-07.webp',
+            alt: 'Cinta métrica enrollada y cuaderno abierto sobre superficie de mármol con luz lateral',
+        },
         actions: {
             E: {
                 title: 'Re-mide cintura, peso y toma una foto frontal',
@@ -249,6 +291,10 @@ export const PLAN_14_DAYS: DayPlan[] = [
         title: 'Convierte lo aprendido en rutina',
         description:
             'Una semana de hábito no es hábito. Hoy empieza la parte que no se ve: hacer rutina lo que la semana pasada fue esfuerzo consciente.',
+        image: {
+            src: '/plan14d/dia-08.webp',
+            alt: 'Sendero de piedras equidistantes cruzando agua serena a la hora dorada',
+        },
         actions: {
             E: {
                 title: 'Repite la sesión de fuerza del día 5 sin cronometrar',
@@ -273,6 +319,10 @@ export const PLAN_14_DAYS: DayPlan[] = [
         title: 'Pulir lo que ya hace bien',
         description:
             'Cuando un pilar está sólido, es tentador subir intensidad. Hoy hazlo al revés: mantén exactamente lo mismo pero con más atención al detalle.',
+        image: {
+            src: '/plan14d/dia-09.webp',
+            alt: 'Formón de carpintero sobre pieza de madera parcialmente pulida con luz lateral',
+        },
         actions: {
             E: {
                 title: 'Aumenta peso o repeticiones en UN solo ejercicio, no en todos',
@@ -298,6 +348,10 @@ export const PLAN_14_DAYS: DayPlan[] = [
         title: 'Sin altibajos en la energía',
         description:
             'Cuando tus pilares se alinean, dejan de aparecer los picos y caídas de energía. Si aún los tienes hoy, algo se quedó pendiente — identifica qué.',
+        image: {
+            src: '/plan14d/dia-10.webp',
+            alt: 'Vaso de agua estable sobre mesa con horizonte al fondo, paleta hora azul',
+        },
         actions: {
             E: {
                 title: 'Sesión ligera de fuerza con foco en técnica',
@@ -323,6 +377,10 @@ export const PLAN_14_DAYS: DayPlan[] = [
         title: 'El estrés deshace el progreso',
         description:
             'Más entrenamiento + menos sueño = peor cuerpo. Sin recuperación, el músculo no crece y la grasa no baja. Hoy el plan es descansar bien.',
+        image: {
+            src: '/plan14d/dia-11.webp',
+            alt: 'Cama tendida con manta suave plegada y lámpara cálida encendida, cortinas opacas',
+        },
         actions: {
             E: {
                 title: 'Día de movilidad o caminata larga: 30 min, sin pesas',
@@ -348,6 +406,10 @@ export const PLAN_14_DAYS: DayPlan[] = [
         title: 'Segundo corte: qué cambió',
         description:
             'Ya tienes 11 días de datos. Mide y compara con el día 7. Pequeños cambios indican que el sistema está respondiendo — lo importante es la dirección, no la magnitud.',
+        image: {
+            src: '/plan14d/dia-12.webp',
+            alt: 'Dos páginas de cuaderno lado a lado con fechas día 7 y día 12, anotaciones suaves',
+        },
         actions: {
             E: {
                 title: 'Mide cintura y peso. Compara con día 7',
@@ -372,6 +434,10 @@ export const PLAN_14_DAYS: DayPlan[] = [
         title: 'Lo que sí puedes mantener',
         description:
             'Mañana terminas las 14 días. El reto no es hacer un día más — es hacer 90 más sin sentirte forzado. Hoy define qué se queda y qué se suelta.',
+        image: {
+            src: '/plan14d/dia-13.webp',
+            alt: 'Tres piedras de río apiladas en equilibrio sobre madera, sentido minimalista de estructura sostenible',
+        },
         actions: {
             E: {
                 title: 'Define cuántas sesiones de fuerza por semana son realistas para ti',
@@ -397,6 +463,10 @@ export const PLAN_14_DAYS: DayPlan[] = [
         title: 'Tu nuevo baseline',
         description:
             'Has completado las 14 días. Tu cuerpo y tu mente operan distinto que hace 2 semanas. El siguiente paso es medición continua y ajuste fino — ahí entra ElenaApp.',
+        image: {
+            src: '/plan14d/dia-14.webp',
+            alt: 'Cima de montaña al amanecer con niebla en los valles y horizonte despejado',
+        },
         actions: {
             E: {
                 title: 'Re-mide cintura, peso, foto. Compara con día 1 y día 7',

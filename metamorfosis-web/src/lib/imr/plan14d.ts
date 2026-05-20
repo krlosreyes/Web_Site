@@ -14,10 +14,10 @@
  * Se puede llamar tanto en server-side como en cliente.
  */
 
-import { PLAN_14_DAYS, type DayPlan, type DayAction } from '../../data/plan14d';
+import { PLAN_14_DAYS, type DayPlan, type DayAction, type DayImage } from '../../data/plan14d';
 import type { PillarKey } from './weakPillar';
 
-export type { DayPlan, DayAction };
+export type { DayPlan, DayAction, DayImage };
 
 /**
  * Plan aplanado para el usuario: cada día tiene UNA acción específica
@@ -29,6 +29,8 @@ export interface DayPlanForUser {
     phase: 'Reset' | 'Consolidación';
     title: string;
     description: string;
+    /** SPEC-105: imagen conceptual del día (opcional). */
+    image?: DayImage;
     action: DayAction;
     /** Pilar al que pertenece la acción mostrada (útil para tracking). */
     sourcePillar: PillarKey;
@@ -66,6 +68,7 @@ export function getPlanForPillar(pillar: PillarKey | null): DayPlanForUser[] {
             phase: day.phase,
             title: day.title,
             description: day.description,
+            image: day.image,
             action: day.actions[effectivePillar],
             sourcePillar: effectivePillar,
         };
