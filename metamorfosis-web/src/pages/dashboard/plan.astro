@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Plan14d from '../../components/Plan14d';
+import MedicalDisclaimer from '../../components/MedicalDisclaimer.astro';
+
+/**
+ * SPEC-100: página del Plan IMR de 14 días.
+ *
+ * Patrón consistente con `dashboard.astro`: BaseLayout + pt-28 (reserva
+ * para Navbar fixed h-20, regla SPEC-026) + MedicalDisclaimer compact
+ * en el header + componente React montado con `client:only`.
+ *
+ * La autenticación se valida client-side dentro de Plan14d.tsx
+ * (mismo patrón que BioDashboard). No usamos middleware server-side
+ * porque el render ya es client-only y necesitamos el contexto de
+ * Firebase Auth del browser para leer el doc de Firestore.
+ */
+---
+
+<BaseLayout title="Tu plan IMR de 14 días">
+    <main class="min-h-screen bg-bg-base pt-28 pb-24">
+        <div class="container mx-auto px-6">
+            <div class="max-w-3xl mx-auto mb-6">
+                <MedicalDisclaimer variant="compact" />
+            </div>
+            <div class="max-w-3xl mx-auto">
+                <Plan14d client:only="react" />
+            </div>
+        </div>
+    </main>
+</BaseLayout>
