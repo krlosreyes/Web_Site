@@ -71,6 +71,12 @@
     body {
         @apply bg-bg-base text-text-primary font-body antialiased;
         min-height: 100vh;
+        /* SPEC-106: red de seguridad anti-desborde horizontal. Cualquier
+           elemento que accidentalmente exceda el viewport (flex sin
+           flex-wrap, tabla muy ancha, imagen sin max-width) queda
+           clippeado en lugar de empujar el viewport y romper el navbar
+           fixed con w-full. NO usar overflow:hidden (rompe sticky). */
+        overflow-x: hidden;
     }
 
     /* SPEC-071: selection color cambia de azul a teal para alinearse

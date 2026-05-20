@@ -84,8 +84,13 @@ const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@Metamorfosisreal';
 
       {/* SPEC-098: stats row honesto. Métricas inventadas reemplazadas
           por suscriptores YouTube real (hardcoded) + estado real del
-          proyecto + tile IMR. */}
-      <div class="mt-14 flex items-center gap-6 md:gap-8">
+          proyecto + tile IMR.
+          SPEC-106 fix: flex-wrap + gap-y para que en mobile (375px) los
+          3 tiles se apilen en lugar de desbordarse horizontal. El
+          desborde previo causaba que el navbar w-full se calcule sobre
+          un body más ancho que el viewport, dejando el botón hamburguesa
+          fuera de pantalla. */}
+      <div class="mt-14 flex flex-wrap items-center gap-x-6 gap-y-4 md:gap-x-8 md:gap-y-0">
         <a
           href={YOUTUBE_CHANNEL_URL}
           target="_blank"
@@ -111,12 +116,12 @@ const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@Metamorfosisreal';
             <span class="text-accent opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
           </p>
         </a>
-        <div class="w-px h-10 bg-white/[0.08]"></div>
+        <div class="hidden md:block w-px h-10 bg-white/[0.08]"></div>
         <div>
           <p class="text-2xl font-bold text-accent">BETA</p>
           <p class="text-[11px] text-text-muted uppercase tracking-[0.2em] mt-0.5">Cohorte 2026 activa</p>
         </div>
-        <div class="w-px h-10 bg-white/[0.08]"></div>
+        <div class="hidden md:block w-px h-10 bg-white/[0.08]"></div>
         <a
           href="/imr"
           data-umami-event="cta_imr_explicacion"
