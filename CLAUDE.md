@@ -145,6 +145,29 @@ probá esto otro":
   (>10 chars) en `text-6xl` desborda el viewport mobile. Hay defensa global
   en `global.css` (`overflow-wrap: anywhere` para h1-h6) pero esa es solo
   red de seguridad — el responsive correcto se hace en el componente.
+- **`BaseLayout.astro` SIEMPRE usa los componentes `<Navbar />` y
+  `<Footer />` (post-SPEC-107).** Cualquier intento de hardcodear un header
+  o footer dentro del layout es bug crítico que afecta TODAS las páginas
+  que importen el BaseLayout (9 al cierre de SPEC-107). El navbar real
+  vive en `src/components/Navbar.astro` con gates de auth, menú mobile,
+  ElenaApp CTA, NotificationBell, links a IMR/Biblioteca/La Tribu. El
+  footer real vive en `src/components/Footer.astro` con redes sociales y
+  recursos. Las páginas nuevas que necesiten navbar/footer DEBEN importar
+  `BaseLayout` y dejar que él los inyecte — no replican el código.
+- **Flex rows con muchos hijos DEBEN usar `flex-wrap` por defecto en
+  mobile (post-SPEC-106).** Especialmente cuando los hijos contienen texto
+  con `tracking-[0.2em]` u otros expansores. Sin `flex-wrap`, el row
+  desborda el viewport en 375px, el body adquiere scroll horizontal y el
+  navbar `fixed top-0 w-full` calcula su ancho sobre el body desbordado —
+  el botón hamburguesa queda fuera del viewport visible. Defensa global:
+  `body { overflow-x: hidden }` en `global.css` (NO usar `overflow:
+  hidden`, rompe sticky positioning). Pero la regla principal es no
+  desbordar en primer lugar — la defensa es solo red de seguridad.
+- **Cookie admin de 24h (SPEC-104+).** La sesión admin (`admin_session`)
+  expira a las 24h tras login. Si abrís el sitio "como visitante" y ves
+  `Modo admin`, NO es bug — es tu cookie activa de un login reciente
+  (panel admin, endpoint /api/admin/*). Para validar UX visitante: abrir
+  incógnito o usar "Cerrar sesión" del navbar.
 
 ## 5. Mapa de archivos clave
 
@@ -159,9 +182,15 @@ Apuntadores para no inflar el contexto:
 | Auth admin (constant-time, cookies) | `metamorfosis-web/src/lib/auth.ts` |
 | Firebase Admin SDK init | `metamorfosis-web/src/lib/firebaseAdmin.ts` |
 | Motor IMR (SPEC-70.5) | `metamorfosis-web/src/lib/imr/engine.ts` |
+| Pilar débil + acción semanal (SPEC-099) | `metamorfosis-web/src/lib/imr/weakPillar.ts` |
+| Plan IMR 14 días — datos editoriales (SPEC-100) | `metamorfosis-web/src/data/plan14d.ts` |
+| Plan IMR 14 días — lógica + filtrado por pilar (SPEC-100) | `metamorfosis-web/src/lib/imr/plan14d.ts` |
+| Plan IMR 14 días — progresión secuencial (SPEC-101) | `metamorfosis-web/src/lib/imr/plan14dProgress.ts` |
 | Reglas de Firestore | `firebase/firestore.rules` |
 | Reglas de Storage | `firebase/storage.rules` |
-| Navbar (logout, menú móvil) | `metamorfosis-web/src/components/Navbar.astro` |
+| Layout base (usa Navbar y Footer, post-SPEC-107) | `metamorfosis-web/src/layouts/BaseLayout.astro` |
+| Navbar (logout, menú móvil, gates auth) | `metamorfosis-web/src/components/Navbar.astro` |
+| Footer (redes sociales, recursos) | `metamorfosis-web/src/components/Footer.astro` |
 
 ## 6. Comportamiento esperado del agente
 
