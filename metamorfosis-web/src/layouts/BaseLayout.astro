@@ -1,195 +1,130 @@
 ---
 import "../styles/global.css";
-import Navbar from "../components/Navbar.astro";
-import Footer from "../components/Footer.astro";
-import UmamiScript from "../components/UmamiScript.astro";
-import CookieBanner from "../components/CookieBanner.tsx";
 
 interface Props {
-    /** Título de la página. Si está vacío, se usa solo el nombre del sitio. */
-    title?: string;
-    description?: string;
-    image?: string;
-    canonicalURL?: string;
-    /** SPEC-027: ogType='article' para artículos, default 'website'. */
-    ogType?: 'website' | 'article';
-    /** SPEC-027: ISO string. Solo se renderiza si ogType='article'. */
-    publishedAt?: string | null;
-    /** SPEC-027: ISO string. Solo se renderiza si ogType='article'. */
-    updatedAt?: string | null;
-    /**
-     * SPEC-030: path absoluto al LCP image de la página para inyectar
-     * <link rel="preload" as="image" fetchpriority="high">. Sin esto,
-     * el browser no descubre el background-image hasta parsear el CSS.
-     * Pasarlo SOLO en la página dueña del LCP (ej. home con el hero).
-     */
-    preloadImage?: string;
-    /** SPEC-030: MIME type del preload image. Default 'image/webp'. */
-    preloadImageType?: string;
+  title: string;
+  description?: string;
+  image?: string;
+  canonicalURL?: string;
 }
 
 const {
-    title = "",
-    description = "Metamorfosis Real - Ecosistema de salud metabólica de alta autoridad.",
-    // SPEC-052: OG image branded dedicada 1200x630 (41 KB). Antes default
-    // era header-bg.jpg (2 MB) — scrapers de LinkedIn/FB legacy tienen
-    // timeout agresivo con imágenes pesadas. og-image.jpg es JPG porque
-    // OG scrapers no parsean webp confiable (SPEC-030 mantiene .jpg para
-    // este caso); el JPG branded tiene logo + claim + CTA + URL.
-    image = "/og-image.jpg",
-    canonicalURL,
-    ogType = "website",
-    publishedAt = null,
-    updatedAt = null,
-    preloadImage,
-    preloadImageType = "image/webp",
+  title,
+  description = "Metamorfosis Real - Ecosistema de salud metabólica de alta autoridad.",
+  image = "/og-image.jpg",
+  canonicalURL = Astro.url.href,
 } = Astro.props;
 
 const siteName = "Metamorfosis Real";
-
-// SPEC-052b: URLs absolutas construidas desde Astro.site (configurado en
-// astro.config.mjs como https://metamorfosisvital.com.co). NO usar
-// Astro.url para construir URLs absolutas porque cae a localhost:4321/
-// cuando el request Host no se propaga bien a través del reverse proxy
-// de Hostinger HCDN, rompiendo previews de OG en redes.
-// Astro.url.pathname SÍ es confiable (es path relativo del request).
-const SITE = Astro.site!;
-const pageURL = new URL(Astro.url.pathname, SITE).href;
-const imageURL = new URL(image, SITE).href;
-const canonical = canonicalURL ?? pageURL;
-
-// SPEC-079: lógica del title sin duplicar siteName.
-// - Si title está vacío (home): mostrar solo siteName.
-// - Si title ya contiene siteName (algunas páginas legacy): no duplicar.
-// - Caso normal: "{title} | {siteName}".
-const titleTrim = (title ?? "").trim();
-const fullTitle = titleTrim === "" || titleTrim === siteName
-    ? siteName
-    : titleTrim.includes(siteName)
-        ? titleTrim
-        : `${titleTrim} | ${siteName}`;
-// OG/Twitter usan el mismo title resuelto.
-const ogTitle = fullTitle;
 ---
 
 <!doctype html>
 <html lang="es" class="dark">
-    <head>
-        <meta charset="utf-8" />
-        {/* SPEC-079: favicon con el logo de Metamorfosis Real.
-            - Primario: logoSite.webp (modernos navegadores soportan webp)
-            - Fallback: logoSite.png (browsers viejos)
-            - Apple touch icon: png alta resolución para iOS home screen */}
-        <link rel="icon" type="image/webp" href="/logoSite.webp" />
-        <link rel="icon" type="image/png" href="/logoSite.png" />
-        <link rel="apple-touch-icon" href="/logoSite.png" />
-        <meta name="viewport" content="width=device-width" />
-        <meta name="generator" content={Astro.generator} />
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
 
-        <!-- Dynamic SEO — SPEC-079: title condicional (no duplica siteName) -->
-        <title>{fullTitle}</title>
-        <meta name="title" content={fullTitle} />
-        <meta name="description" content={description} />
-        <link rel="canonical" href={canonical} />
+    <!-- Dynamic SEO -->
+    <title>{title} | {siteName}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
 
-        <!-- Open Graph / Facebook (SPEC-027: site_name + locale + tipo dinámico).
-             SPEC-052b: URLs absolutas desde Astro.site (no Astro.url) para
-             que los scrapers de FB/Twitter/LinkedIn vean el dominio real
-             (no localhost:4321 cuando el reverse proxy no propaga Host). -->
-        <meta property="og:type" content={ogType} />
-        <meta property="og:site_name" content={siteName} />
-        <meta property="og:locale" content="es_CO" />
-        <meta property="og:url" content={pageURL} />
-        <meta property="og:title" content={ogTitle} />
-        <meta property="og:description" content={description} />
-        <meta property="og:image" content={imageURL} />
-        {ogType === 'article' && publishedAt && (
-            <meta property="article:published_time" content={publishedAt} />
-        )}
-        {ogType === 'article' && updatedAt && (
-            <meta property="article:modified_time" content={updatedAt} />
-        )}
-        {ogType === 'article' && (
-            <meta property="article:author" content={siteName} />
-        )}
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(image, Astro.url)} />
 
-        <!-- Twitter -->
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content={pageURL} />
-        <meta property="twitter:title" content={ogTitle} />
-        <meta property="twitter:description" content={description} />
-        <meta property="twitter:image" content={imageURL} />
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={Astro.url} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={new URL(image, Astro.url)} />
 
-        <!-- SPEC-030: preload del LCP image cuando la página lo declara.
-             Mejora "Descubrimiento de solicitudes de LCP" de Lighthouse:
-             sin esto, el background-image del Hero se descubre recién
-             después de parsear el CSS, lo que retrasa el LCP. -->
-        {preloadImage && (
-            <link
-                rel="preload"
-                as="image"
-                href={preloadImage}
-                type={preloadImageType}
-                fetchpriority="high"
-            />
-        )}
+    <!-- Google Fonts: Space Grotesk & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-base text-primary">
+    <!-- PERSISTENT GLOW -->
+    <div class="bg-glow" aria-hidden="true"></div>
 
-        <!-- SPEC-030b: preconnects a los terceros que Firebase Auth y Umami
-             contactan al hidratarse. Lighthouse reportó ahorro estimado:
-             firebaseapp.com (310ms) + umami.dev (300ms). El handshake
-             DNS+TLS se hace en paralelo con el render, así cuando los
-             componentes idle se hidratan y necesitan estos hosts, la
-             conexión ya está caliente. -->
-        <link rel="preconnect" href="https://elena-app-2026-v1.firebaseapp.com" crossorigin />
-        <link rel="preconnect" href="https://api-gateway.umami.dev" crossorigin />
+    <!-- NAVBAR STICKY -->
+    <header
+      class="sticky top-0 z-50 w-full border-b border-text-primary/10 bg-bg-base/80 backdrop-blur-md"
+    >
+      <div
+        class="container mx-auto px-6 h-20 flex items-center justify-between"
+      >
+        <a href="/" class="flex items-center gap-3 group">
+          <img
+            src="/logoSite.png"
+            alt="Metamorfosis Real Logo"
+            class="h-16 w-auto group-hover:scale-105 transition-transform drop-shadow-[0_0_20px_rgba(0,123,255,0.45)]"
+          />
+          <span
+            class="font-heading font-bold text-3xl tracking-tight text-text-primary"
+            >Metamorfosis<span class="text-accent-blue">Real</span></span
+          >
+        </a>
 
-        <!-- SPEC-028: Analytics con Umami (excluye /admin/* y dev) -->
-        <UmamiScript />
+        <nav
+          class="hidden md:flex items-center gap-8 font-heading text-sm font-medium text-text-secondary"
+        >
+          <a href="#" class="hover:text-text-primary transition-colors"
+            >Ciencia</a
+          >
+          <a href="#" class="hover:text-text-primary transition-colors"
+            >Protocolos</a
+          >
+          <a href="#" class="hover:text-text-primary transition-colors"
+            >Comunidad</a
+          >
+        </nav>
 
-        <!-- Google Fonts: Space Grotesk & Inter
-             SPEC-030: pattern non-blocking (preload as=style + media=print
-             onload swap + noscript fallback). Intentamos self-hostear en
-             SPEC-030c pero el script de descarga falló (WOFF2 del range
-             wrong) y bajó Performance de 84 a 63. Revertido. Si en el
-             futuro queremos volver a self-hostear, ver SPEC-030c para qué
-             evitar (script Python debe filtrar @font-face por unicode-range
-             latin antes de descargar). -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            rel="preload"
-            as="style"
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
-        />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
-            rel="stylesheet"
-            media="print"
-            onload="this.media='all'"
-        />
-        <noscript>
-            <link
-                href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
-                rel="stylesheet"
-            />
-        </noscript>
-    </head>
-    <body class="bg-base text-primary">
-        <!-- PERSISTENT GLOW -->
-        <div class="bg-glow" aria-hidden="true"></div>
+        <div class="flex items-center gap-4">
+          <a href="/quiz" class="btn-gradient px-5 py-2.5 text-sm">
+            Calcular IMR
+          </a>
+          <a href="/admin" class="flex items-center gap-1 text-xs text-[#4a637e] hover:text-[#007BFF] transition-colors duration-200 font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 12a2 2 0 100-4 2 2 0 000 4zm7-2a7 7 0 11-14 0 7 7 0 0114 0zm-7-4v2m0 4v2" />
+            </svg>
+            Admin
+          </a>
+        </div>
+      </div>
+    </header>
 
-        <!-- USA EL COMPONENTE CENTRALIZADO NAVBAR -->
-        <Navbar />
+    <main class="relative z-10">
+      <slot />
+    </main>
 
-        <main class="relative z-10">
-            <slot />
-        </main>
-
-        <!-- Footer único — SPEC-011/013: redes reales + navegación legal -->
-        <Footer />
-
-        <!-- SPEC-080: Banner de consentimiento cookies (Ley 1581 + GDPR friendly).
-             client:idle para que aparezca después del LCP, no compita por main thread. -->
-        <CookieBanner client:idle />
-    </body>
+    <footer class="mt-20 border-t border-text-primary/10 py-12 bg-bg-surface">
+      <div class="container mx-auto px-6 text-center">
+        <p class="text-text-secondary text-sm">
+          © 2026 Metamorfosis Real - Todos los derechos reservados.
+        </p>
+        <p class="mt-2 text-xs text-text-secondary/50">
+          Impulsado por ElenaApp Metabolic Intelligence Engine.
+        </p>
+      </div>
+    </footer>
+  </body>
 </html>
+
+<style is:global>
+  /* Additional global overrides can go here */
+  p {
+    max-width: 65ch; /* Consistent reading width focus */
+  }
+</style>
