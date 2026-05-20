@@ -18,6 +18,8 @@ interface FounderRow {
     imrScore: number | null;
     waitlistStatus: string | null;
     welcomeEmailSent: boolean;
+    /** SPEC-104: anuncio del Plan IMR 14d enviado. */
+    planAnnouncementSent: boolean;
     createdAt: string | null;
 }
 
@@ -53,6 +55,7 @@ function exportCsv(founders: FounderRow[]) {
         'creado_iso',
         'waitlist_status',
         'email_enviado',
+        'plan14d_anuncio_enviado',
     ];
     const rows = founders.map((f) => [
         f.number,
@@ -64,6 +67,7 @@ function exportCsv(founders: FounderRow[]) {
         f.createdAt ?? '',
         f.waitlistStatus ?? '',
         f.welcomeEmailSent ? 'si' : 'no',
+        f.planAnnouncementSent ? 'si' : 'no',
     ]);
     const csv =
         headers.join(',') + '\n' + rows.map((r) => r.join(',')).join('\n');
@@ -87,6 +91,8 @@ const FoundersList: React.FC = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
     // SPEC-077: uid en proceso de eliminación (para feedback visual).
     const [deletingUid, setDeletingUid] = useState<string | null>(null);
+    // SPEC-104: estado del bulk send del anuncio del Plan IMR 14d.
+    const [isSendingAnnouncements, setIsSendingAnnouncements] = useState(false);
 
     // Ref del intervalo para limpiarlo en unmount.
     const intervalRef = useRef<number | null>(null);
@@ -183,6 +189,75 @@ const FoundersList: React.FC = () => {
         [fetchFounders],
     );
 
+    /**
+     * SPEC-104: bulk send del anuncio del Plan IMR 14d a los fundadores
+     * pendientes. El endpoint es idempotente — un click duplicado solo
+     * envía a los que aún están pendientes (cero a los que ya recibieron).
+     *
+     * Reglas CLAUDE.md sección 4:
+     *   - Content-Type: application/json (CSRF Astro 6).
+     *   - credentials: 'include' explícito.
+     *   - res.ok check + alert visible si falla.
+     */
+    const handleSendAnnouncements = useCallback(async (pendingCount: number) => {
+        if (pendingCount === 0) return;
+        const confirmed = window.confirm(
+            `¿Enviar el anuncio del Plan IMR 14d a ${pendingCount} fundador(es) pendiente(s)?\n\n` +
+            'Cada uno recibe un único email explicando el beneficio + CTA al dashboard. ' +
+            'Es idempotente: si reintentas, solo se envían los que aún no recibieron.',
+        );
+        if (!confirmed) return;
+
+        setIsSendingAnnouncements(true);
+        try {
+            const res = await fetch('/api/admin/founders/announce-plan', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (!res.ok) {
+                let errMsg = `Error ${res.status}`;
+                try {
+                    const body = await res.json();
+                    if (body?.error) errMsg = `${errMsg}: ${body.error}`;
+                } catch {
+                    /* body no parseable */
+                }
+                console.error('[FoundersList.handleSendAnnouncements] No OK:', errMsg);
+                alert(`No se pudo enviar el anuncio. ${errMsg}`);
+                return;
+            }
+
+            const body = (await res.json()) as {
+                sent: number;
+                failed: number;
+                failures: { email: string; error: string }[];
+            };
+            const lines = [`${body.sent} enviado(s), ${body.failed} fallo(s)`];
+            if (body.failed > 0) {
+                lines.push(
+                    'Fallos:',
+                    ...body.failures
+                        .slice(0, 5)
+                        .map((f) => `  ${f.email}: ${f.error}`),
+                );
+                if (body.failures.length > 5) {
+                    lines.push(`  ...y ${body.failures.length - 5} más`);
+                }
+            }
+            alert(lines.join('\n'));
+
+            // Refresh para que las columnas reflejen el nuevo estado.
+            await fetchFounders(false);
+        } catch (e: any) {
+            console.error('[FoundersList.handleSendAnnouncements] Network error:', e);
+            alert(`Error de red al enviar anuncio: ${e?.message || 'desconocido'}`);
+        } finally {
+            setIsSendingAnnouncements(false);
+        }
+    }, [fetchFounders]);
+
     const filtered = useMemo(() => {
         if (!data) return [];
         if (!query.trim()) return data.founders;
@@ -199,6 +274,12 @@ const FoundersList: React.FC = () => {
     const count = data?.count ?? 0;
     const remaining = data?.remaining ?? cap;
     const progressPct = Math.min(100, Math.round((count / cap) * 100));
+
+    // SPEC-104: conteo de fundadores pendientes del anuncio del Plan IMR 14d.
+    const pendingAnnouncementsCount = useMemo(
+        () => (data?.founders ?? []).filter((f) => !f.planAnnouncementSent).length,
+        [data],
+    );
 
     return (
         <div className="space-y-6 animate-fade-in-up">
@@ -246,6 +327,35 @@ const FoundersList: React.FC = () => {
                     {progressPct}% del cupo asignado
                 </div>
             </div>
+
+            {/* SPEC-104: card destacada de anuncio del Plan IMR 14d.
+                Solo aparece si hay fundadores pendientes de recibir el email.
+                Una vez todos los enviaron, la card desaparece. */}
+            {pendingAnnouncementsCount > 0 && (
+                <div className="bg-bg-elevated border border-accent/30 rounded-xl p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                        <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent mb-2 inline-flex items-center gap-2">
+                            🎯 Anuncio del Plan IMR 14d
+                        </div>
+                        <p className="text-sm text-text-primary leading-relaxed">
+                            <span className="font-semibold">{pendingAnnouncementsCount}</span> fundador{pendingAnnouncementsCount === 1 ? '' : 'es'} aún {pendingAnnouncementsCount === 1 ? 'no ha' : 'no han'} recibido el aviso del nuevo beneficio.
+                        </p>
+                        <p className="text-xs text-text-secondary leading-relaxed mt-1">
+                            Cada uno recibe un único email explicando el plan + CTA al dashboard. Operación idempotente.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => handleSendAnnouncements(pendingAnnouncementsCount)}
+                        disabled={isSendingAnnouncements}
+                        className="inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-strong disabled:bg-bg-base disabled:text-text-muted text-bg-base font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap shrink-0"
+                    >
+                        {isSendingAnnouncements
+                            ? 'Enviando…'
+                            : `Enviar a ${pendingAnnouncementsCount} pendiente${pendingAnnouncementsCount === 1 ? '' : 's'} →`}
+                    </button>
+                </div>
+            )}
 
             {/* Toolbar: búsqueda + export */}
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
@@ -299,6 +409,7 @@ const FoundersList: React.FC = () => {
                                     <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">IMR</th>
                                     <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">Asignado</th>
                                     <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">Email enviado</th>
+                                    <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">Plan 14d</th>
                                     <th className="text-right px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">Acciones</th>
                                 </tr>
                             </thead>
@@ -340,6 +451,16 @@ const FoundersList: React.FC = () => {
                                                 </span>
                                             ) : (
                                                 <span className="text-amber-400">⚠ no</span>
+                                            )}
+                                        </td>
+                                        {/* SPEC-104: estado del anuncio del Plan IMR 14d */}
+                                        <td className="px-4 py-3 text-xs">
+                                            {f.planAnnouncementSent ? (
+                                                <span className="inline-flex items-center gap-1 text-[#00C49A]">
+                                                    ✓ <span className="text-gray-500">enviado</span>
+                                                </span>
+                                            ) : (
+                                                <span className="text-amber-400">— pendiente</span>
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-right">

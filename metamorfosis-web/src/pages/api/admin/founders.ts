@@ -59,6 +59,8 @@ interface FounderRow {
     imrScore: number | null;
     waitlistStatus: string | null;
     welcomeEmailSent: boolean;
+    /** SPEC-104: ¿recibió el email de anuncio del Plan IMR 14d? */
+    planAnnouncementSent: boolean;
     createdAt: string | null;
 }
 
@@ -105,6 +107,10 @@ export const GET: APIRoute = async ({ request }) => {
                             : null,
                     waitlistStatus: data.waitlist?.status ?? null,
                     welcomeEmailSent: Boolean(data.welcomeEmailSentAt),
+                    // SPEC-104: flag para la UI admin.
+                    planAnnouncementSent: Boolean(
+                        data.founder?.planAnnouncementSentAt,
+                    ),
                     createdAt: data.meta?.createdAt ?? null,
                 };
             })

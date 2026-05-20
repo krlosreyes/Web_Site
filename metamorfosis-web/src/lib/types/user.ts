@@ -138,6 +138,13 @@ export interface UserFounder {
     number: number | null;
     /** ISO string del momento que se asignó. null si no es fundador. */
     assignedAt: string | null;
+    /**
+     * SPEC-104: timestamp ISO del email de anuncio del Plan IMR 14d.
+     * null/undefined = pendiente. Lo escribe el endpoint admin
+     * `POST /api/admin/founders/announce-plan` (Admin SDK).
+     * Las rules ya bloquean cualquier escritura cliente a founder.*.
+     */
+    planAnnouncementSentAt?: string | null;
 }
 
 /**

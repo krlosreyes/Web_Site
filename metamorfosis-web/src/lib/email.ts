@@ -277,3 +277,104 @@ export async function sendWelcomeEmail(input: {
 }): Promise<SendEmailResult> {
     return sendStandardWelcomeEmail(input);
 }
+
+/**
+ * SPEC-104: anuncio del Plan IMR de 14 días a fundadores existentes.
+ *
+ * Diseñado para enviarse UNA sola vez por fundador (idempotencia via
+ * `founder.planAnnouncementSentAt` en Firestore). Anuncia el nuevo
+ * beneficio + explica brevemente cómo funciona + CTA al dashboard.
+ *
+ * NO personaliza por pilar débil — el plan que verá al llegar al
+ * dashboard sí está personalizado. Mantener el email genérico
+ * simplifica el envío bulk y evita complejidad innecesaria.
+ */
+export async function sendFounderPlanAnnouncementEmail(input: {
+    to: string;
+    name?: string | null;
+}): Promise<SendEmailResult> {
+    const displayName = input.name?.trim() || 'biohacker';
+    const subject = 'Nuevo beneficio: tu Plan IMR de 14 días está listo';
+
+    const text = `Hola ${displayName},
+
+Como parte de la cohorte fundadora de Metamorfosis Real, ahora tienes acceso a un beneficio nuevo: tu Plan IMR personalizado de 14 días.
+
+¿QUÉ ES?
+
+Una ruta secuencial de 14 días que toma los resultados de tu diagnóstico IMR y los traduce en una acción concreta por día. Cada acción está enfocada en tu pilar de mayor oportunidad (Estructura, Metabolismo o Conducta) y está basada en literatura científica revisada por pares.
+
+¿CÓMO FUNCIONA?
+
+- Solo ves un día a la vez. Te enfocas en ejecutar esa acción.
+- Cuando la cumples, marcas el día como completado y se desbloquea el siguiente.
+- Tu progreso se guarda automáticamente — puedes entrar desde cualquier dispositivo.
+- Al completar los 14 días, tu metabolismo opera con un nuevo baseline.
+
+Sin notificaciones agresivas. Sin penalización si pierdes un día. Avanzas a tu ritmo.
+
+→ Empezar mi plan IMR
+https://metamorfosisvital.com.co/dashboard/plan
+
+${RESOURCES_TEXT}
+
+Cualquier duda, puedes responder directamente a este email.
+
+— Carlos
+Metamorfosis Real`;
+
+    const bodyHtml = `
+      <p style="margin:0 0 16px;">Como parte de la <strong style="color:#00C49A;">cohorte fundadora</strong> de Metamorfosis Real, ahora tienes acceso a un beneficio nuevo: tu <strong style="color:#ffffff;">Plan IMR personalizado de 14 días</strong>.</p>
+
+      <!-- BADGE NUEVO BENEFICIO -->
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+        <tr>
+          <td style="padding:28px 22px;background:linear-gradient(135deg,rgba(0,196,154,0.15),rgba(0,196,154,0.05));border:1px solid rgba(0,196,154,0.35);border-radius:16px;text-align:center;">
+            <div style="font-size:10px;font-weight:900;color:#00C49A;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:10px;">🎯 Nuevo beneficio</div>
+            <div style="font-size:24px;font-weight:900;color:#ffffff;font-style:italic;line-height:1.2;letter-spacing:-0.5px;">Tu Plan IMR · 14 días</div>
+            <div style="font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.3em;text-transform:uppercase;margin-top:10px;">Listo para empezar</div>
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:0 0 12px;font-weight:700;color:#ffffff;font-size:15px;">¿Qué es?</p>
+      <p style="margin:0 0 22px;">Una ruta secuencial de 14 días que toma los resultados de tu diagnóstico IMR y los traduce en una acción concreta por día. Cada acción está enfocada en tu pilar de mayor oportunidad (Estructura, Metabolismo o Conducta) y está basada en literatura científica revisada por pares.</p>
+
+      <p style="margin:0 0 12px;font-weight:700;color:#ffffff;font-size:15px;">¿Cómo funciona?</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 22px;">
+        <tr>
+          <td style="padding:14px 18px;background:rgba(0,196,154,0.06);border:1px solid rgba(0,196,154,0.25);border-radius:12px;">
+            <div style="font-size:13px;color:#cbd5e1;line-height:1.6;">
+              <strong style="color:#00C49A;">·</strong> Solo ves un día a la vez. Te enfocas en ejecutar esa acción.<br/>
+              <strong style="color:#00C49A;">·</strong> Cuando la cumples, marcas el día como completado y se desbloquea el siguiente.<br/>
+              <strong style="color:#00C49A;">·</strong> Tu progreso se guarda automáticamente — entras desde cualquier dispositivo.<br/>
+              <strong style="color:#00C49A;">·</strong> Al completar los 14 días, tu metabolismo opera con un nuevo baseline.
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:0 0 24px;font-size:13px;color:#94a3b8;line-height:1.5;">Sin notificaciones agresivas. Sin penalización si pierdes un día. Avanzas a tu ritmo.</p>
+
+      <!-- CTA PRINCIPAL -->
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+        <tr>
+          <td align="center" style="padding:0;">
+            <a href="https://metamorfosisvital.com.co/dashboard/plan" style="display:inline-block;padding:14px 32px;background:#00C49A;color:#050a12;text-decoration:none;font-weight:800;font-size:15px;border-radius:12px;letter-spacing:-0.2px;">
+              Empezar mi plan IMR →
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      ${RESOURCES_HTML}
+    `;
+
+    const html = wrapEmailHtml({
+        subject,
+        heading: 'Tu plan está listo',
+        bodyHtml,
+    });
+
+    return sendEmail({ to: input.to, subject, html, text });
+}
