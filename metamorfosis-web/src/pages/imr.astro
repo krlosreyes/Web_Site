@@ -309,6 +309,24 @@ const description =
                             </ul>
                         </div>
                     </div>
+
+                    {/* SPEC-102: CTA a nota metodológica para usuarios técnicos */}
+                    <div class="mt-8 bg-bg-elevated border border-accent/30 rounded-xl p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-accent mb-1">Para revisores técnicos</p>
+                            <p class="text-sm text-text-primary leading-relaxed">
+                                ¿Quieres ver las fórmulas exactas, pesos macro, zonas precisas y casos de validación interna?
+                            </p>
+                        </div>
+                        <a
+                            href="/imr/metodologia"
+                            data-umami-event="cta_imr_metodologia"
+                            data-umami-event-source="imr_page"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-bg-base rounded-lg font-semibold text-sm hover:bg-accent-strong transition-colors whitespace-nowrap shrink-0"
+                        >
+                            Ver metodología →
+                        </a>
+                    </div>
                 </section>
 
                 {/* LIMITACIONES */}
@@ -359,6 +377,7 @@ const description =
                     ← Volver al inicio
                 </a>
                 <div class="flex gap-4 text-sm">
+                    <a href="/imr/metodologia" class="text-text-secondary hover:text-accent transition-colors">Metodología</a>
                     <a href="/biblioteca" class="text-text-secondary hover:text-accent transition-colors">Biblioteca</a>
                     <a href="/disclaimer-medico" class="text-text-secondary hover:text-accent transition-colors">Aviso médico</a>
                 </div>

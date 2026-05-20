@@ -1,0 +1,476 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MedicalDisclaimer from '../../components/MedicalDisclaimer.astro';
+
+/**
+ * SPEC-102: Nota Metodológica IMR pública.
+ *
+ * Complemento técnico de /imr (SPEC-081). Para usuarios sofisticados
+ * que quieran ver las fórmulas estándar usadas, los pesos del nivel
+ * superior, los rangos exactos y la validación interna.
+ *
+ * Lo que NO publica: coeficientes internos de los sub-bloques E, M, C
+ * (IP de Carlos). Lo que SÍ publica:
+ *   - Pesos macro (E=50%, M=25%, C=25%)
+ *   - Fórmulas estándar de la literatura (Navy, Mifflin, Katch-McArdle)
+ *   - Fórmula empírica de edad metabólica (ya pública en JSDoc del motor)
+ *   - Zonas precisas con 5 cortes
+ *   - 3 casos canónicos de validación
+ *   - Versionado del motor
+ */
+const description =
+    'Nota metodológica del Índice de Metamorfosis Real (IMR): fórmulas, pesos, rangos y validación interna. Para usuarios técnicos que quieran auditar el método.';
+---
+
+<BaseLayout title="Metodología del IMR" description={description}>
+    <main class="min-h-screen bg-bg-base pt-28 pb-24 px-6">
+        <article class="max-w-3xl mx-auto">
+
+            {/* HERO */}
+            <header class="mb-12">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-accent/10 border border-accent/20 text-accent text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
+                    📐 Nota técnica
+                </div>
+                <h1 class="text-3xl md:text-4xl lg:text-5xl font-heading font-black italic uppercase tracking-tight leading-[1.1] text-text-primary mb-5 break-words">
+                    Metodología del <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00C49A] to-emerald-400">IMR</span>
+                </h1>
+                <p class="text-text-secondary text-base md:text-lg leading-relaxed">
+                    Documentación técnica del Índice de Metamorfosis Real: fórmulas estándar usadas, pesos del nivel superior, rangos exactos y validación interna. Si llegaste a esta página, probablemente quieras auditar el método antes de confiar en el puntaje.
+                </p>
+                <div class="mt-6 inline-flex items-center gap-2 px-3 py-1.5 rounded bg-bg-elevated border border-white/[0.08] text-text-secondary text-xs font-mono">
+                    Motor: <span class="text-accent font-semibold">spec-70.5-v1</span>
+                </div>
+            </header>
+
+            <div class="space-y-12 text-gray-300 leading-relaxed">
+
+                {/* 1. RESUMEN EJECUTIVO */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-4">
+                        1. Resumen ejecutivo
+                    </h2>
+                    <p class="mb-4">
+                        El IMR es un puntaje 0-100 que integra tres bloques (<strong class="text-text-primary">E</strong>structura, <strong class="text-text-primary">M</strong>etabolismo, <strong class="text-text-primary">C</strong>onducta) en una sola métrica accionable. Cada bloque consolida varios inputs auto-reportados o derivados (peso, cintura, hábitos), normalizados con fórmulas estándar de la literatura biomédica.
+                    </p>
+                    <p class="mb-4">
+                        Esta nota documenta <strong class="text-text-primary">qué fórmulas usa el motor, con qué pesos, en qué rangos y bajo qué supuestos</strong>. Lo que <em>no</em> se publica son los coeficientes internos de cómo cada bloque integra sus sub-inputs — eso es propiedad intelectual del producto. Lo que sí se publica es todo lo que un revisor necesita para evaluar si el método es sensato y reproducible en sus partes públicas.
+                    </p>
+                    <div class="bg-bg-elevated border-l-4 border-accent rounded-r-lg p-5">
+                        <p class="text-sm leading-relaxed">
+                            <strong class="text-text-primary">Posición de transparencia:</strong> esta nota es honesta sobre lo que el IMR es (herramienta educativa de auto-evaluación) y lo que no (test diagnóstico validado clínicamente). El motor está versionado; cualquier cambio de fórmula sube el número de versión y queda anotado en este documento.
+                        </p>
+                    </div>
+                </section>
+
+                {/* 2. INPUTS DEL MOTOR */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-4">
+                        2. Inputs que captura el motor
+                    </h2>
+                    <p class="mb-5">
+                        El quiz IMR captura 11 inputs explícitos. El motor deriva otros 4-6 automáticamente. Todos los inputs son auto-reportados: si el usuario los ingresa con error, el resultado refleja ese error (ver sección 7, Limitaciones).
+                    </p>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-white/[0.08]">
+                                    <th class="text-left py-3 pr-4 text-[11px] font-bold uppercase tracking-[0.15em] text-text-muted">Input</th>
+                                    <th class="text-left py-3 px-4 text-[11px] font-bold uppercase tracking-[0.15em] text-text-muted">Tipo</th>
+                                    <th class="text-left py-3 pl-4 text-[11px] font-bold uppercase tracking-[0.15em] text-text-muted">Uso en motor</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/[0.04]">
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Edad</td>
+                                    <td class="py-3 px-4">Capturada</td>
+                                    <td class="py-3 pl-4">Referencia ACSM para grasa corporal; edad metabólica</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Género</td>
+                                    <td class="py-3 px-4">Capturada</td>
+                                    <td class="py-3 pl-4">Fórmulas diferenciadas (Mifflin, Navy, ACSM)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Peso (kg)</td>
+                                    <td class="py-3 px-4">Capturada</td>
+                                    <td class="py-3 pl-4">IMC, TMB, FFMI</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Altura (cm)</td>
+                                    <td class="py-3 px-4">Capturada</td>
+                                    <td class="py-3 pl-4">IMC, ICA, WHtR, Navy</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Perímetro cintura (cm)</td>
+                                    <td class="py-3 px-4">Capturada</td>
+                                    <td class="py-3 pl-4">ICA, WHtR, Body Fat Navy</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">% Grasa corporal</td>
+                                    <td class="py-3 px-4">Capturada o derivada</td>
+                                    <td class="py-3 pl-4">Si no se reporta, se calcula con Navy</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Horas de ayuno</td>
+                                    <td class="py-3 px-4">Capturada</td>
+                                    <td class="py-3 pl-4">Bloque Metabolismo</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Hora de cena</td>
+                                    <td class="py-3 px-4">Capturada</td>
+                                    <td class="py-3 pl-4">eTRF bonus (cena temprana)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Minutos de ejercicio/día</td>
+                                    <td class="py-3 px-4">Capturada</td>
+                                    <td class="py-3 pl-4">Bloque Conducta</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Calidad de sueño (0–1)</td>
+                                    <td class="py-3 px-4">Capturada</td>
+                                    <td class="py-3 pl-4">Bloque Conducta</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Litros de hidratación/día</td>
+                                    <td class="py-3 px-4">Capturada</td>
+                                    <td class="py-3 pl-4">Bloque Conducta (vs meta 3 L/día)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Hora última comida</td>
+                                    <td class="py-3 px-4">Capturada</td>
+                                    <td class="py-3 pl-4">Penalización circadiana si ≥21:30</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">IMC (kg/m²)</td>
+                                    <td class="py-3 px-4">Derivada</td>
+                                    <td class="py-3 pl-4">Estructura + edad metabólica</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">ICA (cintura/altura)</td>
+                                    <td class="py-3 px-4">Derivada</td>
+                                    <td class="py-3 pl-4">Estructura (predictor cardiovascular)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">WHtR (waist-to-height)</td>
+                                    <td class="py-3 px-4">Derivada</td>
+                                    <td class="py-3 pl-4">Estructura (alternativa a ICA)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">FFMI</td>
+                                    <td class="py-3 px-4">Derivada</td>
+                                    <td class="py-3 pl-4">Estructura (masa magra normalizada por altura)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                {/* 3. FÓRMULAS ESTÁNDAR */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-4">
+                        3. Fórmulas estándar de la literatura
+                    </h2>
+                    <p class="mb-6">
+                        Las siguientes fórmulas son <strong class="text-text-primary">públicas y citables</strong> — vienen directamente de literatura biomédica revisada por pares. El motor las usa como construcción de los bloques sin alterar sus coeficientes originales.
+                    </p>
+
+                    {/* Body Fat Navy */}
+                    <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-5 mb-4">
+                        <h3 class="text-base font-semibold text-text-primary mb-2">Body Fat % por método Navy</h3>
+                        <p class="text-sm text-gray-300 mb-3 leading-relaxed">
+                            Estimación de grasa corporal a partir de perímetros (cintura, cuello, cadera) sin requerir bioimpedancia ni DEXA. Adecuada para auto-evaluación.
+                        </p>
+                        <div class="bg-bg-base/60 border border-white/[0.06] rounded-lg p-4 font-mono text-xs text-gray-300 overflow-x-auto">
+                            <p class="text-text-muted mb-1">Hombres:</p>
+                            <p class="mb-3">bf% = 86.010 · log₁₀(cintura − cuello) − 70.041 · log₁₀(altura) + 36.76</p>
+                            <p class="text-text-muted mb-1">Mujeres:</p>
+                            <p>bf% = 163.205 · log₁₀(cintura + cadera − cuello) − 97.684 · log₁₀(altura) − 78.387</p>
+                        </div>
+                        <p class="text-[10px] text-text-muted mt-3 leading-relaxed">
+                            Hodgdon, J. A. &amp; Beckett, M. B. (1984). <em>Prediction of percent body fat for U.S. Navy men and women from body circumferences and height.</em> Naval Health Research Center.
+                        </p>
+                    </div>
+
+                    {/* Mifflin */}
+                    <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-5 mb-4">
+                        <h3 class="text-base font-semibold text-text-primary mb-2">Tasa metabólica basal — Mifflin-St Jeor</h3>
+                        <p class="text-sm text-gray-300 mb-3 leading-relaxed">
+                            Fórmula estándar de la ADA para BMR en adultos sanos. Usada como referencia general en el bloque Estructura.
+                        </p>
+                        <div class="bg-bg-base/60 border border-white/[0.06] rounded-lg p-4 font-mono text-xs text-gray-300 overflow-x-auto">
+                            <p class="text-text-muted mb-1">Hombres:</p>
+                            <p class="mb-3">BMR = 10 · peso(kg) + 6.25 · altura(cm) − 5 · edad + 5</p>
+                            <p class="text-text-muted mb-1">Mujeres:</p>
+                            <p>BMR = 10 · peso(kg) + 6.25 · altura(cm) − 5 · edad − 161</p>
+                        </div>
+                        <p class="text-[10px] text-text-muted mt-3 leading-relaxed">
+                            Mifflin, M. D., St Jeor, S. T. et al. (1990). <em>A new predictive equation for resting energy expenditure in healthy individuals.</em> American Journal of Clinical Nutrition, 51(2), 241-247.
+                        </p>
+                    </div>
+
+                    {/* Katch-McArdle */}
+                    <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-5 mb-4">
+                        <h3 class="text-base font-semibold text-text-primary mb-2">BMR por masa libre de grasa — Katch-McArdle</h3>
+                        <p class="text-sm text-gray-300 mb-3 leading-relaxed">
+                            Alternativa al Mifflin que normaliza por masa magra real (no peso total). Usada como validación cruzada para usuarios con composición corporal atípica (atletas con BMI alto pero bf bajo).
+                        </p>
+                        <div class="bg-bg-base/60 border border-white/[0.06] rounded-lg p-4 font-mono text-xs text-gray-300 overflow-x-auto">
+                            <p>LBM = peso(kg) · (1 − bf% / 100)</p>
+                            <p>BMR = 370 + 21.6 · LBM(kg)</p>
+                        </div>
+                        <p class="text-[10px] text-text-muted mt-3 leading-relaxed">
+                            Katch, F. I. &amp; McArdle, W. D. (1983). <em>Nutrition, Weight Control, and Exercise</em> (2nd ed.). Lea &amp; Febiger.
+                        </p>
+                    </div>
+
+                    {/* Edad metabólica empírica */}
+                    <div class="bg-bg-elevated border border-accent/30 rounded-xl p-5 mb-4">
+                        <h3 class="text-base font-semibold text-accent mb-2">Edad metabólica (método empírico)</h3>
+                        <p class="text-sm text-gray-300 mb-3 leading-relaxed">
+                            A diferencia de las anteriores, ésta es <strong class="text-text-primary">una formulación propia</strong> ya documentada públicamente en el código del motor. El racional: usar BMR absoluta (Katch-McArdle) hace que sobrepesos con LBM alta parezcan "metabólicamente jóvenes" — clínicamente engañoso. El método empírico penaliza por desviación de grasa corporal vs referencia ACSM y por sobrepeso (BMI &gt; 22), no por masa magra absoluta.
+                        </p>
+                        <div class="bg-bg-base/60 border border-white/[0.06] rounded-lg p-4 font-mono text-xs text-gray-300 overflow-x-auto">
+                            <p>deltaBf = bf% − referenceBf(edad, género)</p>
+                            <p>deltaBmi = max(0, BMI − 22)</p>
+                            <p>offset = deltaBf · 1.0 + deltaBmi · 0.6</p>
+                            <p>edadMetabolica = clamp(18, edad + offset, 80)</p>
+                        </div>
+                        <p class="text-[10px] text-text-muted mt-3 leading-relaxed">
+                            referenceBf se basa en los rangos "saludable / fitness" del ACSM por edad y género (American College of Sports Medicine Guidelines, 11ª ed.).
+                        </p>
+                    </div>
+
+                    {/* Derivados estándar */}
+                    <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-5">
+                        <h3 class="text-base font-semibold text-text-primary mb-2">Derivados estándar</h3>
+                        <div class="bg-bg-base/60 border border-white/[0.06] rounded-lg p-4 font-mono text-xs text-gray-300 overflow-x-auto space-y-1">
+                            <p>IMC = peso(kg) / altura(m)²</p>
+                            <p>ICA = cintura(cm) / altura(cm)</p>
+                            <p>WHtR = cintura(cm) / altura(cm)  &nbsp; [equivalente a ICA, ampliamente usado en literatura anglo]</p>
+                            <p>FFMI = LBM(kg) / altura(m)²</p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 4. PESOS DEL NIVEL SUPERIOR */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-4">
+                        4. Pesos del nivel superior
+                    </h2>
+                    <p class="mb-5">
+                        El IMR final se calcula con la siguiente combinación:
+                    </p>
+                    <div class="bg-bg-elevated border border-accent/30 rounded-xl p-5 mb-5">
+                        <div class="bg-bg-base/60 border border-white/[0.06] rounded-lg p-4 font-mono text-sm text-gray-300 text-center">
+                            <p><span class="text-accent font-bold">IMR</span> = (0.50 · E + 0.25 · M + 0.25 · C) · 100</p>
+                        </div>
+                    </div>
+                    <p class="mb-3">
+                        Por qué E pesa el doble de M y C:
+                    </p>
+                    <ul class="space-y-2 text-sm md:text-base mb-4">
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">Estructura es resultado de meses, no de la decisión de hoy.</strong> Refleja el promedio histórico de hábitos. Tiene la mayor inercia y por eso es la métrica más estable de salud metabólica.</span></li>
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">Metabolismo y Conducta son señales de hoy.</strong> Son más sensibles a la ejecución diaria. Pesan menos individualmente porque su variabilidad es alta — un día atípico no debería cambiar drásticamente tu IMR.</span></li>
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">M + C = 50%, igual que E.</strong> Los hábitos del día a día tienen el mismo peso combinado que la estructura física, reflejando que ambos importan en proporciones similares.</span></li>
+                    </ul>
+                    <p class="text-sm text-text-muted leading-relaxed">
+                        Los coeficientes internos de cada bloque (cómo se ponderan los inputs dentro de E, M y C) no se publican — son propiedad intelectual del producto. Lo que sí se documenta arriba son las fórmulas estándar que cada bloque consume.
+                    </p>
+                </section>
+
+                {/* 5. ZONAS PRECISAS */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-4">
+                        5. Zonas IMR con cortes precisos
+                    </h2>
+                    <p class="mb-5">
+                        El puntaje 0-100 se clasifica en 5 zonas. La página pública <a href="/imr" class="text-accent hover:underline">/imr</a> usa una versión simplificada de 3 (deteriorada / transición / óptima); aquí están las 5 cortes exactos del motor:
+                    </p>
+
+                    <div class="space-y-3">
+                        <div class="bg-bg-elevated border-l-4 border-status-bad rounded-r-lg p-4">
+                            <div class="flex items-center gap-3 mb-1">
+                                <span class="text-lg font-bold text-status-bad font-mono">&lt; 40</span>
+                                <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-status-bad">DETERIORADO</span>
+                            </div>
+                            <p class="text-sm leading-relaxed">Sistema metabólico con desviaciones significativas en al menos dos de los tres bloques. Requiere intervención sostenida.</p>
+                        </div>
+                        <div class="bg-bg-elevated border-l-4 border-status-warn rounded-r-lg p-4">
+                            <div class="flex items-center gap-3 mb-1">
+                                <span class="text-lg font-bold text-status-warn font-mono">40 – 59</span>
+                                <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-status-warn">INESTABLE</span>
+                            </div>
+                            <p class="text-sm leading-relaxed">Hay fundamentos por corregir en uno o dos bloques. Un cambio dirigido por 4-6 semanas suele mover este rango al siguiente.</p>
+                        </div>
+                        <div class="bg-bg-elevated border-l-4 border-yellow-500/60 rounded-r-lg p-4">
+                            <div class="flex items-center gap-3 mb-1">
+                                <span class="text-lg font-bold text-yellow-500 font-mono">60 – 74</span>
+                                <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-yellow-500">FUNCIONAL</span>
+                            </div>
+                            <p class="text-sm leading-relaxed">El sistema opera correctamente pero no en eficiencia óptima. Refinamiento por bloque, no overhaul completo.</p>
+                        </div>
+                        <div class="bg-bg-elevated border-l-4 border-emerald-500/60 rounded-r-lg p-4">
+                            <div class="flex items-center gap-3 mb-1">
+                                <span class="text-lg font-bold text-emerald-500 font-mono">75 – 89</span>
+                                <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-500">EFICIENTE</span>
+                            </div>
+                            <p class="text-sm leading-relaxed">Los tres bloques operan en zona alta. El foco pasa de reparar a mantener y refinar.</p>
+                        </div>
+                        <div class="bg-bg-elevated border-l-4 border-status-good rounded-r-lg p-4">
+                            <div class="flex items-center gap-3 mb-1">
+                                <span class="text-lg font-bold text-status-good font-mono">≥ 90</span>
+                                <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-status-good">OPTIMIZADO</span>
+                            </div>
+                            <p class="text-sm leading-relaxed">Sistema metabólico en alta consistencia. Mantenimiento ligero. Recalibración mensual para alertar de desviaciones.</p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 6. CASOS CANÓNICOS DE VALIDACIÓN */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-4">
+                        6. Validación interna — casos canónicos
+                    </h2>
+                    <p class="mb-5">
+                        Para verificar que el motor produce resultados clínicamente coherentes, se calibró contra tres perfiles conceptuales. Los outputs esperados están documentados en los tests del motor y se ejecutan en cada release.
+                    </p>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-white/[0.08]">
+                                    <th class="text-left py-3 pr-4 text-[11px] font-bold uppercase tracking-[0.15em] text-text-muted">Perfil</th>
+                                    <th class="text-left py-3 px-4 text-[11px] font-bold uppercase tracking-[0.15em] text-text-muted">Inputs</th>
+                                    <th class="text-left py-3 pl-4 text-[11px] font-bold uppercase tracking-[0.15em] text-accent">Edad metabólica esperada</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/[0.04]">
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Atleta 30 años</td>
+                                    <td class="py-3 px-4 font-mono text-xs">bf=10%, BMI=23</td>
+                                    <td class="py-3 pl-4 font-mono text-accent">~21 años</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Adulto promedio 35 años</td>
+                                    <td class="py-3 px-4 font-mono text-xs">bf=18%, BMI=24</td>
+                                    <td class="py-3 pl-4 font-mono text-accent">~36 años</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 pr-4 font-semibold text-text-primary">Sobrepeso 50 años</td>
+                                    <td class="py-3 px-4 font-mono text-xs">bf=30%, BMI=31</td>
+                                    <td class="py-3 pl-4 font-mono text-accent">~63 años</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p class="mt-5 text-sm text-text-muted leading-relaxed">
+                        Los tres casos producen resultados consistentes con la intuición clínica: un atleta joven con composición ideal "es más joven que su edad cronológica"; un adulto promedio "está en su edad"; y una persona con sobrepeso significativo "es metabólicamente mayor". Si en algún release futuro el motor cambia y estos casos canónicos dejan de cumplirse, el cambio se documenta como ruptura mayor (nueva versión, ej. <code class="text-accent font-mono">spec-71.0-v1</code>).
+                    </p>
+                </section>
+
+                {/* 7. LIMITACIONES TÉCNICAS */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-4">
+                        7. Limitaciones técnicas
+                    </h2>
+                    <p class="mb-5">
+                        Las limitaciones siguientes son específicas del motor actual (<code class="text-accent font-mono">spec-70.5-v1</code>). La página <a href="/imr" class="text-accent hover:underline">/imr</a> describe limitaciones generales; esta sección las complementa con detalle técnico.
+                    </p>
+
+                    <ul class="space-y-3 text-sm md:text-base">
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">Body Fat Navy estima, no mide.</strong> El error promedio reportado en literatura es ±3% absoluto vs DEXA. Para auto-evaluación es aceptable; no sustituye un análisis de composición corporal real.</span></li>
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">Mifflin asume metabolismo de adulto sano.</strong> Personas con condiciones tiroideas, embarazo, o medicación que afecte TMB pueden recibir resultados desviados.</span></li>
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">Edad metabólica empírica está clampada en 18 - 80.</strong> Adolescentes y adultos mayores reciben resultados saturados en los extremos.</span></li>
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">Hábitos auto-reportados con sesgo de deseabilidad.</strong> Los inputs de sueño, hidratación y ejercicio tienden a ser sobre-reportados en literatura general. Si el usuario miente, el motor reporta IMR alto sobre datos falsos.</span></li>
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">No incorpora biomarcadores.</strong> Glucosa en ayunas, HbA1c, lípidos, hormonas — todos son más precisos para detectar enfermedad metabólica. Si tienes acceso a esos datos, el IMR es un complemento, no un sustituto.</span></li>
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">No validado en cohortes clínicas externas.</strong> La calibración interna es contra casos canónicos conceptuales; validación frente a outcomes clínicos reales está en roadmap.</span></li>
+                    </ul>
+                </section>
+
+                {/* 8. ROADMAP DE VERSIONES */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-4">
+                        8. Roadmap de versiones del motor
+                    </h2>
+                    <p class="mb-5">
+                        El motor está versionado y cada cálculo persiste su versión (<code class="text-accent font-mono">imr.history.engineVersion</code>). Esto permite re-procesar históricos cuando el método evoluciona.
+                    </p>
+
+                    <div class="space-y-3">
+                        <div class="bg-bg-elevated border border-accent/30 rounded-xl p-4">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-sm font-mono font-bold text-accent">spec-70.5-v1</span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">Actual · estable</span>
+                            </div>
+                            <p class="text-sm leading-relaxed">Versión productiva descrita en este documento. Pesos 50/25/25, fórmulas estándar Navy/Mifflin/Katch-McArdle, edad metabólica empírica, zonas en 5 cortes.</p>
+                        </div>
+                        <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-4">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-sm font-mono font-bold text-text-secondary">spec-71.x (planeada)</span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">Roadmap</span>
+                            </div>
+                            <p class="text-sm leading-relaxed">Cambios candidatos: incorporación de HRV (variabilidad de frecuencia cardíaca) si ElenaApp integra sensores; sustitución de hábitos auto-reportados por hábitos tracked cuando ElenaApp lo permita; validación contra cohorte clínica con N≥100.</p>
+                        </div>
+                        <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-4">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-sm font-mono font-bold text-text-secondary">spec-72.x (especulativa)</span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">Investigación</span>
+                            </div>
+                            <p class="text-sm leading-relaxed">Si la base de datos crece, calibración por sub-poblaciones (perfil hispanoamericano, deportistas, mayores de 60). Los pesos podrían variar por contexto demográfico sin perder la columna vertebral del IMR.</p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 9. REFERENCIAS COMPLEMENTARIAS */}
+                <section>
+                    <h2 class="text-2xl md:text-3xl font-bold text-text-primary tracking-tight mb-4">
+                        9. Referencias complementarias
+                    </h2>
+                    <p class="mb-5">
+                        Las referencias generales del IMR están en <a href="/imr#respaldo-cientifico" class="text-accent hover:underline">la página principal</a>. Aquí se listan las referencias específicas de las fórmulas técnicas usadas en esta nota.
+                    </p>
+
+                    <ul class="space-y-3 text-sm text-gray-300">
+                        <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">M1</span><span>Hodgdon, J. A. &amp; Beckett, M. B. (1984). <em>Prediction of percent body fat for U.S. Navy men and women from body circumferences and height.</em> Naval Health Research Center, Report No. 84-29.</span></li>
+                        <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">M2</span><span>Mifflin, M. D., St Jeor, S. T., Hill, L. A., Scott, B. J., Daugherty, S. A. &amp; Koh, Y. O. (1990). <em>A new predictive equation for resting energy expenditure in healthy individuals.</em> American Journal of Clinical Nutrition, 51(2), 241-247.</span></li>
+                        <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">M3</span><span>Katch, F. I. &amp; McArdle, W. D. (1983). <em>Nutrition, Weight Control, and Exercise</em> (2nd ed.). Philadelphia: Lea &amp; Febiger.</span></li>
+                        <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">M4</span><span>American College of Sports Medicine (2021). <em>ACSM's Guidelines for Exercise Testing and Prescription</em> (11th ed.). Wolters Kluwer.</span></li>
+                        <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">M5</span><span>Ashwell, M. &amp; Hsieh, S. D. (2005). <em>Six reasons why the body mass index is a poor measure of your health.</em> The Lancet, 365(9462), 941-945. (Defensa del WHtR / ICA sobre IMC.)</span></li>
+                    </ul>
+                </section>
+
+                <MedicalDisclaimer variant="compact" />
+
+                {/* Volver a /imr */}
+                <section class="bg-bg-elevated border border-white/[0.1] rounded-xl p-6 md:p-8 text-center">
+                    <p class="text-[11px] font-bold text-accent uppercase tracking-[0.18em] mb-3">Volver al IMR</p>
+                    <h2 class="text-2xl font-bold text-text-primary tracking-tight mb-3">
+                        ¿Te quedaste con dudas?
+                    </h2>
+                    <p class="text-gray-300 leading-relaxed mb-6 max-w-md mx-auto text-sm">
+                        Esta nota es complemento técnico. Si quieres la explicación accesible del IMR, qué evalúa y por qué importa, vuelve a la página principal.
+                    </p>
+                    <a
+                        href="/imr"
+                        class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-base hover:bg-accent-strong transition-colors"
+                    >
+                        Ir a /imr →
+                    </a>
+                </section>
+            </div>
+
+            <footer class="mt-12 pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <a href="/" class="text-sm font-medium text-text-secondary hover:text-accent transition-colors">
+                    ← Volver al inicio
+                </a>
+                <div class="flex gap-4 text-sm">
+                    <a href="/imr" class="text-text-secondary hover:text-accent transition-colors">IMR (público)</a>
+                    <a href="/biblioteca" class="text-text-secondary hover:text-accent transition-colors">Biblioteca</a>
+                    <a href="/disclaimer-medico" class="text-text-secondary hover:text-accent transition-colors">Aviso médico</a>
+                </div>
+            </footer>
+        </article>
+    </main>
+</BaseLayout>
