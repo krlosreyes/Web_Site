@@ -1,5 +1,7 @@
 ---
 import "../styles/global.css";
+import Navbar from "../components/Navbar.astro";
+import Footer from "../components/Footer.astro";
 
 interface Props {
   title: string;
@@ -58,67 +60,21 @@ const siteName = "Metamorfosis Real";
     <!-- PERSISTENT GLOW -->
     <div class="bg-glow" aria-hidden="true"></div>
 
-    <!-- NAVBAR STICKY -->
-    <header
-      class="sticky top-0 z-50 w-full border-b border-text-primary/10 bg-bg-base/80 backdrop-blur-md"
-    >
-      <div
-        class="container mx-auto px-6 h-20 flex items-center justify-between"
-      >
-        <a href="/" class="flex items-center gap-3 group">
-          <img
-            src="/logoSite.png"
-            alt="Metamorfosis Real Logo"
-            class="h-16 w-auto group-hover:scale-105 transition-transform drop-shadow-[0_0_20px_rgba(0,123,255,0.45)]"
-          />
-          <span
-            class="font-heading font-bold text-3xl tracking-tight text-text-primary"
-            >Metamorfosis<span class="text-accent-blue">Real</span></span
-          >
-        </a>
-
-        <nav
-          class="hidden md:flex items-center gap-8 font-heading text-sm font-medium text-text-secondary"
-        >
-          <a href="#" class="hover:text-text-primary transition-colors"
-            >Ciencia</a
-          >
-          <a href="#" class="hover:text-text-primary transition-colors"
-            >Protocolos</a
-          >
-          <a href="#" class="hover:text-text-primary transition-colors"
-            >Comunidad</a
-          >
-        </nav>
-
-        <div class="flex items-center gap-4">
-          <a href="/quiz" class="btn-gradient px-5 py-2.5 text-sm">
-            Calcular IMR
-          </a>
-          <a href="/admin" class="flex items-center gap-1 text-xs text-[#4a637e] hover:text-[#007BFF] transition-colors duration-200 font-medium">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10 12a2 2 0 100-4 2 2 0 000 4zm7-2a7 7 0 11-14 0 7 7 0 0114 0zm-7-4v2m0 4v2" />
-            </svg>
-            Admin
-          </a>
-        </div>
-      </div>
-    </header>
+    {/* SPEC-107: usar componente Navbar.astro real en lugar del header
+        legacy hardcodeado. El componente tiene: gate isAdmin para el link
+        Admin, botón Ingresar/Logout con Firebase Auth, ElenaApp CTA con
+        modal de waitlist, NotificationBell, menú mobile con hamburguesa,
+        items reales (IMR/Biblioteca/La Tribu). */}
+    <Navbar />
 
     <main class="relative z-10">
       <slot />
     </main>
 
-    <footer class="mt-20 border-t border-text-primary/10 py-12 bg-bg-surface">
-      <div class="container mx-auto px-6 text-center">
-        <p class="text-text-secondary text-sm">
-          © 2026 Metamorfosis Real - Todos los derechos reservados.
-        </p>
-        <p class="mt-2 text-xs text-text-secondary/50">
-          Impulsado por ElenaApp Metabolic Intelligence Engine.
-        </p>
-      </div>
-    </footer>
+    {/* SPEC-107: usar componente Footer.astro real con redes sociales,
+        links a recursos y aviso médico, en lugar del footer minimal
+        legacy hardcodeado. */}
+    <Footer />
   </body>
 </html>
 
