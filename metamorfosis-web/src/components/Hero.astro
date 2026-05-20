@@ -1,5 +1,5 @@
 ---
-import { ArrowRight, Youtube } from 'lucide-astro';
+import { ArrowRight } from 'lucide-astro';
 
 /**
  * SPEC-098: stats row reescrito. Eliminadas las métricas inventadas
@@ -94,11 +94,16 @@ const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@Metamorfosisreal';
           class="group block hover:-translate-y-0.5 transition-transform"
           aria-label="Visitar el canal de YouTube Metamorfosis Real"
         >
-          {/* Logo YouTube en rojo brand (#FF0000) para reconocimiento
-              instantáneo. Único color off-paleta del Hero — estándar de la
-              industria para iconos de plataformas en stat rows. */}
+          {/* Logo YouTube — SVG inline con rectángulo rojo brand (#FF0000)
+              + triángulo blanco. NO usamos el icono Youtube de lucide-astro
+              porque su fill aplica a ambos paths internos (rect y play),
+              resultando en un cuadrado sólido sin el triángulo visible.
+              Patrón inline permite colorear cada elemento por separado. */}
           <p class="text-2xl font-bold text-text-primary group-hover:text-accent transition-colors flex items-center gap-2">
-            <Youtube class="w-6 h-6 text-[#FF0000] fill-[#FF0000]" aria-hidden="true" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" class="shrink-0">
+              <rect width="20" height="14" x="2" y="5" rx="3" fill="#FF0000"/>
+              <path d="m10 9 5 3-5 3z" fill="#ffffff"/>
+            </svg>
             <span>{YOUTUBE_SUBSCRIBERS}</span>
           </p>
           <p class="text-[11px] text-text-muted group-hover:text-text-secondary uppercase tracking-[0.2em] mt-0.5 inline-flex items-center gap-1 transition-colors">

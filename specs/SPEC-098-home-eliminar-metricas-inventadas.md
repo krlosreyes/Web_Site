@@ -1,9 +1,10 @@
 # SPEC-098 — Home: eliminar métricas inventadas del Hero
 
-**Estado:** 🔨 En progreso (código listo, pendiente: env var en Hostinger + build local + commit + push)
+**Estado:** ✅ Cerrada
 **Fase:** Bloque A del plan estratégico 2026-05-19 (Limpieza y verdad)
 **Severidad:** ALTA (riesgo de credibilidad + posible exposición regulatoria)
 **Fecha de creación:** 2026-05-19
+**Cerrada:** 2026-05-19
 **Autor:** Carlos Reyes
 **Depende de:** SPEC-053 (hero copy refresh — vigente, no se toca)
 
@@ -242,3 +243,24 @@ mitigado. Foso defensible vía honestidad sustituye foso falso vía vanity numbe
    trade-off es que actualizar el número requiere commit + push +
    90-120s, pero ese trade-off es aceptable porque el conteo se
    actualiza ~mensualmente, no semanalmente.
+
+### Fix post-deploy 2026-05-19 — logo YouTube visible
+
+El icono `Youtube` de `lucide-astro` rendea dos paths internos
+(rectángulo + triángulo play). Al aplicar `fill-[#FF0000]` al
+componente, ambos paths recibieron el mismo fill rojo — el triángulo
+quedó invisible sobre el rectángulo del mismo color y el resultado
+visual era un cuadrado rojo sólido sin reconocibilidad de marca.
+
+Fix: reemplazar el componente Lucide por SVG inline con paths
+coloreados individualmente:
+
+```html
+<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+  <rect width="20" height="14" x="2" y="5" rx="3" fill="#FF0000"/>
+  <path d="m10 9 5 3-5 3z" fill="#ffffff"/>
+</svg>
+```
+
+Import de `Youtube` eliminado del Hero. Detectado por Carlos en
+validación visual del deploy de SPEC-098.
