@@ -4,7 +4,7 @@ import BioDashboard from '../components/BioDashboard';
 import MedicalDisclaimer from '../components/MedicalDisclaimer.astro';
 ---
 
-<BaseLayout title="Tu reporte IMR">
+<BaseLayout title="Tu reporte IMR" noindex={true}>
     {/* SPEC-026: pt-28 reserva 112px para no quedar tapados por el navbar fixed.
         SPEC-080: disclaimer médico compact al inicio del dashboard. El usuario
         ve su IMR — debe quedar claro que NO es diagnóstico clínico. */}
