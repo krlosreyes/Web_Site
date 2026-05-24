@@ -84,13 +84,18 @@ const robotsContent = noindex
     ? "noindex, nofollow"
     : "index, follow, max-image-preview:large, max-snippet:-1";
 
-// SPEC-108: Google Search Console verification token (opcional).
-// Si Carlos pega el token en Hostinger como env var, se inyecta en el head.
-// Si no, el meta tag simplemente no se renderiza (no rompe nada).
+// SPEC-108b: Google Search Console verification.
+// Token de la propiedad de Carlos (krlosreyes2@gmail.com), método "meta tag"
+// para https://www.metamorfosisvital.com.co/. El token es público por
+// diseño (Google lo expone en el HTML servido), no es un secreto y por
+// eso queda commiteado. Si en el futuro se rota la propiedad o se cambia
+// el método, setear `PUBLIC_GSC_VERIFICATION` en Hostinger para
+// sobreescribir el fallback sin tocar código.
+const GSC_FALLBACK = "bsVKXSzWFZikMkloI9wiNvOQSMGlw3KL7ekcpHYWZe0";
 const gscVerification =
     process.env.PUBLIC_GSC_VERIFICATION ||
     import.meta.env.PUBLIC_GSC_VERIFICATION ||
-    "";
+    GSC_FALLBACK;
 
 // SPEC-108: JSON-LD Organization + WebSite. Le dice a Google qué es
 // el sitio, su logo y redes sociales, y habilita la sitelinks searchbox

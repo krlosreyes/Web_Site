@@ -186,11 +186,21 @@ Implementado en una sola pasada (2026-05-24).
 **Build:** `npm run build` corrió limpio en 7.77s. Grep al bundle SSR confirma que `BaseLayout_*.mjs` contiene `Organization`, `article:published_time`, `google-site-verification`, `max-image-preview`, `og:locale`, `og:site_name`.
 
 **Pendientes (post-deploy, manuales de Carlos):**
-- [ ] Verificar curl post-deploy (comandos en sección Pruebas) — debe dar 0 referencias a `localhost`.
-- [ ] Crear/verificar propiedad en Google Search Console.
+- [x] Verificar curl post-deploy: canonical/og/twitter con dominio real (2026-05-24).
+- [x] Token GSC hardcodeado en BaseLayout como fallback (SPEC-108b, 2026-05-24).
+- [ ] Hacer click "Verificar" en GSC (token: `bsVKXSzWFZikMkloI9wiNvOQSMGlw3KL7ekcpHYWZe0`).
 - [ ] Submit `https://www.metamorfosisvital.com.co/sitemap.xml` en GSC.
 - [ ] Request indexing manual de: `/`, `/imr`, `/biblioteca`, `/quiz`, `/sobre-mi`.
-- [ ] (Opcional) pegar token GSC en Hostinger env `PUBLIC_GSC_VERIFICATION`.
 - [ ] Re-scrape en Facebook Sharing Debugger para forzar refresh de OG preview.
+
+### Sub-spec SPEC-108b — Hardcodear token GSC (2026-05-24)
+
+Carlos eligió método de verificación "meta tag" en Google Search Console para
+`https://www.metamorfosisvital.com.co/` y compartió el token
+`bsVKXSzWFZikMkloI9wiNvOQSMGlw3KL7ekcpHYWZe0`. Pegarlo en Hostinger env vars
+agrega una dependencia operativa para algo que no es secreto (el token es
+público — Google lo lee del HTML servido). Lo hardcodeamos como fallback
+en `BaseLayout.astro`. La env var `PUBLIC_GSC_VERIFICATION` queda como
+override por si se rota la propiedad o cambia el método sin tocar código.
 
 Sin desviaciones del plan.
