@@ -25,6 +25,11 @@ desktop.ini
 *~
 .zed/
 
+# ────────────── Aider (SPEC-109) ──────────────
+# `aider` crea caches y history files en el cwd del repo. No deben ir al
+# commit porque contienen contexto/prompts históricos y son cache local.
+.aider*
+
 # ────────────── Secretos genéricos ──────────────
 # Cualquier .env en cualquier nivel del repo
 .env

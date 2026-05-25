@@ -211,9 +211,6 @@ export const POST: APIRoute = async ({ request }) => {
                     const batch = db.batch();
                     leadsSnap.docs.forEach((d) => batch.delete(d.ref));
                     await batch.commit();
-                    console.log(
-                        `[onboard] Mergeados ${leadsSnap.size} leads anónimos previos para ${email}`
-                    );
                 }
             } catch (e) {
                 // No bloquea el onboard si la limpieza falla

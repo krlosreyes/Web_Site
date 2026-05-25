@@ -107,7 +107,6 @@ export const DELETE: APIRoute = async ({ params, request }) => {
             status: 'deleted',
             updatedAt: new Date().toISOString(),
         });
-        console.log('[forum.topics.DELETE] OK', { topicId: id, by: session.uid });
 
         await logAdminAction({
             action: 'delete_forum_topic',

@@ -23,7 +23,6 @@ if (!getApps().length) {
             // Sin esto, storage.bucket() necesita el nombre explícito en cada call.
             storageBucket: import.meta.env.PUBLIC_FIREBASE_STORAGE_BUCKET ?? `${serviceAccount.projectId}.firebasestorage.app`,
         });
-        console.log('✅ Firebase Admin SDK initialized successfully.');
     } catch (error) {
         console.error('❌ Error initializing Firebase Admin SDK:', error);
     }
