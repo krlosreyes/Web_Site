@@ -1,6 +1,6 @@
 # SPEC-108 — Fix regresión SEO: canonical y OG apuntan a localhost (sitio sin indexar)
 
-**Estado:** ✅ Cerrada (pendiente verificación post-deploy)
+**Estado:** ✅ Cerrada
 **Fase:** 4 (Operación / Crecimiento)
 **Severidad:** 🔴 CRÍTICO (sitio 0% indexado en Google)
 **Fecha de creación:** 2026-05-24
@@ -188,10 +188,11 @@ Implementado en una sola pasada (2026-05-24).
 **Pendientes (post-deploy, manuales de Carlos):**
 - [x] Verificar curl post-deploy: canonical/og/twitter con dominio real (2026-05-24).
 - [x] Token GSC hardcodeado en BaseLayout como fallback (SPEC-108b, 2026-05-24).
-- [ ] Hacer click "Verificar" en GSC (token actual: `VWsHvjRtNCUgVX6rC0IYhGmiH0jRitHEu8rXd746S1A`; el primer token `bsVKXS...` resultó ser de otra propiedad y se reemplazó).
-- [ ] Submit `https://www.metamorfosisvital.com.co/sitemap.xml` en GSC.
-- [ ] Request indexing manual de: `/`, `/imr`, `/biblioteca`, `/quiz`, `/sobre-mi`.
-- [ ] Re-scrape en Facebook Sharing Debugger para forzar refresh de OG preview.
+- [x] Propiedad verificada en GSC con token `VWsHvjRtNCUgVX6rC0IYhGmiH0jRitHEu8rXd746S1A` (2026-05-24).
+- [x] Sitemap `sitemap.xml` enviado en GSC (2026-05-24).
+- [x] Indexación solicitada manualmente de `/`, `/imr`, `/biblioteca`, `/quiz`, `/sobre-mi` (2026-05-24).
+- [ ] Re-scrape en Facebook Sharing Debugger para forzar refresh de OG preview (opcional, no bloquea Google).
+- [ ] Monitorear cobertura en GSC en 7 días — confirmar que las 5 URLs pasan a "Indexada".
 
 ### Sub-spec SPEC-108b — Hardcodear token GSC (2026-05-24)
 
