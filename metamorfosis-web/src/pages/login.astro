@@ -223,9 +223,12 @@ import Layout from '../layouts/Layout.astro';
             submitBtn.disabled = true;
         }
 
-        const email = inputEmail.value.trim();
-        const password = inputPass.value.trim();
-        const nameInput = inputName.value.trim();
+        // SPEC-110: optional chaining defensivo — si por algún cambio en el HTML
+        // alguno de los IDs desaparece, el form acepta strings vacíos y Firebase
+        // devuelve un error claro vía el catch, en lugar de crashear el script.
+        const email = (inputEmail as HTMLInputElement | null)?.value?.trim() ?? '';
+        const password = (inputPass as HTMLInputElement | null)?.value?.trim() ?? '';
+        const nameInput = (inputName as HTMLInputElement | null)?.value?.trim() ?? '';
 
         try {
             if (mode === 'register') {
@@ -272,7 +275,9 @@ import Layout from '../layouts/Layout.astro';
             sessionStorage.setItem('user_email', email);
             window.location.href = '/dashboard';
         } catch (error) {
-            alert("Error: " + error.message);
+            // SPEC-110: tolerar errores que no son instancias de Error (throw "..." o throw {})
+            const msg = (error as { message?: string } | null)?.message ?? String(error);
+            alert("Error: " + msg);
             if (submitBtn) {
                 submitBtn.textContent = mode === 'login' ? 'Sincronizar Perfil' : 'Crear Identidad';
                 submitBtn.disabled = false;
