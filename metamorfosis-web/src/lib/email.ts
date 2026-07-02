@@ -20,6 +20,10 @@ interface SendEmailInput {
     subject: string;
     html: string;
     text: string;
+    /** SPEC-112: reply_to opcional. Útil cuando el email va a un tercero
+     *  (ej. Carlos) pero la respuesta natural debe ir al remitente original
+     *  (ej. el usuario que abrió un ticket de soporte). */
+    replyTo?: string;
 }
 
 interface SendEmailResult {
@@ -46,6 +50,7 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
             subject: input.subject,
             html: input.html,
             text: input.text,
+            ...(input.replyTo ? { reply_to: input.replyTo } : {}),
         }),
     });
 
@@ -377,4 +382,130 @@ Metamorfosis Real`;
     });
 
     return sendEmail({ to: input.to, subject, html, text });
+}
+
+/**
+ * SPEC-112: notificación a Carlos de un nuevo ticket de soporte de ElenaApp.
+ *
+ * Se dispara desde POST /api/support/elena después de persistir el ticket.
+ * Best-effort: si Resend falla, el ticket ya está en Firestore y Carlos
+ * puede verlo desde el admin (a futuro, cuando SPEC-113 agregue el tab).
+ *
+ * `to` viene de la env var `SUPPORT_EMAIL_TO` con fallback a la cuenta admin
+ * de Carlos para que funcione out-of-the-box sin configuración extra.
+ */
+export interface SupportTicketEmailInput {
+    ticketId: string;
+    source: 'authenticated' | 'anonymous';
+    uid?: string | null;
+    name: string;
+    email: string;
+    category: string;
+    message: string;
+    userAgent?: string | null;
+}
+
+const SUPPORT_EMAIL_FALLBACK = 'krlosreyes2@gmail.com';
+
+const CATEGORY_LABELS: Record<string, string> = {
+    tecnico: 'Problema técnico',
+    cuenta: 'Cuenta y acceso',
+    contenido: 'Contenido / información',
+    feedback: 'Sugerencia o feedback',
+    otro: 'Otro',
+};
+
+function escapeHtml(s: string): string {
+    return s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+export async function sendSupportTicketEmail(
+    input: SupportTicketEmailInput
+): Promise<SendEmailResult> {
+    const to =
+        (import.meta.env.SUPPORT_EMAIL_TO as string | undefined) ||
+        SUPPORT_EMAIL_FALLBACK;
+
+    const categoryLabel = CATEGORY_LABELS[input.category] ?? input.category;
+    const subject = `[Soporte ElenaApp] ${categoryLabel} — ${input.name}`;
+    const sourceLabel =
+        input.source === 'authenticated'
+            ? `Autenticado (uid: ${input.uid ?? '?'})`
+            : 'Anónimo';
+
+    const bodyHtml = `
+      <p style="margin:0 0 24px;font-size:16px;color:#f0f6ff;font-weight:700;">Nuevo ticket de soporte de ElenaApp</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden;">
+        <tr>
+          <td style="padding:14px 18px;background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.06);">
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:4px;">Ticket</div>
+            <div style="font-family:ui-monospace,monospace;font-size:13px;color:#cbd5e1;">${escapeHtml(input.ticketId)}</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.06);">
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:4px;">Categoría</div>
+            <div style="color:#f0f6ff;">${escapeHtml(categoryLabel)}</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.06);">
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:4px;">Nombre</div>
+            <div style="color:#f0f6ff;">${escapeHtml(input.name)}</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.06);">
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:4px;">Email</div>
+            <div style="color:#f0f6ff;"><a href="mailto:${escapeHtml(input.email)}" style="color:#00C49A;text-decoration:none;">${escapeHtml(input.email)}</a></div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:14px 18px;">
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:4px;">Origen</div>
+            <div style="color:#94a3b8;font-size:13px;">${escapeHtml(sourceLabel)}</div>
+          </td>
+        </tr>
+      </table>
+      <div style="padding:16px 18px;background:rgba(0,196,154,0.06);border:1px solid rgba(0,196,154,0.2);border-radius:12px;margin:0 0 24px;">
+        <div style="font-size:11px;color:#00C49A;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:8px;font-weight:700;">Mensaje del usuario</div>
+        <div style="color:#e2e8f0;white-space:pre-wrap;font-size:14px;line-height:1.6;">${escapeHtml(input.message)}</div>
+      </div>
+      <p style="margin:0 0 12px;font-size:13px;color:#94a3b8;">Puedes responder directamente a este email — la conversación llega al usuario.</p>
+    `;
+
+    const text = `Nuevo ticket de soporte de ElenaApp
+
+Ticket: ${input.ticketId}
+Categoría: ${categoryLabel}
+Nombre: ${input.name}
+Email: ${input.email}
+Origen: ${sourceLabel}
+
+Mensaje:
+${input.message}
+
+Responde a este email para contestar al usuario.`;
+
+    const html = wrapEmailHtml({
+        subject,
+        heading: 'Nuevo ticket de soporte',
+        bodyHtml,
+    });
+
+    // Sobrescribimos el destinatario del sendEmail estándar porque va a Carlos,
+    // no al usuario. `replyTo` = email del user para que "Reply" en Gmail
+    // dispare la conversación directa con quien reportó el ticket.
+    return sendEmail({
+        to,
+        subject,
+        html,
+        text,
+        replyTo: input.email,
+    });
 }

@@ -21,6 +21,8 @@ export const COLLECTIONS = {
     ADMIN_AUDIT_LOG: 'admin_audit_log',
     /** Foro de comunidad (SPEC-033). Subcolecciones: replies/{id}, likes/{uid}. */
     FORUM_TOPICS: 'forum_topics',
+    /** Tickets de soporte de ElenaApp (SPEC-112). Solo Admin SDK escribe/lee. */
+    ELENA_SUPPORT_TICKETS: 'elena_support_tickets',
 } as const;
 
 /** Subcolecciones bajo `users/{uid}`. */

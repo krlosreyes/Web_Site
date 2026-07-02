@@ -159,6 +159,17 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ===== elena_support_tickets (SPEC-112) =====
+    // Tickets de soporte de ElenaApp. Escritura SOLO desde el endpoint
+    // POST /api/support/elena con Admin SDK (que bypasea rules): valida
+    // Content-Type, honeypot, rate limit y Bearer token opcional antes de
+    // persistir. Lectura SOLO desde endpoints admin server-side (patrón
+    // igual a admin_audit_log). El cliente no debe poder listar ni crear
+    // tickets directamente para no bypasear las protecciones anti-spam.
+    match /elena_support_tickets/{ticket} {
+      allow read, write: if false;
+    }
+
     // ===== Default deny =====
     // Cualquier path no enumerado arriba queda bloqueado.
     match /{document=**} {
