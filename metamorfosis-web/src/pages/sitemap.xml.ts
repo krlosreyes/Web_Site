@@ -35,6 +35,14 @@ const STATIC_PAGES: StaticPage[] = [
     { path: '/terminos', priority: 0.2, changefreq: 'yearly' },
     { path: '/privacidad', priority: 0.2, changefreq: 'yearly' },
     { path: '/disclaimer-medico', priority: 0.2, changefreq: 'yearly' },
+    // SPEC-113: política de privacidad de Elena App (link obligatorio en
+    // App Store Connect y Google Play Console). Prioridad baja pero
+    // indexable — reviewers y crawlers deben poder encontrarla.
+    { path: '/elenaapp/privacidad', priority: 0.3, changefreq: 'yearly' },
+    // SPEC-112: canal de soporte de Elena App.
+    { path: '/elenasupport', priority: 0.5, changefreq: 'monthly' },
+    // SPEC-102: nota metodológica del IMR.
+    { path: '/imr/metodologia', priority: 0.4, changefreq: 'monthly' },
 ];
 
 /** Escapa caracteres XML especiales en un string. */
