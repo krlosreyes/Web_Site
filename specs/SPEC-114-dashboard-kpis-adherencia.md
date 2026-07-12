@@ -1,6 +1,6 @@
 # SPEC-114 — Dashboard admin de KPIs de adherencia (ElenaApp)
 
-**Estado:** 🔨 En progreso
+**Estado:** ✅ Cerrada
 **Fase:** 1
 **Severidad:** ALTO
 **Fecha de creación:** 2026-07-12
@@ -156,8 +156,15 @@ Cierra specs/SPEC-114-dashboard-kpis-adherencia.md
 
 ## Resultado
 
-Implementado. Build verificado localmente antes de commit (ver historial
-de comandos). Pendiente: validar en producción que el desglose de
-pilares del roster refleja datos reales (ver nota en `## Pruebas`), y
-abrir spec de seguimiento para el webhook de RevenueCat cuando haya
+Implementado. `npm run build` corrido por Carlos en su máquina
+(2026-07-12 11:57) — completa sin errores nuevos (solo warnings
+preexistentes no relacionados: import sin usar en `ArticleQuiz.tsx`,
+import dinámico/estático mixto de `firebase/firestore`). Commit local
+`a866494`, pendiente de `git push` (el sandbox no tiene credenciales de
+GitHub — Carlos lo pushea desde su terminal).
+
+Pendiente como follow-up, no bloqueante: validar en producción que el
+desglose de pilares del roster refleja datos reales (ver nota en
+`## Pruebas` sobre los campos best-effort de nutrition/exercise/sleep/
+hydration), y abrir spec para el webhook de RevenueCat cuando haya
 volumen de trials real que justifique medir conversión.
