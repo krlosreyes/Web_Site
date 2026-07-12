@@ -18,6 +18,8 @@ const AuditLog = React.lazy(() => import('./AuditLog'));
 const ForumModeration = React.lazy(() => import('./ForumModeration'));
 /** SPEC-090: tablero de analítica editorial de artículos. */
 const ArticleAnalytics = React.lazy(() => import('./ArticleAnalytics'));
+/** SPEC-114: dashboard de KPIs de adherencia/activación de ElenaApp. */
+const KpiDashboard = React.lazy(() => import('./KpiDashboard'));
 
 class ErrorBoundary extends React.Component<{children: React.ReactNode, onReset: () => void}, {hasError: boolean, error: string}> {
     constructor(props: any) {
@@ -52,6 +54,7 @@ type AdminTab =
     | 'FOUNDERS'
     | 'ARTICLE_ANALYTICS'
     | 'ANALYTICS'
+    | 'KPIS'
     | 'AUDIT'
     | 'FORUM';
 
@@ -169,6 +172,14 @@ const AdminApp = () => {
                     </button>
 
                     <button
+                        onClick={() => setActiveTab('KPIS')}
+                        className={sidebarBtn(activeTab === 'KPIS')}
+                    >
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                        KPIs de adherencia
+                    </button>
+
+                    <button
                         onClick={() => setActiveTab('AUDIT')}
                         className={sidebarBtn(activeTab === 'AUDIT')}
                     >
@@ -199,9 +210,10 @@ const AdminApp = () => {
                         <>
                             {/* StatsGrid se oculta en tabs que tienen sus propias
                                 métricas para evitar saturación visual: ANALYTICS,
-                                ARTICLE_ANALYTICS, AUDIT, FORUM y FOUNDERS. */}
+                                ARTICLE_ANALYTICS, KPIS, AUDIT, FORUM y FOUNDERS. */}
                             {activeTab !== 'ANALYTICS' &&
                                 activeTab !== 'ARTICLE_ANALYTICS' &&
+                                activeTab !== 'KPIS' &&
                                 activeTab !== 'AUDIT' &&
                                 activeTab !== 'FORUM' &&
                                 activeTab !== 'FOUNDERS' && <StatsGrid />}
@@ -217,6 +229,11 @@ const AdminApp = () => {
                                 {activeTab === 'ANALYTICS' && (
                                     <Suspense fallback={<LazyLoader />}>
                                         <AnaliticaIMR />
+                                    </Suspense>
+                                )}
+                                {activeTab === 'KPIS' && (
+                                    <Suspense fallback={<LazyLoader />}>
+                                        <KpiDashboard />
                                     </Suspense>
                                 )}
                                 {activeTab === 'AUDIT' && (
