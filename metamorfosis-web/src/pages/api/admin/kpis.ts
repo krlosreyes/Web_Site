@@ -23,6 +23,14 @@ export const prerender = false;
  *     → mapeo best-effort (doc.id como fecha, o campos comunes de fecha).
  *     Solo se usan para el desglose "pilares tocados" del roster, no para
  *     el cálculo de retención (que se apoya en streak_history).
+ *   - app_state/onboarding      → doc `{ completed: boolean }`, escrito por
+ *     `AppStateRepository.setOnboardingCompleted` al cerrar el onboarding.
+ *
+ * SPEC-114-fix (2026-07-12, reportado por Carlos viendo el panel en vivo
+ * con 12 usuarios reales): la v1 de este endpoint asumía
+ * `users/{uid}.app.onboardingCompleted` (campo que no existe — mostraba
+ * 0% siempre) y una retención "exacta al día N" (mostraba 0% en D7/D30
+ * con datos dispersos). Ambos corregidos — ver comentarios inline.
  *
  * IMPORTANTE — lo que este endpoint NO puede calcular hoy:
  *   - Conversión trial→premium y churn: RevenueCat no tiene webhook hacia
@@ -125,11 +133,28 @@ export const GET: APIRoute = async ({ request }) => {
                 const data = userDoc.data();
                 const uid = userDoc.id;
                 const createdAt = toDate(data.meta?.createdAt);
+
+                // SPEC-114-fix (2026-07-12): el campo real que ElenaApp escribe
+                // al terminar el onboarding NO es `users/{uid}.app.onboardingCompleted`
+                // (ese campo no existe — es un supuesto incorrecto de la v1 de este
+                // endpoint, confirmado por Carlos viendo 0% con 12 usuarios reales).
+                // El código de ElenaApp (`onboarding_screen.dart` línea ~1494 →
+                // `AppStateRepository.setOnboardingCompleted`) escribe en
+                // `users/{uid}/app_state/onboarding` con `{ completed: true }`.
+                // Es un write "fire-and-forget" envuelto en try/catch — puede
+                // subestimar si esa escritura falló silenciosamente.
+                const onboardingDoc = await userDoc.ref
+                    .collection('app_state')
+                    .doc('onboarding')
+                    .get()
+                    .catch(() => null);
+                const onboardingCompleted = onboardingDoc?.exists === true && onboardingDoc.data()?.completed === true;
+
                 const agg: UserAgg = {
                     uid,
                     email: data.email || '(sin email)',
                     signupDate: createdAt ? dayKey(createdAt) : null,
-                    onboardingCompleted: data.app?.onboardingCompleted === true,
+                    onboardingCompleted,
                     activeDays: new Set(),
                     pillarDays: { fasting: new Set(), nutrition: new Set(), exercise: new Set(), sleep: new Set(), hydration: new Set() },
                 };
@@ -179,15 +204,21 @@ export const GET: APIRoute = async ({ request }) => {
         const withSignup = aggs.filter((a) => a.signupDate !== null);
         const activatedCount = withSignup.filter((a) => a.activeDays.has(a.signupDate as string)).length;
 
-        // ── Retención D1/D7/D30 (cohort-based: solo cuenta users con antigüedad suficiente) ──
+        // ── Retención D1/D7/D30 ──
+        // SPEC-114-fix (2026-07-12): la v1 exigía actividad el día EXACTO
+        // signupDate+N. Con pocos usuarios y registro diario disperso, eso
+        // castiga a alguien que usó la app el día 6 y el día 8 pero no
+        // exactamente el día 7 — se veía como "0% retención" aunque la
+        // persona seguía usando la app. Se cambia a la definición más
+        // estándar de "retención abierta": ¿tuvo AL MENOS UNA actividad en
+        // el día N o después? Solo se cuentan usuarios con antigüedad
+        // suficiente (cohort-based).
         function retention(nDays: number) {
             const cohort = withSignup.filter((a) => daysBetween(a.signupDate as string, todayKey) >= nDays);
             if (cohort.length === 0) return { rate: null as number | null, cohortSize: 0, returned: 0 };
-            const returned = cohort.filter((a) => {
-                const target = new Date(`${a.signupDate}T00:00:00Z`);
-                target.setUTCDate(target.getUTCDate() + nDays);
-                return a.activeDays.has(dayKey(target));
-            }).length;
+            const returned = cohort.filter((a) =>
+                [...a.activeDays].some((d) => daysBetween(a.signupDate as string, d) >= nDays)
+            ).length;
             return { rate: Number(((returned / cohort.length) * 100).toFixed(1)), cohortSize: cohort.length, returned };
         }
         const d1 = retention(1);

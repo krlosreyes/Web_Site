@@ -7,10 +7,18 @@ import React, { useEffect, useMemo, useState } from 'react';
  * subcolecciones de Firestore alimentan cada métrica y qué falta por
  * instrumentar (conversión, churn, coaching_action_followed).
  *
- * El roster por usuario es, a propósito, la pieza más prominente: con
- * ~10 testers, un % agregado es poco accionable — saber exactamente
- * quién se puso inactivo y hace cuántos días es lo que permite ejecutar
- * el Experimento 1 del informe de producto (llamar a los usuarios).
+ * SPEC-114-fix (2026-07-12): v1 usaba jerga de analista (D0/D1/D7/D30,
+ * DAU/MAU, "North Star") sin explicación — Carlos lo vio en vivo y no
+ * pudo interpretarlo. Esta versión reemplaza todos los labels por
+ * lenguaje llano orientado a la pregunta que responde cada tarjeta, en
+ * el orden del embudo real (instalar → registrarse → usarla el primer
+ * día → seguir volviendo → formar el hábito). Los términos técnicos se
+ * mantienen solo como referencia pequeña, no como el label principal.
+ *
+ * El roster por usuario sigue siendo la pieza más prominente: con ~10-12
+ * testers, un % agregado es poco accionable — saber exactamente quién
+ * se puso inactivo y hace cuántos días es lo que permite ejecutar el
+ * Experimento 1 del informe de producto (llamar a los usuarios).
  */
 
 type Status = 'activo' | 'en_riesgo' | 'inactivo' | 'nunca_activo';
@@ -73,26 +81,41 @@ function fmtPct(v: number | null): string {
     return v === null ? '—' : `${v}%`;
 }
 
-const KpiCard: React.FC<{ label: string; value: string; sub?: string; accentClass?: string }> = ({
-    label,
-    value,
-    sub,
-    accentClass = 'text-accent',
-}) => (
-    <div className="bg-bg-surface border border-white/[0.08] rounded-2xl p-6">
-        <h3 className="text-text-muted font-bold uppercase tracking-widest text-xs mb-2">{label}</h3>
-        <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-black text-text-primary">{value}</span>
+/**
+ * Tarjeta de KPI en lenguaje llano: título = la pregunta que responde,
+ * número grande = la respuesta, descripción = cómo se calculó (siempre
+ * visible, no escondida detrás de un tooltip), raw = el detalle
+ * "X de Y" para poder verificar a ojo con pocos usuarios.
+ */
+const KpiCard: React.FC<{
+    title: string;
+    value: string;
+    description: string;
+    raw?: string;
+    technicalTag?: string;
+    accentClass?: string;
+}> = ({ title, value, description, raw, technicalTag, accentClass = 'text-accent' }) => (
+    <div className="bg-bg-surface border border-white/[0.08] rounded-2xl p-6 flex flex-col">
+        <div className="flex items-start justify-between gap-2 mb-2">
+            <h3 className="text-text-primary font-bold text-sm leading-snug">{title}</h3>
+            {technicalTag && (
+                <span className="shrink-0 text-[9px] font-mono text-text-muted/70 border border-white/10 rounded px-1.5 py-0.5">
+                    {technicalTag}
+                </span>
+            )}
         </div>
-        {sub && <p className={`text-xs font-semibold mt-1 ${accentClass}`}>{sub}</p>}
+        <span className={`text-4xl font-black text-text-primary`}>{value}</span>
+        {raw && <p className={`text-xs font-semibold mt-1 ${accentClass}`}>{raw}</p>}
+        <p className="text-xs text-text-muted leading-relaxed mt-3">{description}</p>
     </div>
 );
 
-const UnavailableCard: React.FC<{ label: string; reason: string }> = ({ label, reason }) => (
-    <div className="bg-bg-surface border border-white/[0.08] rounded-2xl p-6 opacity-70">
-        <h3 className="text-text-muted font-bold uppercase tracking-widest text-xs mb-2">{label}</h3>
-        <div className="text-3xl font-black text-text-muted mb-2">—</div>
-        <p className="text-xs text-text-muted leading-relaxed">{reason}</p>
+const UnavailableCard: React.FC<{ title: string; plain: string; technical: string }> = ({ title, plain, technical }) => (
+    <div className="bg-bg-surface border border-white/[0.08] rounded-2xl p-6 opacity-70 flex flex-col">
+        <h3 className="text-text-primary font-bold text-sm leading-snug mb-2">{title}</h3>
+        <div className="text-4xl font-black text-text-muted mb-2">—</div>
+        <p className="text-xs text-text-secondary leading-relaxed">{plain}</p>
+        <p className="text-xs text-text-muted leading-relaxed mt-2 italic">{technical}</p>
     </div>
 );
 
@@ -133,14 +156,17 @@ const KpiDashboard: React.FC = () => {
     }, [data, statusFilter]);
 
     const h = data?.headline;
+    const isLoadingFirst = loading && !data;
 
     return (
         <div className="flex flex-col gap-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                    <h2 className="text-lg font-bold text-text-primary uppercase tracking-widest">KPIs de adherencia</h2>
+                    <h2 className="text-lg font-bold text-text-primary">KPIs de adherencia</h2>
                     <p className="text-xs text-text-muted font-mono">
-                        {data ? `n=${h?.totalUsers} usuarios · actualizado ${new Date(data.generatedAt).toLocaleString('es-MX')}` : 'Cargando…'}
+                        {data
+                            ? `${h?.totalUsers} usuarios registrados · actualizado ${new Date(data.generatedAt).toLocaleString('es-MX')}`
+                            : 'Cargando…'}
                     </p>
                 </div>
                 <button
@@ -157,72 +183,115 @@ const KpiDashboard: React.FC = () => {
                 </div>
             )}
 
+            {/* Cómo leer este panel */}
+            <div className="bg-accent/5 border border-accent/20 rounded-xl p-4 text-text-secondary text-xs leading-relaxed">
+                <p className="text-text-primary font-bold text-xs mb-1">Cómo leer este panel</p>
+                <p>
+                    Cada tarjeta responde un paso del mismo camino: alguien instala la app, se registra, la usa por
+                    primera vez, y luego (o no) sigue volviendo. Van en ese orden. La pregunta que más importa para
+                    decidir es la última con número (más abajo): <strong className="text-text-primary">de los que
+                    llevan usándola una semana, ¿cuántos de verdad formaron el hábito de los 5 pilares?</strong> Las
+                    tarjetas grises al final son cosas que todavía no podemos medir — no son 0%, son "no lo sabemos
+                    todavía" (te explico el motivo en cada una).
+                </p>
+            </div>
+
             {h && h.totalUsers < 30 && (
-                <div className="bg-status-warn/10 border border-status-warn/30 rounded-xl p-3 text-status-warn text-xs">
-                    Con n={h.totalUsers}, los porcentajes agregados no son estadísticamente robustos — úsalos como
-                    dirección, no como verdad. La tabla de usuarios de abajo es la herramienta más accionable a este
-                    tamaño de base.
+                <div className="bg-status-warn/10 border border-status-warn/30 rounded-xl p-3 text-status-warn text-xs leading-relaxed">
+                    Con solo {h.totalUsers} usuarios, un cambio de 1-2 personas mueve el porcentaje varios puntos —
+                    no le des demasiado peso al número exacto ("45%" no es muy distinto de "40%" a este tamaño).
+                    Úsalos como dirección general. La tabla de usuarios más abajo, con nombre y fecha, es la
+                    herramienta más confiable a este tamaño de base.
                 </div>
             )}
 
-            {/* Headline cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Headline cards — en orden de embudo */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <KpiCard
-                    label="Onboarding completo"
-                    value={loading && !data ? '--' : fmtPct(h?.onboardingCompleteRate ?? null)}
+                    title="¿Terminan el registro dentro de la app?"
+                    value={isLoadingFirst ? '--' : fmtPct(h?.onboardingCompleteRate ?? null)}
+                    description="Porcentaje de usuarios que completó el flujo de registro (perfil, objetivos, permisos) hasta el final. Puede estar un poco subestimado: si el guardado falla por conexión, no queda registrado aunque la persona sí haya terminado."
+                    technicalTag="onboarding_complete"
                 />
                 <KpiCard
-                    label="Activation (D0)"
-                    value={loading && !data ? '--' : fmtPct(h?.activationRate ?? null)}
-                    sub={h ? `sobre ${h.activationCohortSize} con fecha de alta` : undefined}
+                    title="¿Empiezan a usarla el mismo día que se registran?"
+                    value={isLoadingFirst ? '--' : fmtPct(h?.activationRate ?? null)}
+                    description="De quienes tienen fecha de alta, porcentaje que registró algo (un ayuno, agua, una comida) ese mismo día. Es la señal más temprana de si la app engancha de entrada."
+                    raw={h ? `${h.activationCohortSize} usuarios con fecha de alta conocida` : undefined}
+                    technicalTag="activation"
                 />
                 <KpiCard
-                    label="D1 retention"
-                    value={loading && !data ? '--' : fmtPct(h?.d1Retention.rate ?? null)}
-                    sub={h ? `${h.d1Retention.returned}/${h.d1Retention.cohortSize} cohorte` : undefined}
+                    title="¿Seguían usándola al día siguiente?"
+                    value={isLoadingFirst ? '--' : fmtPct(h?.d1Retention.rate ?? null)}
+                    description="De quienes ya llevan al menos 1 día desde que se unieron, porcentaje que volvió a usar la app en ese día o después."
+                    raw={h ? `${h.d1Retention.returned} de ${h.d1Retention.cohortSize} (solo cuenta a quienes ya les dio tiempo)` : undefined}
+                    technicalTag="D1 retention"
                 />
                 <KpiCard
-                    label="D7 retention"
-                    value={loading && !data ? '--' : fmtPct(h?.d7Retention.rate ?? null)}
-                    sub={h ? `${h.d7Retention.returned}/${h.d7Retention.cohortSize} cohorte` : undefined}
+                    title="¿Seguían usándola después de una semana?"
+                    value={isLoadingFirst ? '--' : fmtPct(h?.d7Retention.rate ?? null)}
+                    description="Mismo cálculo que el anterior, pero mirando 7 días después del alta. Es la señal de si el hábito sobrevive la primera semana, que es donde más gente abandona."
+                    raw={h ? `${h.d7Retention.returned} de ${h.d7Retention.cohortSize}` : undefined}
+                    technicalTag="D7 retention"
                 />
                 <KpiCard
-                    label="D30 retention"
-                    value={loading && !data ? '--' : fmtPct(h?.d30Retention.rate ?? null)}
-                    sub={h ? `${h.d30Retention.returned}/${h.d30Retention.cohortSize} cohorte` : undefined}
+                    title="¿Seguían usándola después de un mes?"
+                    value={isLoadingFirst ? '--' : fmtPct(h?.d30Retention.rate ?? null)}
+                    description="Igual, mirando 30 días después del alta. Con pocos usuarios este número suele tardar en tener sentido — mira el 'de X' de al lado antes de preocuparte por el %."
+                    raw={h ? `${h.d30Retention.returned} de ${h.d30Retention.cohortSize}` : undefined}
+                    technicalTag="D30 retention"
                 />
                 <KpiCard
-                    label="DAU / MAU"
-                    value={loading && !data ? '--' : fmtPct(h?.dauMauRate ?? null)}
-                    sub={h ? `${h.dau} hoy / ${h.mau} en 30d` : undefined}
+                    title="De los que vuelven, ¿vuelven seguido?"
+                    value={isLoadingFirst ? '--' : fmtPct(h?.dauMauRate ?? null)}
+                    description="Compara cuántas personas usaron la app hoy contra cuántas la usaron en algún momento de los últimos 30 días. Un número alto significa que quien vuelve, vuelve casi a diario — no solo una vez al mes."
+                    raw={h ? `${h.dau} personas hoy, de ${h.mau} en los últimos 30 días` : undefined}
+                    technicalTag="DAU/MAU"
                 />
                 <KpiCard
-                    label="North Star — semana con hábito"
-                    value={loading && !data ? '--' : fmtPct(h?.northStarRate ?? null)}
-                    sub={h ? `≥3 pilares en ≥4 días · ${h.habitWeekUsers} usuarios` : undefined}
+                    title="¿Formaron el hábito completo esta semana?"
+                    value={isLoadingFirst ? '--' : fmtPct(h?.northStarRate ?? null)}
+                    description="La pregunta que más importa: porcentaje que esta semana usó al menos 3 de los 5 pilares (ayuno, sueño, hidratación, ejercicio, comidas) en al menos 4 días distintos. No mide si abrieron la app — mide si de verdad están construyendo el hábito completo."
+                    raw={h ? `${h.habitWeekUsers} de ${h.totalUsers} usuarios esta semana` : undefined}
+                    technicalTag="North Star"
                     accentClass="text-accent-strong"
                 />
-                {data &&
-                    Object.entries(data.unavailable).map(([key, v]) => (
-                        <UnavailableCard
-                            key={key}
-                            label={
-                                key === 'conversionTrialToPremium'
-                                    ? 'Conversión trial→premium'
-                                    : key === 'churn'
-                                      ? 'Churn mensual'
-                                      : 'Coaching action followed'
-                            }
-                            reason={v.reason}
-                        />
-                    ))}
             </div>
+
+            {/* No disponible todavía */}
+            {data && (
+                <div>
+                    <p className="text-text-muted text-xs uppercase tracking-widest font-bold mb-3">
+                        Todavía no podemos medir esto
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {Object.entries(data.unavailable).map(([key, v]) => {
+                            const meta =
+                                key === 'conversionTrialToPremium'
+                                    ? {
+                                          title: '¿Cuántos de prueba pasan a pago?',
+                                          plain: 'No lo tenemos conectado todavía — el estado de cada suscripción vive solo dentro de RevenueCat (la plataforma de pagos), no en nuestra base de datos.',
+                                      }
+                                    : key === 'churn'
+                                      ? {
+                                            title: '¿Cuántos cancelan cada mes?',
+                                            plain: 'Depende de la misma conexión pendiente que la anterior (RevenueCat).',
+                                        }
+                                      : {
+                                            title: '¿El coaching dentro de la app sirve?',
+                                            plain: 'Se registra el evento, pero no está conectado a un lugar donde lo podamos consultar todavía.',
+                                        };
+                            return <UnavailableCard key={key} title={meta.title} plain={meta.plain} technical={v.reason} />;
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* Roster */}
             <div className="bg-bg-surface border border-white/[0.08] rounded-2xl p-6">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                    <h3 className="text-text-primary font-bold uppercase tracking-widest text-xs">
-                        Usuarios — ordenados por inactividad
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-1">
+                    <h3 className="text-text-primary font-bold text-sm">
+                        Usuario por usuario — ordenados por quién lleva más tiempo sin usarla
                     </h3>
                     <div className="flex flex-wrap gap-2">
                         {(['todos', 'activo', 'en_riesgo', 'inactivo', 'nunca_activo'] as const).map((s) => (
@@ -240,8 +309,12 @@ const KpiDashboard: React.FC = () => {
                         ))}
                     </div>
                 </div>
+                <p className="text-text-muted text-xs mb-4">
+                    Esta tabla es la más confiable con pocos usuarios: úsala para saber a quién llamar. "Activo" =
+                    usó algo en los últimos 2 días. "En riesgo" = 3 a 6 días sin usarla. "Inactivo" = 7 días o más.
+                </p>
 
-                {loading && !data ? (
+                {isLoadingFirst ? (
                     <div className="h-32 animate-pulse bg-white/5 rounded-xl" />
                 ) : filteredRoster.length === 0 ? (
                     <p className="text-text-muted text-sm">Sin usuarios en este filtro.</p>
@@ -251,11 +324,11 @@ const KpiDashboard: React.FC = () => {
                             <thead>
                                 <tr className="text-left text-text-muted uppercase tracking-widest border-b border-white/10">
                                     <th className="py-2 pr-4">Email</th>
-                                    <th className="py-2 pr-4">Alta</th>
-                                    <th className="py-2 pr-4">Onboarding</th>
-                                    <th className="py-2 pr-4">Última actividad</th>
-                                    <th className="py-2 pr-4">Días inactivo</th>
-                                    <th className="py-2 pr-4">Pilares tocados</th>
+                                    <th className="py-2 pr-4">Se unió</th>
+                                    <th className="py-2 pr-4">Terminó registro</th>
+                                    <th className="py-2 pr-4">Última vez que la usó</th>
+                                    <th className="py-2 pr-4">Días sin usarla</th>
+                                    <th className="py-2 pr-4">Qué ha usado</th>
                                     <th className="py-2 pr-4">Estado</th>
                                 </tr>
                             </thead>

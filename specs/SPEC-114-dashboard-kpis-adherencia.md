@@ -168,3 +168,29 @@ desglose de pilares del roster refleja datos reales (ver nota en
 `## Pruebas` sobre los campos best-effort de nutrition/exercise/sleep/
 hydration), y abrir spec para el webhook de RevenueCat cuando haya
 volumen de trials real que justifique medir conversión.
+
+**Corrección post-deploy (2026-07-12, mismo día):** Carlos vio el panel
+en producción con 12 usuarios reales y reportó dos problemas:
+
+1. **No lo entendía.** Los labels (D0/D1/D7/D30, DAU/MAU, "North Star")
+   son jerga de analista sin explicación. Se reescribió `KpiDashboard.tsx`
+   completo: cada tarjeta ahora lidera con la pregunta en español llano
+   que responde ("¿Seguían usándola después de una semana?"), con una
+   descripción de 1-2 líneas siempre visible (no en tooltip) y el término
+   técnico relegado a una etiqueta pequeña de referencia. Se agregó un
+   bloque "Cómo leer este panel" al inicio.
+2. **"Onboarding completo" daba 0% y D7/D30 retention daban 0% con datos
+   reales — eran bugs, no señal real.** Investigado en el código de
+   ElenaApp:
+   - El campo que asumió la v1 (`users/{uid}.app.onboardingCompleted`)
+     no existe. El campo real es `users/{uid}/app_state/onboarding` con
+     `{ completed: true }`, escrito por
+     `AppStateRepository.setOnboardingCompleted` al cerrar el onboarding
+     (`onboarding_screen.dart` línea ~1494). Corregido en `kpis.ts`.
+   - La retención exigía actividad el día EXACTO signupDate+N. Con pocos
+     usuarios y registro disperso, alguien activo el día 6 y el día 8
+     pero no el día 7 contaba como "no retenido". Se cambió a "¿tuvo
+     alguna actividad en el día N o después?" (retención abierta,
+     definición estándar más robusta con cohortes chicas).
+
+Ambos fixes en el mismo endpoint (`kpis.ts`), sin cambios de alcance.
