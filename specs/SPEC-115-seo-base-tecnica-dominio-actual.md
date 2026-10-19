@@ -1,6 +1,6 @@
 # SPEC-115 — Base técnica SEO en `metamorfosisvital.com.co` (redirects canónicos, meta descriptions, footer)
 
-**Estado:** 🔨 En progreso (código y build verificados localmente 2026-10-19; falta commit/push, verificación post-deploy y pasos de Search Console)
+**Estado:** ✅ Cerrada (código desplegado y verificado en producción 2026-10-19; quedan los pasos externos de Search Console)
 **Fase:** 6 (Operación / Crecimiento)
 **Severidad:** 🟡 Alta (el sitio tiene 0 clics en 3 meses y la medición está rota)
 **Fecha de creación:** 2026-10-19
@@ -49,13 +49,13 @@ Google ve contenido duplicado entre `www` y apex sin una señal fuerte (301), lo
 - [x] Servidor del build probado en local con `Host`/`X-Forwarded-Host` simulados: www → 301 a apex en un salto; `/biblioteca/` → 301 sin barra; query preservada; slug legacy → 301 al artículo de ayuno; `/sobre-mi` → 200; POST a `/api/leads` con www llega al handler (400 por body vacío, no 301); sin bucle.
 
 **Post-deploy:**
-- [ ] `curl -I https://www.metamorfosisvital.com.co/biblioteca` → `301`, `location: https://metamorfosisvital.com.co/biblioteca` (un solo salto).
-- [ ] `curl -I https://metamorfosisvital.com.co/biblioteca/` → `301` sin barra.
-- [ ] `curl -I https://metamorfosisvital.com.co/posts/que-pasa-cuerpo-16-horas-autofagia/` → `301` al artículo de ayuno, que responde `200`.
-- [ ] `curl -I https://metamorfosisvital.com.co/` → `200` (sin bucle).
+- [x] `curl -I https://www.metamorfosisvital.com.co/biblioteca` → `301`, `location: https://metamorfosisvital.com.co/biblioteca` (un solo salto).
+- [x] `curl -I https://metamorfosisvital.com.co/biblioteca/` → `301` sin barra.
+- [x] `curl -I https://metamorfosisvital.com.co/posts/que-pasa-cuerpo-16-horas-autofagia/` → `301` al artículo de ayuno, que responde `200`.
+- [x] `curl -I https://metamorfosisvital.com.co/` → `200` (sin bucle).
 - [ ] Login admin y guardado de artículo siguen funcionando (POST/PUT a `/api/*` no se redirigen).
-- [ ] Un artículo muestra `<meta name="description">` terminado en frase o palabra completa.
-- [ ] El ícono del footer abre Facebook y se llama Facebook.
+- [x] Un artículo muestra `<meta name="description">` terminado en frase o palabra completa.
+- [x] El ícono del footer abre Facebook y se llama Facebook.
 
 ## Pruebas
 
@@ -101,4 +101,13 @@ feat(spec-115): base tecnica SEO — 301 www/slash/slug legacy, meta description
 
 ## Resultado
 
-Build y pruebas locales OK (2026-10-19). Pendiente: commit/push de Carlos y verificación post-deploy con curl.
+Cerrada el 2026-10-19. Commits `25aa93a` (fix del test) y `4e9078b` (SPEC-115), pusheados por Carlos.
+
+Verificado en producción con curl (UA realista):
+- `www.metamorfosisvital.com.co/biblioteca` → `301` a `https://metamorfosisvital.com.co/biblioteca` en un solo salto (la respuesta trae cabeceras `platform: hostinger` / `panel: hpanel`; no se distinguió si el 301 lo emitió el middleware o el panel de Hostinger. Con ambos activos el resultado es el mismo y sin bucle).
+- `/biblioteca/` → `301` sin barra.
+- URL legacy de autofagia → `301` al artículo de ayuno, que responde `200`.
+- Home `200`. Meta description del artículo de ayuno termina en frase completa; canonical sin www ni barra; footer con ícono Facebook.
+
+**Desviaciones:** middleware en lugar de `.htaccess` (el sitio es Node SSR); `trailingSlash` no se tocó. **Pendiente (externo, no bloquea el cierre):** propiedad de Dominio en Search Console (T1), reenviar sitemap (T3), identificar las 2 URLs "Rastreada: actualmente sin indexar" (T4), metadatos del subdominio `app.` en el repo de ElenaApp (T5), URL de Instagram si existe (B2).
+**Aprendizaje:** un fixture con slugs duplicados puede hacer pasar o fallar un test por la razón equivocada; las cifras de los tests se calibran corriendo el código.
