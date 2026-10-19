@@ -17,6 +17,7 @@ import { Clock, Calendar, BookOpen, Link as LinkIcon } from "lucide-astro";
 import { marked } from "marked";
 import { enrichArticleHtml } from "../../lib/utils/enrichArticleHtml";
 import MedicalDisclaimer from "../../components/MedicalDisclaimer.astro";
+import { buildMetaDescription } from "../../lib/utils/metaDescription";
 
 export const prerender = false;
 
@@ -146,7 +147,10 @@ const formattedDate = formatDate(publishedAtIso);
 // imagen en `article.images`; si tiene, esa gana (artículo individual
 // merece su preview específico).
 const ogImage = (article.images && article.images[0]) || '/og-image.jpg';
-const articleDescription = (article.content || '').substring(0, 160);
+// SPEC-115 (T6): `description` manual si existe; si no, derivada del cuerpo
+// limpio (sin markdown ni prefijo CONTENIDO) y cortada en frontera de
+// oración/palabra. Antes: substring(0,160) que cortaba a media palabra.
+const articleDescription = buildMetaDescription(article.description, cleanedContent);
 
 const jsonLd = {
     '@context': 'https://schema.org',
@@ -161,7 +165,7 @@ const jsonLd = {
     author: {
         '@type': 'Organization',
         name: 'Metamorfosis Real',
-        url: 'https://metamorfosisvital.com.co',
+        url: Astro.site!.origin,
     },
     publisher: {
         '@type': 'Organization',

@@ -1,5 +1,5 @@
 ---
-import { Instagram, Youtube } from "lucide-astro";
+import { Facebook, Youtube } from "lucide-astro";
 import { isValidSessionValue } from "../lib/auth";
 
 // Detección de sesión admin para mostrar/ocultar UI condicional.
@@ -34,7 +34,8 @@ const SOCIAL_LINKS = {
                     sin límites.
                 </p>
 
-                <!-- Redes sociales activas: YouTube, Instagram, TikTok -->
+                <!-- Redes sociales activas: YouTube, Facebook, TikTok (SPEC-115: el ícono
+                     de Instagram apuntaba a Facebook; no hay cuenta de Instagram en el repo) -->
                 <div class="flex items-center gap-4 mt-5">
                     <a
                         href={SOCIAL_LINKS.youtube}
@@ -53,8 +54,8 @@ const SOCIAL_LINKS = {
                         class="text-text-muted hover:text-accent transition-colors"
                         aria-label="Facebook"
                     >
-                        <Instagram class="w-5 h-5" />
-                        <span class="sr-only">Instagram</span>
+                        <Facebook class="w-5 h-5" />
+                        <span class="sr-only">Facebook</span>
                     </a>
                     <a
                         href={SOCIAL_LINKS.tiktok}

@@ -14,6 +14,8 @@ type ArticleStatus = 'draft' | 'published';
 interface Article {
     id?: string;
     title: string;
+    /** SPEC-115: meta description manual (≤200 chars). Vacío = derivada del cuerpo. */
+    description?: string;
     content: string;
     images: string[];
     references: string[];
@@ -167,6 +169,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
     // 1. ESTADOS (Todos al inicio)
     const [smartText, setSmartText] = useState('');
     const [title, setTitle] = useState(article?.title || '');
+    const [description, setDescription] = useState(article?.description || '');
     const [content, setContent] = useState(article?.content || '');
     const [images, setImages] = useState<string[]>(article?.images || []);
     const [references, setReferences] = useState<string[]>(article?.references || []);
@@ -427,6 +430,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
             const payload: Article = {
                 id: article?.id,
                 title,
+                description: description.trim(),
                 content,
                 images: images.filter((img) => img.trim() !== ''),
                 references: references.filter((ref) => ref.trim() !== ''),
@@ -539,6 +543,24 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, onSave, onCancel
                                     );
                                 })}
                             </div>
+                        </div>
+
+                        {/* SPEC-115: meta description manual (snippet en Google) */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-purple-400 uppercase tracking-widest">
+                                Descripción para Google (opcional)
+                            </label>
+                            <textarea
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value.slice(0, 200))}
+                                rows={2}
+                                maxLength={200}
+                                placeholder="Una o dos frases que resuman el artículo. Si la dejas vacía se usa el inicio del texto."
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-purple-500 outline-none transition-all resize-none"
+                            />
+                            <p className="text-[10px] text-gray-600 font-mono">
+                                {description.length}/200 · Google muestra ~155 caracteres.
+                            </p>
                         </div>
 
                         {/* SPEC-023: fecha de publicación editable */}

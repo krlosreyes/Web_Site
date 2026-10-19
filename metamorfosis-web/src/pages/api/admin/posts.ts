@@ -126,9 +126,14 @@ export const POST: APIRoute = async ({ request }) => {
         // mutilando las palabras del slug. Ver lib/utils/slugify.ts.
         const slug = slugify(title);
 
+        // SPEC-115 (T6): meta description manual, opcional. Máx 200 chars.
+        const description =
+            typeof body.description === 'string' ? body.description.trim().slice(0, 200) : '';
+
         const newPost: Record<string, unknown> = {
             title,
             slug,
+            description,
             content,
             images,
             references,
@@ -178,6 +183,12 @@ export const PUT: APIRoute = async ({ request }) => {
 
         const now = new Date().toISOString();
         const update: Record<string, unknown> = { ...data, updatedAt: now };
+
+        // SPEC-115 (T6): meta description manual, opcional. Máx 200 chars.
+        if (data.description !== undefined) {
+            update.description =
+                typeof data.description === 'string' ? data.description.trim().slice(0, 200) : '';
+        }
 
         // SPEC-046: validar pillar si viene + si pasa a published, exigirlo.
         if (data.pillar !== undefined) {
