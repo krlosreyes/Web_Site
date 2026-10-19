@@ -303,14 +303,16 @@ describe('buildQuizFunnel (SPEC-093)', () => {
 
 describe('buildAnalyticsResponse', () => {
     test('KPIs reflejan los totales', () => {
+        // Slugs DISTINTOS: el quizIndex matchea por slug, así que posts con el
+        // mismo slug contarían cada quiz una vez por post (bug del fixture).
         const posts: RawPost[] = [
-            postPublished({ analytics: { views: 100, clicks: 10 } }),
-            postPublished({ analytics: { views: 200, clicks: 20 } }),
+            postPublished({ id: 'p1', slug: 'art-a', analytics: { views: 100, clicks: 10 } }),
+            postPublished({ id: 'p2', slug: 'art-b', analytics: { views: 200, clicks: 20 } }),
         ];
         const users = [
             userWithQuizzes('u1', [
-                { articleId: 'untitled', score: 80 },
-                { articleId: 'untitled', score: 90 },
+                { articleId: 'art-a', score: 80 },
+                { articleId: 'art-b', score: 90 },
             ]),
         ];
         const res = buildAnalyticsResponse(posts, users);
