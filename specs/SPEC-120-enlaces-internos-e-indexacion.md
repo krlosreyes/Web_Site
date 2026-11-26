@@ -35,3 +35,17 @@ información, mito del ayuno, horario de oficina, y /biblioteca.
 ## Al artículo nuevo
 
 Agregar su slug a `POST_SEO` y a un tema de `TOPICS`; el test falla si falta.
+
+## Fechas honestas en el sitemap y en los artículos
+
+- Antes, las páginas estáticas mostraban la fecha de hoy en `<lastmod>` en
+  cada visita (Google deja de confiar en esa señal) y los artículos la fecha
+  de publicación aunque se hubieran corregido.
+- `src/lib/seo/lastmod.ts`: `postLastmod()` toma la más reciente entre
+  publicación, actualización y revisión editorial (`editorialRevision`,
+  que el script de SPEC-119 dejó en `spec-119` = 2026-11-26).
+- Páginas estáticas: fecha fija por página en `STATIC_PAGES` (actualizarla
+  al editar la página).
+- Artículos: `dateModified` del JSON-LD y `article:modified_time` usan la
+  fecha de la revisión editorial.
+- Sitemap reenviado en Search Console el 26-nov-2026.

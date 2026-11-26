@@ -24,6 +24,7 @@ import ArticleAuthorBox from "../../components/ArticleAuthorBox.astro";
 import NewsletterSignup from "../../components/NewsletterSignup.astro";
 import PostLinks from "../../components/PostLinks.astro";
 import { getRelated } from "../../data/relatedPosts";
+import { EDITORIAL_REVISIONS } from "../../lib/seo/lastmod";
 
 export const prerender = false;
 
@@ -149,7 +150,10 @@ const readingMinutes = Math.max(1, Math.round(wordCount / 200));
 // manualmente desde el admin via SPEC-023). Si el doc es legacy y solo tiene
 // `createdAt`, cae a esa para no perder la fecha original.
 const publishedAtIso = article.publishedAt || article.createdAt || null;
-const updatedAtIso = article.updatedAt || null;
+// SPEC-120: la corrección editorial de SPEC-119 cuenta como actualización
+// (dateModified del JSON-LD y fecha visible "Actualizado").
+const revisionDate = article.editorialRevision ? EDITORIAL_REVISIONS[article.editorialRevision] : undefined;
+const updatedAtIso = revisionDate || article.updatedAt || null;
 const formattedDate = formatDate(publishedAtIso);
 
 // SPEC-027: SEO técnico — OG image del artículo + JSON-LD schema.org.

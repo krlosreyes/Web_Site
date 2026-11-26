@@ -11,6 +11,7 @@
 import type { APIRoute } from 'astro';
 import { db } from '../lib/firebaseAdmin';
 import { COLLECTIONS } from '../lib/constants/firestore';
+import { postLastmod } from '../lib/seo/lastmod';
 
 export const prerender = false;
 
@@ -20,30 +21,32 @@ interface StaticPage {
     path: string;
     priority: number;
     changefreq: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+    /** SPEC-120: fecha real del último cambio de contenido (YYYY-MM-DD). Actualizar al editar la página. */
+    lastmod: string;
 }
 
 const STATIC_PAGES: StaticPage[] = [
-    { path: '/', priority: 1.0, changefreq: 'weekly' },
-    { path: '/imr', priority: 0.95, changefreq: 'monthly' },
-    { path: '/biblioteca', priority: 0.9, changefreq: 'daily' },
-    { path: '/quiz', priority: 0.9, changefreq: 'monthly' },
-    { path: '/comunidad', priority: 0.7, changefreq: 'monthly' },
-    { path: '/sobre-nosotros', priority: 0.6, changefreq: 'yearly' },
-    { path: '/calculadora-grasa-corporal', priority: 0.9, changefreq: 'monthly' },
+    { path: '/', priority: 1.0, changefreq: 'weekly', lastmod: '2026-11-26' },
+    { path: '/imr', priority: 0.95, changefreq: 'monthly', lastmod: '2026-11-26' },
+    { path: '/biblioteca', priority: 0.9, changefreq: 'daily', lastmod: '2026-11-26' },
+    { path: '/quiz', priority: 0.9, changefreq: 'monthly', lastmod: '2026-11-26' },
+    { path: '/comunidad', priority: 0.7, changefreq: 'monthly', lastmod: '2026-11-26' },
+    { path: '/sobre-nosotros', priority: 0.6, changefreq: 'yearly', lastmod: '2026-11-26' },
+    { path: '/calculadora-grasa-corporal', priority: 0.9, changefreq: 'monthly', lastmod: '2026-11-26' },
     // SPEC-051: removidas /calculadora (ahora redirect 301 a /quiz) y
     // /protocolo (experimento descartado, página borrada). Google las
     // descubrirá fuera del sitemap como 301/404 y dejará de indexarlas.
-    { path: '/terminos', priority: 0.2, changefreq: 'yearly' },
-    { path: '/privacidad', priority: 0.2, changefreq: 'yearly' },
-    { path: '/disclaimer-medico', priority: 0.2, changefreq: 'yearly' },
+    { path: '/terminos', priority: 0.2, changefreq: 'yearly', lastmod: '2026-05-14' },
+    { path: '/privacidad', priority: 0.2, changefreq: 'yearly', lastmod: '2026-11-26' },
+    { path: '/disclaimer-medico', priority: 0.2, changefreq: 'yearly', lastmod: '2026-11-26' },
     // SPEC-113: política de privacidad de Elena App (link obligatorio en
     // App Store Connect y Google Play Console). Prioridad baja pero
     // indexable — reviewers y crawlers deben poder encontrarla.
-    { path: '/elenaapp/privacidad', priority: 0.3, changefreq: 'yearly' },
+    { path: '/elenaapp/privacidad', priority: 0.3, changefreq: 'yearly', lastmod: '2026-11-26' },
     // SPEC-112: canal de soporte de Elena App.
-    { path: '/elenasupport', priority: 0.5, changefreq: 'monthly' },
+    { path: '/elenasupport', priority: 0.5, changefreq: 'monthly', lastmod: '2026-11-26' },
     // SPEC-102: nota metodológica del IMR.
-    { path: '/imr/metodologia', priority: 0.4, changefreq: 'monthly' },
+    { path: '/imr/metodologia', priority: 0.4, changefreq: 'monthly', lastmod: '2026-11-26' },
 ];
 
 /** Escapa caracteres XML especiales en un string. */
@@ -54,21 +57,6 @@ function xmlEscape(str: string): string {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&apos;');
-}
-
-/** Normaliza un timestamp a string ISO (válido para <lastmod>). null si no parsea. */
-function toIso(raw: unknown): string | null {
-    if (!raw) return null;
-    if (typeof raw === 'string') {
-        const d = new Date(raw);
-        return isNaN(d.getTime()) ? null : d.toISOString();
-    }
-    if (typeof raw === 'object' && raw !== null) {
-        const ts = raw as { toDate?: () => Date; _seconds?: number };
-        if (typeof ts.toDate === 'function') return ts.toDate().toISOString();
-        if (typeof ts._seconds === 'number') return new Date(ts._seconds * 1000).toISOString();
-    }
-    return null;
 }
 
 export const GET: APIRoute = async () => {
@@ -84,8 +72,7 @@ export const GET: APIRoute = async () => {
             .filter((d) => typeof d.slug === 'string' && d.slug.length > 0);
 
         postEntries = published.map((p) => {
-            const lastmod = toIso(p.publishedAt) || toIso(p.updatedAt) || toIso(p.createdAt);
-            const lastmodStr = lastmod ? lastmod.split('T')[0] : today;
+            const lastmodStr = postLastmod(p, today);
             return `  <url>
     <loc>${BASE_URL}/posts/${xmlEscape(p.slug)}</loc>
     <lastmod>${lastmodStr}</lastmod>
@@ -101,7 +88,7 @@ export const GET: APIRoute = async () => {
     const staticEntries = STATIC_PAGES.map(
         (p) => `  <url>
     <loc>${BASE_URL}${p.path}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${p.lastmod}</lastmod>
     <changefreq>${p.changefreq}</changefreq>
     <priority>${p.priority.toFixed(1)}</priority>
   </url>`
