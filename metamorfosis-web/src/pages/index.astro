@@ -2,7 +2,7 @@
 import { Database, LayoutDashboard, Smartphone } from "lucide-astro";
 import Hero from "../components/Hero.astro";
 import Pillars from "../components/Pillars.astro";
-import TipsBox from "../components/TipsBox.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import AppStoreButton from "../components/AppStoreButton.astro";
 
@@ -82,71 +82,81 @@ const description =
           </div>
         </div>
 
+        {/* SPEC-119: antes había una imagen generada (elena-mockup.webp) con
+            una interfaz en inglés y funciones que la app no tiene (curva de
+            glucosa de un sensor CGM). Se reemplaza por una descripción
+            honesta de lo que registra la app. Cuando haya capturas reales
+            de la versión publicada, van aquí. */}
         <div class="relative">
-          <div
-            class="w-full aspect-[4/5] bg-bg-base rounded-xl border border-white/[0.08] overflow-hidden group"
-          >
-            <img
-              src="/elena-mockup.webp"
-              alt="Ilustración de la app Elena"
-              width="1024"
-              height="1024"
-              loading="lazy"
-              decoding="async"
-              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            />
-            <div
-              class="absolute inset-0 bg-gradient-to-t from-bg-base/60 via-transparent to-transparent z-10"
-            >
-            </div>
+          <div class="w-full bg-bg-surface rounded-xl border border-white/[0.08] p-6 md:p-8">
+            <p class="text-[11px] font-bold text-warm uppercase tracking-[0.2em] mb-5">Lo que registras cada día</p>
+            <ul class="divide-y divide-white/[0.06]">
+              <li class="py-4 flex gap-4"><span class="text-accent font-mono text-sm w-6 shrink-0">01</span><div><p class="text-text-primary font-semibold">Ayuno</p><p class="text-sm text-text-secondary">Inicio y fin de cada ayuno, con la ventana de alimentación.</p></div></li>
+              <li class="py-4 flex gap-4"><span class="text-accent font-mono text-sm w-6 shrink-0">02</span><div><p class="text-text-primary font-semibold">Alimentación</p><p class="text-sm text-text-secondary">Qué comiste y a qué hora, sin contar calorías.</p></div></li>
+              <li class="py-4 flex gap-4"><span class="text-accent font-mono text-sm w-6 shrink-0">03</span><div><p class="text-text-primary font-semibold">Ejercicio</p><p class="text-sm text-text-secondary">Fuerza y movimiento, manual o desde Apple Salud.</p></div></li>
+              <li class="py-4 flex gap-4"><span class="text-accent font-mono text-sm w-6 shrink-0">04</span><div><p class="text-text-primary font-semibold">Sueño</p><p class="text-sm text-text-secondary">Horas y regularidad de tu descanso.</p></div></li>
+              <li class="py-4 flex gap-4"><span class="text-accent font-mono text-sm w-6 shrink-0">05</span><div><p class="text-text-primary font-semibold">Hidratación</p><p class="text-sm text-text-secondary">El agua que tomas durante el día.</p></div></li>
+            </ul>
+            <p class="mt-5 text-xs text-text-muted leading-relaxed">Gratis para iPhone. Herramienta educativa: no diagnostica ni reemplaza a tu médico.</p>
           </div>
-
         </div>
       </div>
     </div>
   </section>
 
-  <!-- SCIENCE IN ACTION SECTION -->
+  <!-- SPEC-119: "Ciencia aplicada" reescrita. Antes afirmaba que el IMR se
+       ajustaba "en tiempo real" (falso) y recomendaba "el 70 % de los
+       carbohidratos tras entrenar … sin elevar la insulina basal" sin fuente.
+       Ahora la sección dice cómo trabajamos y qué no hacemos. -->
   <section id="ciencia" class="py-20 md:py-24 px-6">
-    <div class="container mx-auto max-w-2xl">
+    <div class="container mx-auto max-w-4xl">
       <div class="text-center mb-10">
-        <p class="text-[11px] font-bold text-accent uppercase tracking-[0.2em] mb-3">Ciencia aplicada</p>
+        <p class="text-[11px] font-bold text-accent uppercase tracking-[0.2em] mb-3">Cómo trabajamos</p>
         <h2 class="text-3xl md:text-4xl font-heading font-bold mb-3 tracking-tight text-text-primary">
-          Datos técnicos en salud real
+          Información que puedes verificar
         </h2>
         <p class="text-text-secondary text-base leading-relaxed max-w-xl mx-auto">
-          No adivinamos: usamos la variabilidad de tu IMR para medir tu avance y lo ajustamos en tiempo real.
+          Hay demasiados consejos de salud sin respaldo. Estas son nuestras reglas.
         </p>
       </div>
 
-      <div class="space-y-5 text-text-secondary leading-relaxed">
-        <p>
-          El ayuno sugerido será el ideal para ti y puede ir cambiando a medida
-          que vas mejorando tu metabolismo.
-        </p>
+      <div class="grid md:grid-cols-3 gap-5">
+        <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-6">
+          <h3 class="text-base font-semibold text-text-primary mb-2">Cada dato con su fuente</h3>
+          <p class="text-sm text-text-secondary leading-relaxed">Los artículos, la calculadora y la app citan los estudios y guías en los que se basan, con enlace para que los revises.</p>
+        </div>
+        <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-6">
+          <h3 class="text-base font-semibold text-text-primary mb-2">Métodos públicos</h3>
+          <p class="text-sm text-text-secondary leading-relaxed">Las fórmulas de la <a href="/calculadora-grasa-corporal" class="text-accent hover:underline">calculadora</a> y la <a href="/imr/metodologia" class="text-accent hover:underline">metodología del IMR</a> están publicadas. Cuando corregimos algo, lo decimos.</p>
+        </div>
+        <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-6">
+          <h3 class="text-base font-semibold text-text-primary mb-2">No somos médicos</h3>
+          <p class="text-sm text-text-secondary leading-relaxed">Es información educativa. Si tienes una condición de salud, tomas medicamentos o estás embarazada, habla con tu médico antes de ayunar o cambiar tu dieta.</p>
+        </div>
+      </div>
 
-        <p>
-          Dominar tu metabolismo es entender cómo la estructura de los nutrientes
-          y tus hábitos interactúan con tu ritmo circadiano. Es ciencia, no
-          tendencia.
-        </p>
-
-        <TipsBox>
-          Consume el 70% de tus carbohidratos tras entrenar. Esto activa el
-          transporte de GLUT4 y nutre el músculo sin elevar la insulina basal.
-        </TipsBox>
+      <div class="mt-14 max-w-2xl mx-auto">
+        <NewsletterSignup source="home" />
       </div>
 
       <div class="mt-12 pt-8 border-t border-white/[0.06] text-center">
         <h3 class="text-xl font-semibold text-text-primary tracking-tight mb-5">
-          ¿Listo para calcular tu IMR?
+          ¿Quieres saber cómo está tu salud metabólica?
         </h3>
-        <a
-          href="/quiz"
-          class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-base hover:bg-accent-strong transition-colors"
-        >
-          Iniciar diagnóstico gratuito →
-        </a>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <a
+            href="/quiz"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-base hover:bg-accent-strong transition-colors"
+          >
+            Hacer el test gratis →
+          </a>
+          <a
+            href="/calculadora-grasa-corporal"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-base text-text-primary border border-white/[0.12] hover:border-white/[0.2] transition-colors"
+          >
+            Calcular mi grasa corporal
+          </a>
+        </div>
       </div>
     </div>
   </section>

@@ -19,7 +19,7 @@ import MedicalDisclaimer from '../../components/MedicalDisclaimer.astro';
  *   - Versionado del motor
  */
 const description =
-    'Nota metodológica del Índice de Metamorfosis Real (IMR): fórmulas, pesos, rangos y validación interna. Para usuarios técnicos que quieran auditar el método.';
+    'Nota metodológica del Índice Metabólico Real (IMR): fórmulas, pesos, rangos y validación interna. Para usuarios técnicos que quieran auditar el método.';
 ---
 
 <BaseLayout title="Metodología del IMR" description={description}>
@@ -35,10 +35,10 @@ const description =
                     Metodología del <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00C49A] to-emerald-400">IMR</span>
                 </h1>
                 <p class="text-text-secondary text-base md:text-lg leading-relaxed">
-                    Documentación técnica del Índice de Metamorfosis Real: fórmulas estándar usadas, pesos del nivel superior, rangos exactos y validación interna. Si llegaste a esta página, probablemente quieras auditar el método antes de confiar en el puntaje.
+                    Documentación técnica del Índice Metabólico Real: fórmulas estándar usadas, pesos del nivel superior, rangos exactos y validación interna. Si llegaste a esta página, probablemente quieras auditar el método antes de confiar en el puntaje.
                 </p>
                 <div class="mt-6 inline-flex items-center gap-2 px-3 py-1.5 rounded bg-bg-elevated border border-white/[0.08] text-text-secondary text-xs font-mono">
-                    Motor: <span class="text-accent font-semibold">spec-70.5-v1</span>
+                    Motor: <span class="text-accent font-semibold">spec-118-v1</span>
                 </div>
             </header>
 
@@ -183,12 +183,16 @@ const description =
                         </p>
                         <div class="bg-bg-base/60 border border-white/[0.06] rounded-lg p-4 font-mono text-xs text-gray-300 overflow-x-auto">
                             <p class="text-text-muted mb-1">Hombres:</p>
-                            <p class="mb-3">bf% = 86.010 · log₁₀(cintura − cuello) − 70.041 · log₁₀(altura) + 36.76</p>
+                            <p class="mb-3">bf% = 495 / (1.0324 − 0.19077 · log₁₀(cintura − cuello) + 0.15456 · log₁₀(altura)) − 450</p>
                             <p class="text-text-muted mb-1">Mujeres:</p>
-                            <p>bf% = 163.205 · log₁₀(cintura + cadera − cuello) − 97.684 · log₁₀(altura) − 78.387</p>
+                            <p>bf% = 495 / (1.29579 − 0.35004 · log₁₀(cintura + cadera − cuello) + 0.22100 · log₁₀(altura)) − 450</p>
+                            <p class="text-text-muted mt-3">Medidas en centímetros.</p>
                         </div>
+                        <p class="text-xs text-amber-300/90 mt-3 leading-relaxed">
+                            Corrección del 26-nov-2026 (motor spec-118-v1): hasta esa fecha el motor aplicaba los coeficientes de la versión en pulgadas (86,010 / 70,041 / 36,76) a medidas en centímetros, lo que sobrestimaba la grasa corporal (unos 6 puntos en hombres). Los cálculos hechos antes de esa fecha deben recalcularse.
+                        </p>
                         <p class="text-[10px] text-text-muted mt-3 leading-relaxed">
-                            Hodgdon, J. A. &amp; Beckett, M. B. (1984). <em>Prediction of percent body fat for U.S. Navy men and women from body circumferences and height.</em> Naval Health Research Center.
+                            Hodgdon, J. A. &amp; Beckett, M. B. (1984). Naval Health Research Center, informes 84-11 (hombres) y 84-29 (mujeres).
                         </p>
                     </div>
 
@@ -196,7 +200,7 @@ const description =
                     <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-5 mb-4">
                         <h3 class="text-base font-semibold text-text-primary mb-2">Tasa metabólica basal — Mifflin-St Jeor</h3>
                         <p class="text-sm text-gray-300 mb-3 leading-relaxed">
-                            Fórmula estándar de la ADA para BMR en adultos sanos. Usada como referencia general en el bloque Estructura.
+                            Ecuación de gasto energético en reposo para adultos sanos; en la revisión de Frankenfield et al. (2005) fue la más precisa entre las ecuaciones comparadas. Usada como referencia general en el bloque Estructura.
                         </p>
                         <div class="bg-bg-base/60 border border-white/[0.06] rounded-lg p-4 font-mono text-xs text-gray-300 overflow-x-auto">
                             <p class="text-text-muted mb-1">Hombres:</p>
@@ -333,7 +337,7 @@ const description =
                         6. Validación interna — casos canónicos
                     </h2>
                     <p class="mb-5">
-                        Para verificar que el motor produce resultados clínicamente coherentes, se calibró contra tres perfiles conceptuales. Los outputs esperados están documentados en los tests del motor y se ejecutan en cada release.
+                        Para verificar que el motor produce resultados coherentes, se comparó contra tres perfiles conceptuales (no son pacientes reales). Los outputs esperados están documentados en los tests del motor y se ejecutan en cada release.
                     </p>
 
                     <div class="overflow-x-auto">
@@ -366,7 +370,7 @@ const description =
                     </div>
 
                     <p class="mt-5 text-sm text-text-muted leading-relaxed">
-                        Los tres casos producen resultados consistentes con la intuición clínica: un atleta joven con composición ideal "es más joven que su edad cronológica"; un adulto promedio "está en su edad"; y una persona con sobrepeso significativo "es metabólicamente mayor". Si en algún release futuro el motor cambia y estos casos canónicos dejan de cumplirse, el cambio se documenta como ruptura mayor (nueva versión, ej. <code class="text-accent font-mono">spec-71.0-v1</code>).
+                        Los tres casos producen resultados en la dirección esperada: un atleta joven con composición ideal "es más joven que su edad cronológica"; un adulto promedio "está en su edad"; y una persona con sobrepeso significativo "es metabólicamente mayor". Si en algún release futuro el motor cambia y estos casos canónicos dejan de cumplirse, el cambio se documenta como ruptura mayor (nueva versión, ej. <code class="text-accent font-mono">spec-71.0-v1</code>).
                     </p>
                 </section>
 
@@ -376,11 +380,11 @@ const description =
                         7. Limitaciones técnicas
                     </h2>
                     <p class="mb-5">
-                        Las limitaciones siguientes son específicas del motor actual (<code class="text-accent font-mono">spec-70.5-v1</code>). La página <a href="/imr" class="text-accent hover:underline">/imr</a> describe limitaciones generales; esta sección las complementa con detalle técnico.
+                        Las limitaciones siguientes son específicas del motor actual (<code class="text-accent font-mono">spec-118-v1</code>). La página <a href="/imr" class="text-accent hover:underline">/imr</a> describe limitaciones generales; esta sección las complementa con detalle técnico.
                     </p>
 
                     <ul class="space-y-3 text-sm md:text-base">
-                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">Body Fat Navy estima, no mide.</strong> El error promedio reportado en literatura es ±3% absoluto vs DEXA. Para auto-evaluación es aceptable; no sustituye un análisis de composición corporal real.</span></li>
+                        <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">Body Fat Navy estima, no mide.</strong> En el estudio original el error estándar de estimación fue de unos 3,5 puntos de grasa frente al pesaje hidrostático. Sirve para seguir tu evolución; no sustituye un análisis de composición corporal.</span></li>
                         <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">Mifflin asume metabolismo de adulto sano.</strong> Personas con condiciones tiroideas, embarazo, o medicación que afecte TMB pueden recibir resultados desviados.</span></li>
                         <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">Edad metabólica empírica está clampada en 18 - 80.</strong> Adolescentes y adultos mayores reciben resultados saturados en los extremos.</span></li>
                         <li class="flex gap-2"><span class="text-text-muted shrink-0">•</span><span><strong class="text-text-primary">Hábitos auto-reportados con sesgo de deseabilidad.</strong> Los inputs de sueño, hidratación y ejercicio tienden a ser sobre-reportados en literatura general. Si el usuario miente, el motor reporta IMR alto sobre datos falsos.</span></li>
@@ -401,10 +405,17 @@ const description =
                     <div class="space-y-3">
                         <div class="bg-bg-elevated border border-accent/30 rounded-xl p-4">
                             <div class="flex items-center gap-3 mb-2">
-                                <span class="text-sm font-mono font-bold text-accent">spec-70.5-v1</span>
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">Actual · estable</span>
+                                <span class="text-sm font-mono font-bold text-accent">spec-118-v1</span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">Actual · 26-nov-2026</span>
                             </div>
-                            <p class="text-sm leading-relaxed">Versión productiva descrita en este documento. Pesos 50/25/25, fórmulas estándar Navy/Mifflin/Katch-McArdle, edad metabólica empírica, zonas en 5 cortes.</p>
+                            <p class="text-sm leading-relaxed">Corrige la fórmula Navy: usa la versión métrica (centímetros). El resto del método no cambia.</p>
+                        </div>
+                        <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-4">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-sm font-mono font-bold text-text-secondary">spec-70.5-v1</span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">Anterior</span>
+                            </div>
+                            <p class="text-sm leading-relaxed">Pesos 50/25/25, fórmulas Navy/Mifflin/Katch-McArdle, edad metabólica empírica, zonas en 5 cortes. Aplicaba la fórmula Navy en pulgadas a medidas en centímetros.</p>
                         </div>
                         <div class="bg-bg-elevated border border-white/[0.08] rounded-xl p-4">
                             <div class="flex items-center gap-3 mb-2">
@@ -433,11 +444,12 @@ const description =
                     </p>
 
                     <ul class="space-y-3 text-sm text-gray-300">
-                        <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">M1</span><span>Hodgdon, J. A. &amp; Beckett, M. B. (1984). <em>Prediction of percent body fat for U.S. Navy men and women from body circumferences and height.</em> Naval Health Research Center, Report No. 84-29.</span></li>
+                        <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">M1</span><span>Hodgdon, J. A. &amp; Beckett, M. B. (1984). <em>Prediction of percent body fat for U.S. Navy men from body circumferences and height</em> (Report No. 84-11) y <em>… for U.S. Navy women …</em> (Report No. 84-29). Naval Health Research Center, San Diego.</span></li>
                         <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">M2</span><span>Mifflin, M. D., St Jeor, S. T., Hill, L. A., Scott, B. J., Daugherty, S. A. &amp; Koh, Y. O. (1990). <em>A new predictive equation for resting energy expenditure in healthy individuals.</em> American Journal of Clinical Nutrition, 51(2), 241-247.</span></li>
                         <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">M3</span><span>Katch, F. I. &amp; McArdle, W. D. (1983). <em>Nutrition, Weight Control, and Exercise</em> (2nd ed.). Philadelphia: Lea &amp; Febiger.</span></li>
                         <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">M4</span><span>American College of Sports Medicine (2021). <em>ACSM's Guidelines for Exercise Testing and Prescription</em> (11th ed.). Wolters Kluwer.</span></li>
-                        <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">M5</span><span>Ashwell, M. &amp; Hsieh, S. D. (2005). <em>Six reasons why the body mass index is a poor measure of your health.</em> The Lancet, 365(9462), 941-945. (Defensa del WHtR / ICA sobre IMC.)</span></li>
+                        <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">M5</span><span>Ashwell, M. &amp; Hsieh, S. D. (2005). <em>Six reasons why the waist-to-height ratio is a rapid and effective global indicator for health risks of obesity.</em> International Journal of Food Sciences and Nutrition, 56(5), 303-307. (Defensa del ICA / WHtR frente al IMC.)</span></li>
+                        <li class="flex gap-3"><span class="text-accent font-mono shrink-0 mt-0.5">M6</span><span>Frankenfield, D., Roth-Yousey, L. &amp; Compher, C. (2005). <em>Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review.</em> Journal of the American Dietetic Association, 105(5), 775-789.</span></li>
                     </ul>
                 </section>
 

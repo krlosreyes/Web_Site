@@ -23,6 +23,8 @@ export const COLLECTIONS = {
     FORUM_TOPICS: 'forum_topics',
     /** Tickets de soporte de ElenaApp (SPEC-112). Solo Admin SDK escribe/lee. */
     ELENA_SUPPORT_TICKETS: 'elena_support_tickets',
+    /** Boletín quincenal (SPEC-119). Id = hash del correo. Solo Admin SDK escribe/lee. */
+    NEWSLETTER_SUBSCRIBERS: 'newsletter_subscribers',
 } as const;
 
 /** Subcolecciones bajo `users/{uid}`. */

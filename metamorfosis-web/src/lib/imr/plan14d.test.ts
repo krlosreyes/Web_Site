@@ -104,13 +104,13 @@ describe('día 14 — cierre y CTA a ElenaApp', () => {
         expect(day14.phase).toBe('Consolidación');
     });
 
-    it('al menos una de las 3 acciones del día 14 menciona ElenaApp', () => {
+    it('al menos una de las 3 acciones del día 14 menciona la app Elena (SPEC-119)', () => {
         const actionsText = (
             day14.actions.E.title + ' ' + (day14.actions.E.detail ?? '') + ' ' +
             day14.actions.M.title + ' ' + (day14.actions.M.detail ?? '') + ' ' +
             day14.actions.C.title + ' ' + (day14.actions.C.detail ?? '')
         ).toLowerCase();
-        expect(actionsText).toContain('elenaapp');
+        expect(actionsText).toMatch(/descarga elena/);
     });
 
     it('al menos una acción del día 14 invita a re-medir el IMR', () => {

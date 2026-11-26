@@ -21,6 +21,7 @@ import { buildMetaDescription } from "../../lib/utils/metaDescription";
 import { getPostSeo } from "../../data/seoOverrides";
 import { buildAuthorJsonLd, buildReviewerJsonLd } from "../../lib/utils/articleAuthor";
 import ArticleAuthorBox from "../../components/ArticleAuthorBox.astro";
+import NewsletterSignup from "../../components/NewsletterSignup.astro";
 
 export const prerender = false;
 
@@ -305,6 +306,10 @@ const jsonLd = {
              dependa del margin-bottom del último hijo del .prose. */}
         <div class="container mx-auto px-6 pt-12 md:pt-16 pb-24 max-w-3xl">
             <ArticleAuthorBox />
+
+            <div class="my-10">
+                <NewsletterSignup source="post" />
+            </div>
 
             {/* SPEC-032: reacciones del artículo (👍/👎)
                 SPEC-035: hasQuiz cambia el CTA del anónimo a "Contesta el test"

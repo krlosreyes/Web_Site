@@ -1,4 +1,5 @@
 ---
+import { ELENA_APP_STORE_URL } from "../lib/constants/app";
 /**
  * SPEC-112: Página pública de soporte de ElenaApp.
  *
@@ -47,8 +48,8 @@ import ElenaSupportForm from '../components/ElenaSupportForm.tsx';
                     class="text-gray-300 text-base sm:text-lg leading-relaxed max-w-2xl"
                 >
                     Elena App es la app móvil de Metamorfosis Real para
-                    optimizar tus hábitos día a día. Estamos en fase de
-                    lanzamiento; si algo no anda como esperas o tienes una
+                    optimizar tus hábitos día a día. Está disponible gratis
+                    en el App Store para iPhone; si algo no anda como esperas o tienes una
                     duda concreta, escríbenos aquí. Solemos responder en
                     24–48 horas hábiles.
                 </p>
@@ -70,7 +71,7 @@ import ElenaSupportForm from '../components/ElenaSupportForm.tsx';
                             class="flex justify-between items-center gap-4 cursor-pointer px-5 py-4 hover:bg-white/[0.02] transition-colors list-none"
                         >
                             <span class="text-sm sm:text-base text-white font-medium"
-                                >¿Cuándo puedo descargar Elena App?</span
+                                >¿Dónde descargo Elena App?</span
                             >
                             <span
                                 class="text-gray-500 group-open:rotate-45 transition-transform text-xl leading-none shrink-0"
@@ -78,13 +79,16 @@ import ElenaSupportForm from '../components/ElenaSupportForm.tsx';
                             >
                         </summary>
                         <div class="px-5 pb-4 text-sm text-gray-400 leading-relaxed">
-                            La app está en fase final de desarrollo. Si estás
-                            en el <a
-                                href="/quiz"
+                            Ya está disponible gratis para iPhone en el <a
+                                href={ELENA_APP_STORE_URL}
+                                target="_blank"
+                                rel="noopener"
+                                data-umami-event="cta_app_store"
+                                data-umami-event-source="elenasupport"
                                 class="text-[#00C49A] hover:text-emerald-400 underline underline-offset-2"
-                                >cohorte de acceso anticipado</a
-                            >, te avisaremos por email en cuanto abramos
-                            descargas.
+                                >App Store</a
+                            >. La versión para Android todavía no está
+                            publicada.
                         </div>
                     </details>
 
@@ -102,9 +106,9 @@ import ElenaSupportForm from '../components/ElenaSupportForm.tsx';
                             >
                         </summary>
                         <div class="px-5 pb-4 text-sm text-gray-400 leading-relaxed">
-                            Sí. Tu cuenta del sitio web y la de Elena App son
-                            la misma (compartimos Firebase Auth). No necesitas
-                            registrarte de nuevo cuando descargues la app.
+                            Sí. El sitio y la app usan la misma cuenta: entra
+                            en la app con el mismo correo o el mismo método
+                            con el que te registraste aquí.
                         </div>
                     </details>
 
@@ -122,10 +126,10 @@ import ElenaSupportForm from '../components/ElenaSupportForm.tsx';
                             >
                         </summary>
                         <div class="px-5 pb-4 text-sm text-gray-400 leading-relaxed">
-                            La app registra tus hábitos diarios (ayuno,
-                            comidas, ejercicio, sueño) y los sincroniza con tu
-                            perfil del sitio. Tu IMR, tu plan de 14 días y tu
-                            historial viven en un mismo lugar.
+                            Comparten la cuenta. El sitio tiene los artículos,
+                            el test y la calculadora; el registro diario de
+                            ayuno, comidas, ejercicio, sueño e hidratación se
+                            hace en la app.
                         </div>
                     </details>
 
@@ -142,29 +146,9 @@ import ElenaSupportForm from '../components/ElenaSupportForm.tsx';
                             >
                         </summary>
                         <div class="px-5 pb-4 text-sm text-gray-400 leading-relaxed">
-                            Puedes registrar tus hábitos sin conexión. La
-                            sincronización con el sitio ocurre en cuanto
-                            recuperas internet. No pierdes ningún dato.
-                        </div>
-                    </details>
-
-                    <details class="group">
-                        <summary
-                            class="flex justify-between items-center gap-4 cursor-pointer px-5 py-4 hover:bg-white/[0.02] transition-colors list-none"
-                        >
-                            <span class="text-sm sm:text-base text-white font-medium"
-                                >Reservé mi cupo, ¿pierdo mi lugar si no
-                                descargo la app al momento?</span
-                            >
-                            <span
-                                class="text-gray-500 group-open:rotate-45 transition-transform text-xl leading-none shrink-0"
-                                aria-hidden="true">+</span
-                            >
-                        </summary>
-                        <div class="px-5 pb-4 text-sm text-gray-400 leading-relaxed">
-                            No. Tu lugar en el cohorte de acceso anticipado
-                            queda vinculado a tu cuenta, no a que descargues
-                            la app en un momento específico. Tienes tiempo.
+                            Puedes registrar tus hábitos sin conexión. Los
+                            datos se guardan en el teléfono y se envían a tu
+                            cuenta cuando vuelve la conexión.
                         </div>
                     </details>
 

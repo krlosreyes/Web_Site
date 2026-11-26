@@ -6,6 +6,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import type { UserDoc, UserPlan14d } from '../lib/types/user';
 import { buildCanonicalPatch } from '../lib/legacy/elenaAppAdapter';
 import { identifyWeakPillar } from '../lib/imr/weakPillar';
+import { ELENA_APP_STORE_URL } from '../lib/constants/app';
 import { PLAN_TOTAL_DAYS } from '../lib/imr/plan14d';
 import { INITIAL_PROGRESS, getCurrentDay, isPlanFinished } from '../lib/imr/plan14dProgress';
 
@@ -489,9 +490,9 @@ const BioDashboard = () => {
                                 <Icons.Rocket />
                             </div>
                             <div className="min-w-0">
-                                <h4 className="text-text-primary font-semibold text-base mb-1">ElenaApp · Lista de espera</h4>
+                                <h4 className="text-text-primary font-semibold text-base mb-1">Elena · Gratis en App Store</h4>
                                 <p className="text-text-secondary text-sm leading-relaxed">
-                                    Estás en lista de espera para conocer <span className="text-text-primary font-medium">ElenaApp</span>, la herramienta que te ayudará a elevar tu IMR.
+                                    Registra cada día tu ayuno, comidas, sueño, ejercicio e hidratación en <a href={ELENA_APP_STORE_URL} target="_blank" rel="noopener" data-umami-event="cta_app_store" data-umami-event-source="dashboard" className="text-accent font-medium hover:underline">Elena para iPhone</a>.
                                 </p>
                             </div>
                         </div>

@@ -25,7 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
         
         if (!snapshot.empty) {
             return new Response(JSON.stringify({ 
-                error: 'Ya has realizado tu diagnóstico y estás en lista de espera. Pronto te contactaremos.' 
+                error: 'Ya realizaste tu diagnóstico con este correo. Inicia sesión para ver tu resultado.' 
             }), { 
                 status: 409,
                 headers: { 'Content-Type': 'application/json' }

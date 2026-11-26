@@ -98,13 +98,13 @@ export const PLAN_14_DAYS: DayPlan[] = [
             M: {
                 title: 'Ayuno cómodo de 12 horas: solo agua, café o té sin azúcar',
                 detail:
-                    'Si nunca ayunaste, empieza en 12h. Termina la cena a las 8pm y desayuna a las 8am. Sin calorías líquidas en el intervalo. Esto baja insulina sin estrés.',
+                    'Si nunca ayunaste, empieza en 12 h: termina la cena a las 8 pm y desayuna a las 8 am, sin calorías líquidas en el intervalo. Si tienes diabetes, tomas medicamentos, estás embarazada o tienes antecedentes de trastornos alimentarios, habla antes con tu médico.',
                 references: [REF_WILKINSON],
             },
             C: {
-                title: 'Hidrátate apenas despiertes: 500 ml de agua con una pizca de sal',
+                title: 'Hidrátate apenas despiertes: un vaso grande de agua',
                 detail:
-                    'La hidratación matutina activa termogénesis y compensa la pérdida nocturna. La pizca de sal evita el dolor de cabeza por electrolitos bajos al inicio.',
+                    'Durante la noche pierdes agua al respirar y sudar. Empezar el día con agua es una forma sencilla de crear el hábito. Si al inicio del ayuno te duele la cabeza, revisa cuánta agua estás tomando.',
                 references: [REF_BOSCHMANN],
             },
         },
@@ -114,7 +114,7 @@ export const PLAN_14_DAYS: DayPlan[] = [
         phase: 'Reset',
         title: 'Acceso a tus reservas',
         description:
-            'Con la insulina baja, tu cuerpo activa rutas alternas de energía. Es el punto donde dejas de depender del azúcar minuto a minuto para funcionar.',
+            'Tras varias horas sin comer, la insulina baja y el cuerpo usa más grasa como fuente de energía. Es un proceso normal que ocurre cada noche.',
         image: {
             src: '/plan14d/dia-02.webp',
             alt: 'Cocina vacía a las 8 pm con luz cálida tenue sobre mesa despejada',
@@ -123,18 +123,18 @@ export const PLAN_14_DAYS: DayPlan[] = [
             E: {
                 title: 'Caminata de 20 minutos antes de tu primera comida',
                 detail:
-                    'En ayunas, la oxidación de grasa es más alta. 20 minutos de caminata suave (no correr) maximiza el efecto sin agregarte estrés.',
+                    'Caminar es la forma más fácil de sumar movimiento. 20 minutos a paso suave, sin correr, es suficiente para empezar. Si te mareas en ayunas, hazla después de comer.',
             },
             M: {
                 title: 'Rompe el ayuno con 30 g de proteína + 15 g de grasa',
                 detail:
-                    'Ejemplo: 3 huevos + medio aguacate. Sin pan, sin fruta, sin jugo. Esto estabiliza la leptina (saciedad) y evita el pico de insulina post-ayuno.',
+                    'Ejemplo: 3 huevos + medio aguacate. La proteína es el nutriente que más sacia y ayuda a conservar músculo. Evitar jugos y harinas en esa comida reduce el pico de glucosa.',
                 references: [REF_SUTTON],
             },
             C: {
                 title: 'Cierra pantallas a las 9 pm sin excepción',
                 detail:
-                    'Si tienes que terminar trabajo, hazlo antes. La luz azul nocturna retrasa la melatonina y fragmenta el sueño profundo — el momento donde tu cuerpo más repara.',
+                    'Si tienes que terminar trabajo, hazlo antes. La luz de las pantallas en la noche puede retrasar la melatonina, la hormona que prepara el sueño.',
                 references: [REF_CHANG, REF_HALE_GUAN],
             },
         },
@@ -144,7 +144,7 @@ export const PLAN_14_DAYS: DayPlan[] = [
         phase: 'Reset',
         title: 'Limpieza interna',
         description:
-            'Cuando dejas de comer por intervalos largos, tu cuerpo activa autofagia: recicla células dañadas y proteínas viejas. Es el mecanismo de renovación que muchos buscan con ayuno.',
+            'Se habla mucho de la autofagia (el reciclaje de componentes de la célula). Ojo: casi toda la evidencia viene de estudios en animales y todavía no se sabe cuántas horas de ayuno la activan en personas. Lo que sí está claro es el beneficio de la constancia.',
         image: {
             src: '/plan14d/dia-03.webp',
             alt: 'Té verde traslúcido en taza de vidrio con vapor suave y luz matinal',
@@ -164,7 +164,7 @@ export const PLAN_14_DAYS: DayPlan[] = [
             C: {
                 title: 'Anota una decisión que te haya costado hoy',
                 detail:
-                    'La fatiga de decisión predice recaídas. Identificar tu hora más vulnerable (10 am, 3 pm, 9 pm) te permite anticiparte mañana.',
+                    'Identificar tu hora más vulnerable (10 am, 3 pm, 9 pm) te permite anticiparte mañana.',
             },
         },
     },
@@ -187,13 +187,13 @@ export const PLAN_14_DAYS: DayPlan[] = [
             M: {
                 title: 'Cena máximo a las 8 pm. Espera 2 h antes de dormir',
                 detail:
-                    'La digestión activa interfiere con el descenso de temperatura corporal necesario para dormir profundo. Cenar temprano mejora insulina al día siguiente.',
+                    'Estudios de crononutrición muestran que la glucosa se controla peor con comidas tarde en la noche. Dejar un margen antes de dormir suele ayudar a descansar mejor.',
                 references: [REF_JAKUBOWICZ],
             },
             C: {
                 title: 'Acuéstate a la misma hora que ayer (±15 min)',
                 detail:
-                    'Consistencia importa más que duración. 7 horas regulares vencen a 9 horas erráticas. Tu reloj circadiano necesita predicción.',
+                    'Dormir a horas regulares importa, no solo cuántas horas duermes. Tu reloj interno funciona mejor con horarios predecibles.',
             },
         },
     },
@@ -202,7 +202,7 @@ export const PLAN_14_DAYS: DayPlan[] = [
         phase: 'Reset',
         title: 'Activa el músculo',
         description:
-            'Sin estímulo mecánico, tu cuerpo no preserva masa magra. Dos sesiones cortas por semana son suficientes para mantener la señal hormonal.',
+            'Sin ejercicio de fuerza, con los años se pierde músculo. La OMS recomienda trabajar fuerza al menos 2 días por semana.',
         image: {
             src: '/plan14d/dia-05.webp',
             alt: 'Kettlebell solitaria sobre piso de madera con luz lateral dramática',
@@ -211,18 +211,18 @@ export const PLAN_14_DAYS: DayPlan[] = [
             E: {
                 title: 'Sesión completa de fuerza: sentadillas, flexiones, dominadas asistidas',
                 detail:
-                    '3 series de cada ejercicio, hasta cerca del fallo. Total 20-25 minutos. Esta es la dosis mínima efectiva demostrada en meta-análisis.',
+                    '3 series de cada ejercicio, dejando 1 o 2 repeticiones en reserva. Total 20-25 minutos. Si tienes alguna lesión, adapta los ejercicios.',
                 references: [REF_SCHOENFELD, REF_ACSM],
             },
             M: {
                 title: 'Prioriza proteína en tu primera comida: 30-40 g',
                 detail:
-                    'Ejemplo: 4 huevos + 100 g de pollo, o 2 huevos + 150 g de pescado. La proteína temprana modera la respuesta de insulina del resto del día.',
+                    'Ejemplo: 4 huevos + 100 g de pollo, o 2 huevos + 150 g de pescado. La proteína ayuda a que te sientas lleno por más tiempo.',
             },
             C: {
                 title: 'Camina 5 minutos entre cada 60 de trabajo sentado',
                 detail:
-                    'Sentarse muchas horas reduce sensibilidad a la insulina aunque entrenes después. Estos micro-cortes preservan el efecto del entrenamiento.',
+                    'Estudios de laboratorio muestran que cortar el tiempo sentado con pausas cortas de caminata baja la glucosa después de comer.',
             },
         },
     },
@@ -245,7 +245,7 @@ export const PLAN_14_DAYS: DayPlan[] = [
             M: {
                 title: 'Mantén el ayuno de 14 h. Sin snacks entre comidas',
                 detail:
-                    'Cada vez que comes (aunque sea 50 calorías), reinicias el contador hormonal de insulina. Solo dos eventos de comida hoy. Agua, café, té entre tanto.',
+                    'Picar entre comidas eleva la insulina varias veces al día y hace más difícil notar el hambre real. Hoy, solo dos comidas. Agua, café o té sin azúcar entre tanto.',
                 references: [REF_WILKINSON],
             },
             C: {
@@ -269,7 +269,7 @@ export const PLAN_14_DAYS: DayPlan[] = [
             E: {
                 title: 'Re-mide cintura, peso y toma una foto frontal',
                 detail:
-                    'Cambio esperado en 7 días: 0.5-1 cm de cintura, 0-1 kg de peso. Si no se mueve nada, revisa adherencia (no metodología) antes de cambiar algo.',
+                    'En una semana el cambio puede ser pequeño o nulo, y eso es normal: el peso varía de un día a otro por agua y digestión. Mira la tendencia, no un solo número.',
             },
             M: {
                 title: 'Identifica el ayuno que sentiste cómodo (12, 13 o 14 h)',
@@ -279,7 +279,7 @@ export const PLAN_14_DAYS: DayPlan[] = [
             C: {
                 title: 'Lista un hábito que ya se siente automático',
                 detail:
-                    'Eso es tu primer ROI real: un hábito que no te cuesta voluntad. Esos son los que se mantienen 90 días después.',
+                    'Ese es tu primer logro real: un hábito que ya no te cuesta voluntad. Son los que más fácil se mantienen.',
             },
         },
     },
@@ -367,7 +367,7 @@ export const PLAN_14_DAYS: DayPlan[] = [
             C: {
                 title: 'Café solo antes del mediodía. Después: té, agua o nada',
                 detail:
-                    'La cafeína tiene vida media de 5-6 horas. Un café a las 3 pm sigue activo a las 9 pm aunque no lo sientas. Esto degrada sueño profundo.',
+                    'La cafeína tarda en promedio unas 5 horas en reducirse a la mitad (varía mucho entre personas). Un café a las 3 pm puede seguir activo en la noche y afectar tu sueño aunque no lo sientas.',
             },
         },
     },
@@ -376,7 +376,7 @@ export const PLAN_14_DAYS: DayPlan[] = [
         phase: 'Consolidación',
         title: 'El estrés deshace el progreso',
         description:
-            'Más entrenamiento + menos sueño = peor cuerpo. Sin recuperación, el músculo no crece y la grasa no baja. Hoy el plan es descansar bien.',
+            'Entrenar más y dormir menos no suma. La recuperación es parte del proceso. Hoy el plan es descansar bien.',
         image: {
             src: '/plan14d/dia-11.webp',
             alt: 'Cama tendida con manta suave plegada y lámpara cálida encendida, cortinas opacas',
@@ -385,12 +385,12 @@ export const PLAN_14_DAYS: DayPlan[] = [
             E: {
                 title: 'Día de movilidad o caminata larga: 30 min, sin pesas',
                 detail:
-                    'Tu cuerpo creció en los descansos, no en las sesiones. Un día sin fuerza no es retroceso — es donde ocurre la adaptación.',
+                    'El músculo se adapta en los días de descanso. Un día sin fuerza no es retroceso.',
             },
             M: {
                 title: 'Mantén el ayuno cómodo. Si hoy hubo estrés alto, no extiendas',
                 detail:
-                    'Cortisol alto + ayuno largo = cortisol más alto. Si tuviste un día difícil, hoy come en ventana normal. La adherencia gana al heroísmo.',
+                    'Un día muy estresante no es el mejor día para exigirte más. Si tuviste un día difícil, hoy come en tu ventana normal. La constancia gana al heroísmo.',
             },
             C: {
                 title: '8 horas de sueño esta noche. Plan B: siesta de 20 min mañana',
@@ -414,12 +414,12 @@ export const PLAN_14_DAYS: DayPlan[] = [
             E: {
                 title: 'Mide cintura y peso. Compara con día 7',
                 detail:
-                    'Cambio esperado en 5 días adicionales: 0.5 cm cintura, 0.5 kg peso. Cualquier cambio en la dirección correcta es una validación del método.',
+                    'Compara con el día 7 y con el día 1. Lo importante es la dirección, no la magnitud. Si nada cambia, revisa primero el sueño y la constancia.',
             },
             M: {
                 title: 'Compara tus horarios reales de comida: ¿más consistentes que la semana 1?',
                 detail:
-                    'La consistencia horaria es el predictor más fuerte de adaptación metabólica. Más que la duración del ayuno.',
+                    'Comer a horas parecidas cada día le da a tu cuerpo un ritmo predecible. Para empezar, la regularidad importa más que alargar el ayuno.',
             },
             C: {
                 title: 'Compara tu energía promedio del día (1-10) con la semana 1',
@@ -433,7 +433,7 @@ export const PLAN_14_DAYS: DayPlan[] = [
         phase: 'Consolidación',
         title: 'Lo que sí puedes mantener',
         description:
-            'Mañana terminas las 14 días. El reto no es hacer un día más — es hacer 90 más sin sentirte forzado. Hoy define qué se queda y qué se suelta.',
+            'Mañana terminas los 14 días. El reto no es hacer un día más — es hacer 90 más sin sentirte forzado. Hoy define qué se queda y qué se suelta.',
         image: {
             src: '/plan14d/dia-13.webp',
             alt: 'Tres piedras de río apiladas en equilibrio sobre madera, sentido minimalista de estructura sostenible',
@@ -462,7 +462,7 @@ export const PLAN_14_DAYS: DayPlan[] = [
         phase: 'Consolidación',
         title: 'Tu nuevo baseline',
         description:
-            'Has completado las 14 días. Tu cuerpo y tu mente operan distinto que hace 2 semanas. El siguiente paso es medición continua y ajuste fino — ahí entra ElenaApp.',
+            'Completaste los 14 días. Ya tienes rutinas y datos propios. El siguiente paso es mantenerlas y medir cada mes.',
         image: {
             src: '/plan14d/dia-14.webp',
             alt: 'Cima de montaña al amanecer con niebla en los valles y horizonte despejado',
@@ -476,12 +476,12 @@ export const PLAN_14_DAYS: DayPlan[] = [
             M: {
                 title: 'Repite el quiz IMR (toma 2 min). Calcula tu nuevo score',
                 detail:
-                    'El IMR es la métrica de seguimiento más fiable que tienes hoy sin biomarcadores reales. Re-medir mensual te da señal sin requerir hardware.',
+                    'El IMR es una estimación, no un examen médico, pero medirlo cada mes con el mismo método te muestra si vas en la dirección correcta.',
             },
             C: {
-                title: 'Reserva tu lugar en ElenaApp para seguimiento continuo',
+                title: 'Si quieres seguir registrando tus hábitos, descarga Elena (gratis, iPhone)',
                 detail:
-                    'El ecosistema completo (web + app + canal de YouTube) está diseñado para acompañarte más allá de estos 14 días. La cohorte fundadora tiene acceso anticipado y beneficios exclusivos.',
+                    'Elena es nuestra app para registrar ayuno, comidas, sueño, ejercicio e hidratación cada día. Es opcional: lo que aprendiste en estos 14 días funciona igual con papel y lápiz.',
             },
         },
     },

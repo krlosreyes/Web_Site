@@ -162,19 +162,18 @@ export async function sendFounderWelcomeEmail(input: {
     name?: string | null;
     founderNumber: number;
 }): Promise<SendEmailResult> {
-    const displayName = input.name?.trim() || 'biohacker';
-    const subject = `Tu acceso anticipado a ElenaApp está reservado`;
+    const displayName = input.name?.trim() || '';
+    const subject = `Bienvenido a Metamorfosis Real: eres usuario fundador`;
 
-    const text = `Hola ${displayName},
+    const text = `Hola${displayName ? ` ${displayName}` : ''},
 
-Bienvenido al ecosistema de Metamorfosis Real. Tu lugar entre los primeros usuarios de ElenaApp está reservado.
+Bienvenido a Metamorfosis Real. Quedaste registrado entre los primeros usuarios fundadores.
 
-🚀 BENEFICIOS GARANTIZADOS AL LANZAMIENTO
+Elena, nuestra app para registrar tus hábitos diarios, ya está disponible gratis para iPhone:
+https://apps.apple.com/co/app/elena/id6778996786
 
-1. Precio preferencial en la suscripción anual de ElenaApp.
-2. Beneficios exclusivos de lanzamiento: ventajas reservadas para usuarios con acceso anticipado.
-
-No tienes que hacer nada — cuando ElenaApp se lance, ingresas con tu mismo correo y la app te identifica automáticamente.
+Inicia sesión con este mismo correo. Los beneficios de usuario fundador y sus condiciones están en la sección 5 de nuestros términos:
+https://metamorfosisvital.com.co/terminos
 
 ${RESOURCES_TEXT}
 
@@ -184,44 +183,27 @@ Cualquier duda, puedes responder directamente a este email.
 Metamorfosis Real`;
 
     const bodyHtml = `
-      <p style="margin:0 0 16px;">Bienvenido al ecosistema de Metamorfosis Real. Tu lugar entre los <strong style="color:#00C49A;">primeros usuarios</strong> de ElenaApp está reservado.</p>
+      <p style="margin:0 0 16px;">Bienvenido a Metamorfosis Real. Quedaste registrado entre los <strong style="color:#00C49A;">primeros usuarios fundadores</strong>.</p>
 
       <!-- BADGE DE ACCESO ANTICIPADO -->
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
         <tr>
           <td style="padding:28px 22px;background:linear-gradient(135deg,rgba(0,196,154,0.15),rgba(0,196,154,0.05));border:1px solid rgba(0,196,154,0.35);border-radius:16px;text-align:center;">
-            <div style="font-size:10px;font-weight:900;color:#00C49A;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:10px;">🚀 Acceso anticipado</div>
-            <div style="font-size:24px;font-weight:900;color:#ffffff;font-style:italic;line-height:1.2;letter-spacing:-0.5px;">Tu lugar está reservado</div>
-            <div style="font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.3em;text-transform:uppercase;margin-top:10px;">en ElenaApp</div>
+            <div style="font-size:10px;font-weight:900;color:#00C49A;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:10px;">Usuario fundador</div>
+            <div style="font-size:24px;font-weight:900;color:#ffffff;font-style:italic;line-height:1.2;letter-spacing:-0.5px;">Elena ya está disponible</div>
+            <div style="font-size:11px;font-weight:900;color:#94a3b8;letter-spacing:0.3em;text-transform:uppercase;margin-top:10px;">Gratis para iPhone</div>
           </td>
         </tr>
       </table>
 
-      <p style="margin:0 0 14px;font-weight:700;color:#ffffff;">Beneficios garantizados al lanzamiento:</p>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-        <tr>
-          <td style="padding:16px 18px;background:rgba(0,196,154,0.06);border:1px solid rgba(0,196,154,0.25);border-radius:12px;">
-            <div style="font-size:14px;font-weight:700;color:#00C49A;margin-bottom:4px;">1. Precio preferencial</div>
-            <div style="font-size:13px;color:#cbd5e1;line-height:1.5;">Condiciones especiales en la suscripción anual de ElenaApp por registro anticipado.</div>
-          </td>
-        </tr>
-        <tr><td style="height:8px;line-height:8px;">&nbsp;</td></tr>
-        <tr>
-          <td style="padding:16px 18px;background:rgba(0,196,154,0.06);border:1px solid rgba(0,196,154,0.25);border-radius:12px;">
-            <div style="font-size:14px;font-weight:700;color:#00C49A;margin-bottom:4px;">2. Beneficios exclusivos de lanzamiento</div>
-            <div style="font-size:13px;color:#cbd5e1;line-height:1.5;">Ventajas reservadas para usuarios que se registraron antes del lanzamiento oficial.</div>
-          </td>
-        </tr>
-      </table>
-
-      <p style="margin:0 0 24px;font-size:13px;color:#94a3b8;line-height:1.5;">No tienes que hacer nada — al iniciar sesión en ElenaApp con tu mismo correo, la app te identifica automáticamente.</p>
+      <p style="margin:0 0 24px;"><a href="https://apps.apple.com/co/app/elena/id6778996786" style="color:#00C49A;font-weight:700;">Descarga Elena en el App Store</a> e inicia sesión con este mismo correo. Los beneficios de usuario fundador y sus condiciones están en la <a href="https://metamorfosisvital.com.co/terminos" style="color:#00C49A;">sección 5 de los términos</a>.</p>
 
       ${RESOURCES_HTML}
     `;
 
     const html = wrapEmailHtml({
         subject,
-        heading: `Tu acceso está reservado`,
+        heading: `Eres usuario fundador`,
         bodyHtml,
     });
 
@@ -240,12 +222,12 @@ export async function sendStandardWelcomeEmail(input: {
     to: string;
     name?: string | null;
 }): Promise<SendEmailResult> {
-    const displayName = input.name?.trim() || 'biohacker';
-    const subject = `Bienvenido a Metamorfosis Real, ${displayName}`;
+    const displayName = input.name?.trim() || '';
+    const subject = `Bienvenido a Metamorfosis Real${displayName ? `, ${displayName}` : ''}`;
 
-    const text = `Hola ${displayName},
+    const text = `Hola${displayName ? ` ${displayName}` : ''},
 
-Acabas de unirte al ecosistema de Metamorfosis Real. Tu perfil quedó creado y estás en la lista de espera de ElenaApp — la app móvil que va a optimizar tus hábitos diarios (ayuno, nutrición, ejercicio, hidratación, sueño).
+Acabas de unirte a Metamorfosis Real. Tu perfil quedó creado. Si quieres registrar tus hábitos diarios (ayuno, alimentación, ejercicio, hidratación y sueño), Elena, nuestra app gratuita para iPhone, está en el App Store: https://apps.apple.com/co/app/elena/id6778996786
 
 ${RESOURCES_TEXT}
 
@@ -255,14 +237,14 @@ Cualquier duda, puedes responder directamente a este email.
 Metamorfosis Real`;
 
     const bodyHtml = `
-      <p style="margin:0 0 24px;">Acabas de unirte al ecosistema de Metamorfosis Real. Tu perfil quedó creado y <strong style="color:#00C49A;">estás en la lista de espera de ElenaApp</strong> — la app móvil que va a optimizar tus hábitos diarios (ayuno, nutrición, ejercicio, hidratación, sueño).</p>
+      <p style="margin:0 0 24px;">Acabas de unirte a Metamorfosis Real. Tu perfil quedó creado. Si quieres registrar tus hábitos diarios (ayuno, alimentación, ejercicio, hidratación y sueño), <a href="https://apps.apple.com/co/app/elena/id6778996786" style="color:#00C49A;font-weight:700;">Elena, nuestra app gratuita para iPhone</a>, ya está en el App Store.</p>
 
       ${RESOURCES_HTML}
     `;
 
     const html = wrapEmailHtml({
         subject,
-        heading: `Bienvenido, ${displayName}`,
+        heading: `Bienvenido${displayName ? `, ${displayName}` : ''}`,
         bodyHtml,
     });
 
@@ -298,23 +280,23 @@ export async function sendFounderPlanAnnouncementEmail(input: {
     to: string;
     name?: string | null;
 }): Promise<SendEmailResult> {
-    const displayName = input.name?.trim() || 'biohacker';
+    const displayName = input.name?.trim() || '';
     const subject = 'Nuevo beneficio: tu Plan IMR de 14 días está listo';
 
-    const text = `Hola ${displayName},
+    const text = `Hola${displayName ? ` ${displayName}` : ''},
 
 Como parte de la cohorte fundadora de Metamorfosis Real, ahora tienes acceso a un beneficio nuevo: tu Plan IMR personalizado de 14 días.
 
 ¿QUÉ ES?
 
-Una ruta secuencial de 14 días que toma los resultados de tu diagnóstico IMR y los traduce en una acción concreta por día. Cada acción está enfocada en tu pilar de mayor oportunidad (Estructura, Metabolismo o Conducta) y está basada en literatura científica revisada por pares.
+Una ruta secuencial de 14 días que toma los resultados de tu diagnóstico IMR y los traduce en una acción concreta por día. Cada acción está enfocada en tu pilar de mayor oportunidad (Estructura, Metabolismo o Conducta) y está pensada como hábitos sencillos y graduales. Es información educativa, no reemplaza a tu médico.
 
 ¿CÓMO FUNCIONA?
 
 - Solo ves un día a la vez. Te enfocas en ejecutar esa acción.
 - Cuando la cumples, marcas el día como completado y se desbloquea el siguiente.
 - Tu progreso se guarda automáticamente — puedes entrar desde cualquier dispositivo.
-- Al completar los 14 días, tu metabolismo opera con un nuevo baseline.
+- Al completar los 14 días, vuelves a medirte y comparas con tu punto de partida.
 
 Sin notificaciones agresivas. Sin penalización si pierdes un día. Avanzas a tu ritmo.
 
@@ -343,7 +325,7 @@ Metamorfosis Real`;
       </table>
 
       <p style="margin:0 0 12px;font-weight:700;color:#ffffff;font-size:15px;">¿Qué es?</p>
-      <p style="margin:0 0 22px;">Una ruta secuencial de 14 días que toma los resultados de tu diagnóstico IMR y los traduce en una acción concreta por día. Cada acción está enfocada en tu pilar de mayor oportunidad (Estructura, Metabolismo o Conducta) y está basada en literatura científica revisada por pares.</p>
+      <p style="margin:0 0 22px;">Una ruta secuencial de 14 días que toma los resultados de tu diagnóstico IMR y los traduce en una acción concreta por día. Cada acción está enfocada en tu pilar de mayor oportunidad (Estructura, Metabolismo o Conducta) y está pensada como hábitos sencillos y graduales. Es información educativa, no reemplaza a tu médico.</p>
 
       <p style="margin:0 0 12px;font-weight:700;color:#ffffff;font-size:15px;">¿Cómo funciona?</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 22px;">
@@ -353,7 +335,7 @@ Metamorfosis Real`;
               <strong style="color:#00C49A;">·</strong> Solo ves un día a la vez. Te enfocas en ejecutar esa acción.<br/>
               <strong style="color:#00C49A;">·</strong> Cuando la cumples, marcas el día como completado y se desbloquea el siguiente.<br/>
               <strong style="color:#00C49A;">·</strong> Tu progreso se guarda automáticamente — entras desde cualquier dispositivo.<br/>
-              <strong style="color:#00C49A;">·</strong> Al completar los 14 días, tu metabolismo opera con un nuevo baseline.
+              <strong style="color:#00C49A;">·</strong> Al completar los 14 días, vuelves a medirte y comparas con tu punto de partida.
             </div>
           </td>
         </tr>

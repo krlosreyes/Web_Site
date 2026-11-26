@@ -69,7 +69,7 @@ export const POST_SEO: Record<string, SeoOverride> = {
     'por-que-tu-cansancio-de-las-3-pm-es-sed-y-no-hambre': {
         title: 'Cansancio en la tarde: por qué puede ser sed',
         description:
-            'El bajón de las 3 pm a veces es sed disfrazada de hambre. Por qué el agua sola no siempre hidrata y qué hacer para hidratarte de verdad.',
+            'El bajón de las 3 pm a veces es sed. Cuánta agua necesitas, cómo repartirla en el día y cuándo el cansancio merece una consulta.',
     },
     '5-mitos-sobre-la-hidratacion-que-la-ciencia-ya-desmintio-pero-que-tu-mama-sigue-repitiendo': {
         title: '5 mitos sobre tomar agua que la ciencia desmintió',
@@ -79,7 +79,7 @@ export const POST_SEO: Record<string, SeoOverride> = {
     'tomaba-4-litros-de-agua-al-dia-y-se-sentia-peor-la-paradoja-de-andres-y-la-sobrehidratacion-silencio': {
         title: '¿Tomar mucha agua es malo? La sobrehidratación',
         description:
-            'Más agua no siempre es mejor. Qué pasa con los electrolitos cuando tomas de más, señales de sobrehidratación y cuatro ajustes para hidratarte bien.',
+            'Beber mucho más de lo que pide la sed no garantiza sentirte mejor. Qué dice la evidencia sobre el exceso de agua y cuándo consultar.',
     },
     'por-que-sigues-con-hambre-aunque-acabas-de-cenar': {
         title: 'Hambre después de comer: por qué pasa',

@@ -24,6 +24,7 @@ const jsonLd = {
     isAccessibleForFree: true,
     offers: { "@type": "Offer", price: "0", priceCurrency: "COP" },
 };
+import NewsletterSignup from "../components/NewsletterSignup.astro";
 ---
 
 <BaseLayout title={title} description={description}>
@@ -159,6 +160,8 @@ const jsonLd = {
                         <li><a class="text-accent hover:underline" href="https://www.nice.org.uk/guidance/NG246/chapter/identifying-and-assessing-overweight-obesity-and-central-adiposity" rel="noopener" target="_blank">NICE NG246: índice cintura-estatura</a></li>
                     </ul>
                 </div>
+
+                <NewsletterSignup source="calculadora" />
 
                 <MedicalDisclaimer />
             </section>

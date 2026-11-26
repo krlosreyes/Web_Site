@@ -171,7 +171,7 @@ const ArticleQuiz: React.FC<Props> = ({ questions: rawQuestions, articleId }) =>
 
                     <p className="text-gray-300 mb-3 max-w-md mx-auto font-medium leading-relaxed">
                         Regístrate para ver tu puntaje, acceder al dashboard
-                        y entrar a la <span className="text-[#00C49A] font-bold">lista de espera de ElenaApp</span>.
+                        y guardar tu progreso.
                     </p>
                     <p className="text-[10px] text-gray-600 font-mono mb-8 uppercase tracking-widest">
                         Tu progreso queda guardado en tu perfil tras el registro.

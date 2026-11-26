@@ -43,3 +43,5 @@ npm-debug.log*
 .env.local
 .env.production
 .env.development
+
+scripts/backups/

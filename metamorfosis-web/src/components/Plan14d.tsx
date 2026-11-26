@@ -510,7 +510,7 @@ const Plan14d = () => {
                         Has completado tu plan IMR de 14 días
                     </h2>
                     <p className="text-sm text-text-secondary leading-relaxed mb-6 max-w-xl mx-auto">
-                        Tu nuevo baseline está consolidado. El siguiente paso es medición continua con ElenaApp — las primeras 1000 personas tienen acceso anticipado.
+                        Vuelve a medirte cada mes para ver tu tendencia. Si quieres registrar tus hábitos a diario, Elena está gratis para iPhone en el App Store.
                     </p>
                     <a
                         href="/dashboard"

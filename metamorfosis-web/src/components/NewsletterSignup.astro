@@ -1,0 +1,88 @@
+---
+/**
+ * SPEC-119: formulario del boletín quincenal.
+ * Autorización explícita (casilla sin marcar por defecto) según la Ley 1581.
+ */
+
+interface Props {
+    source?: 'home' | 'post' | 'calculadora' | 'imr' | 'footer';
+}
+const { source = 'home' } = Astro.props;
+const uid = `nl-${source}`;
+---
+<section class="newsletter-signup bg-bg-surface border border-white/[0.08] rounded-xl p-6 md:p-8" data-source={source} aria-labelledby={`${uid}-title`}>
+    <p class="text-[11px] font-bold text-warm uppercase tracking-[0.2em] mb-2">Boletín cada 15 días</p>
+    <h2 id={`${uid}-title`} class="text-xl md:text-2xl font-heading font-semibold text-text-primary tracking-tight mb-2">
+        Un artículo con fuentes y un recordatorio para volver a medirte
+    </h2>
+    <p class="text-sm text-text-secondary leading-relaxed mb-5">
+        Sin promociones ni dietas milagro. Cada dos semanas: lo nuevo que publicamos y el aviso para repetir tu medición de cintura y grasa corporal y ver tu tendencia.
+    </p>
+    <form class="space-y-3" novalidate>
+        <div class="flex flex-col sm:flex-row gap-3">
+            <label for={`${uid}-email`} class="sr-only">Correo electrónico</label>
+            <input
+                id={`${uid}-email`}
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+                placeholder="tu@correo.com"
+                class="flex-1 px-4 py-3 rounded-lg bg-bg-base border border-white/[0.12] text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent"
+            />
+            <button
+                type="submit"
+                data-umami-event="newsletter_suscribir"
+                data-umami-event-source={source}
+                class="px-6 py-3 rounded-lg bg-accent text-bg-base font-semibold hover:bg-accent-strong transition-colors disabled:opacity-60"
+            >
+                Suscribirme
+            </button>
+        </div>
+        <input type="text" name="_website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true" />
+        <label class="flex items-start gap-2 text-xs text-text-secondary leading-relaxed cursor-pointer">
+            <input type="checkbox" name="consent" class="mt-0.5 accent-[#00C49A]" />
+            <span>Autorizo a Metamorfosis Real a usar mi correo para enviarme el boletín quincenal, según la <a href="/privacidad" class="text-accent hover:underline">política de privacidad</a>. Puedo darme de baja cuando quiera.</span>
+        </label>
+        <p class="nl-msg text-sm min-h-[1.25rem]" role="status" aria-live="polite"></p>
+    </form>
+</section>
+
+<script>
+    document.querySelectorAll<HTMLElement>('.newsletter-signup').forEach((root) => {
+        const form = root.querySelector('form')!;
+        const msg = root.querySelector<HTMLElement>('.nl-msg')!;
+        const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+        const say = (text: string, ok: boolean) => {
+            msg.textContent = text;
+            msg.className = `nl-msg text-sm min-h-[1.25rem] ${ok ? 'text-accent' : 'text-status-bad'}`;
+        };
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fd = new FormData(form);
+            const email = String(fd.get('email') ?? '').trim();
+            const consent = fd.get('consent') === 'on';
+            if (!email) return say('Escribe tu correo.', false);
+            if (!consent) return say('Marca la casilla de autorización para continuar.', false);
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/newsletter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, consent, source: root.dataset.source, _website: fd.get('_website') ?? '' }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (res.ok) {
+                    form.reset();
+                    say('Listo. Te escribiremos cada 15 días.', true);
+                } else {
+                    say(data.error ?? 'No pudimos guardar tu suscripción.', false);
+                }
+            } catch {
+                say('Sin conexión. Intenta de nuevo.', false);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    });
+</script>

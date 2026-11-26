@@ -21,7 +21,7 @@ import { ELENA_APP_STORE_URL } from '../lib/constants/app';
 const YOUTUBE_SUBSCRIBERS = '4.5K';
 const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@Metamorfosisreal';
 ---
-<section class="hero-section relative min-h-[92vh] flex items-center px-6 overflow-hidden">
+<section class="hero-section relative min-h-[92vh] flex items-center px-6 pt-28 pb-16 md:pt-24 md:pb-0 overflow-hidden">
 
   {/* Background image layer */}
   <div class="hero-bg-image" aria-hidden="true"></div>
@@ -41,25 +41,22 @@ const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@Metamorfosisreal';
       {/* SPEC-072: pill en accent teal (paleta del sistema), no azul brillante.
           rounded-md (no rounded-full) para coherencia con .pill del system. */}
       <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-accent/10 border border-accent/20 text-accent text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
-        <span class="relative flex h-2 w-2">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
-        </span>
-        Ecosistema Metamorfosis Real
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-warm"></span>
+        Salud metabólica con fuentes verificables
       </div>
 
       {/* SPEC-072: h1 con gradient teal (no azul-cyan) en la palabra clave.
           Mantenemos el copy y la responsividad de SPEC-053. */}
       <h1 class="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold text-text-primary mb-8 leading-[1.05] tracking-tight break-words">
-        <span class="md:whitespace-nowrap">Te damos las herramientas</span><br/><span class="md:whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-[#00C49A] to-emerald-400">Tú creas los hábitos.</span>
+        <span class="md:whitespace-nowrap">Te damos las herramientas</span><br/><span class="md:whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-[#00C49A] to-[#F4B860]">Tú creas los hábitos.</span>
       </h1>
 
       {/* SPEC-072: subtítulo simplificado. Antes tenía glass treatment
           cargado (backdrop-blur + shadow azul + rounded-r-2xl). Ahora solo
           border-left sutil del accent + italic. Más sobrio, igual de
           legible, alineado con el design system premium. */}
-      <p class="border-l-2 border-accent pl-5 mb-10 text-xl text-text-primary/90 italic font-medium leading-relaxed max-w-xl">
-        Vida solo hay una y todo cuenta.
+      <p class="border-l-2 border-warm pl-5 mb-10 text-lg md:text-xl text-text-primary/90 font-medium leading-relaxed max-w-xl">
+        Ayuno, alimentación, ejercicio, sueño e hidratación explicados con estudios que puedes revisar. Mide dónde estás y mejora a tu ritmo.
       </p>
 
       <div class="flex flex-col sm:flex-row items-start gap-3">
@@ -164,13 +161,18 @@ const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@Metamorfosisreal';
     position: absolute;
     inset: 0;
     z-index: 0;
-    /* SPEC-030: webp (-93% peso vs el jpg/png original de 2MB). */
-    background-image: url('/header-bg.webp');
+    /* SPEC-119: foto con personas (Pexels, licencia libre) si existe
+       public/hero-personas.webp; si no, queda la foto anterior debajo. */
+    background-image: url('/hero-personas.webp'), url('/header-bg.webp');
     background-size: cover;
     background-position: center right;
     background-repeat: no-repeat;
     /* Subtle Ken Burns animation */
     animation: heroZoom 20s ease-in-out infinite alternate;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-bg-image { animation: none; }
   }
 
   @keyframes heroZoom {

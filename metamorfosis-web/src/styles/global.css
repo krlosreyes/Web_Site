@@ -25,12 +25,17 @@
 
     /* Text */
     --color-text-primary: #f1f5f9;
-    --color-text-secondary: #94a3b8;
-    --color-text-muted: #64748b;
+    --color-text-secondary: #a3b1c4;
+    /* SPEC-119: muted sube de #64748b (contraste 4,1:1 sobre bg-base, por
+       debajo de AA en texto pequeño) a #8a99ad (≈6,9:1). */
+    --color-text-muted: #8a99ad;
 
-    /* Accent — UNO SOLO. Teal de salud / metabolismo. */
+    /* Accent principal. Teal de salud / metabolismo. */
     --color-accent: #00C49A;
     --color-accent-strong: #00b389;
+    /* SPEC-119: acento cálido secundario (luz de la mañana). Solo para
+       detalles: etiquetas, puntos, subrayados. Nunca en botones. */
+    --color-warm: #F4B860;
 
     /* Status (zona biológica del IMR y similares) */
     --color-status-good: #10b981;

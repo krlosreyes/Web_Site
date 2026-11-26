@@ -489,7 +489,7 @@ const IMRQuiz = () => {
                     {subStep === 3 && (
                         <div className="space-y-6 animate-slide-up text-center">
                             <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">Tu centro de energía</h2>
-                            <p className="text-text-secondary text-sm leading-relaxed">¿Cuánto mide tu cintura a la altura del ombligo? Es el mejor predictor de tu metabolismo.</p>
+                            <p className="text-text-secondary text-sm leading-relaxed">¿Cuánto mide tu cintura a la altura del ombligo? Es una de las medidas más útiles para estimar la grasa abdominal.</p>
                             <input type="range" min="60" max="150" className="w-full h-2 bg-white/[0.08] rounded-lg appearance-none cursor-pointer accent-accent mt-6" style={{ accentColor: '#00C49A' }} onChange={e => setBioData({...bioData, waist: parseInt(e.target.value)})} value={bioData.waist} />
                             <div className="text-5xl font-bold text-accent tracking-tight">{bioData.waist}<span className="text-base text-text-muted ml-2 font-medium">cm</span></div>
                         </div>
