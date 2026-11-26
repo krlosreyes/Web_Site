@@ -22,6 +22,8 @@ import { getPostSeo } from "../../data/seoOverrides";
 import { buildAuthorJsonLd, buildReviewerJsonLd } from "../../lib/utils/articleAuthor";
 import ArticleAuthorBox from "../../components/ArticleAuthorBox.astro";
 import NewsletterSignup from "../../components/NewsletterSignup.astro";
+import PostLinks from "../../components/PostLinks.astro";
+import { getRelated } from "../../data/relatedPosts";
 
 export const prerender = false;
 
@@ -121,6 +123,7 @@ const cleanedContent = cleanText(article.content || "", "CONTENIDO");
 // Si el artículo tiene uno, reemplaza al título de Firestore en el H1, el
 // <title> y el JSON-LD, para que los tres coincidan.
 const seo = getPostSeo(slugStr);
+const related = getRelated(slugStr);
 const processedTitle = seo?.title ?? cleanText(article.title || "", "TÍTULO");
 // SPEC-065: enriquece el HTML de marked con callouts diferenciados,
 // IDs en H2, listas ✅/❌ y TOC auto-generado (≥3 H2). Si el contenido
@@ -306,6 +309,11 @@ const jsonLd = {
              dependa del margin-bottom del último hijo del .prose. */}
         <div class="container mx-auto px-6 pt-12 md:pt-16 pb-24 max-w-3xl">
             <ArticleAuthorBox />
+
+            <div class="my-10">
+                <PostLinks posts={related} eyebrow="Sigue leyendo" title="Artículos relacionados" />
+                <p class="mt-5 text-sm text-text-secondary">¿Quieres medirte? <a href="/calculadora-grasa-corporal" class="text-accent hover:underline">Calcula tu grasa corporal</a> o <a href="/quiz" class="text-accent hover:underline">haz el test de salud metabólica</a>.</p>
+            </div>
 
             <div class="my-10">
                 <NewsletterSignup source="post" />

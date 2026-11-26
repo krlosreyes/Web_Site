@@ -3,6 +3,9 @@ import { Database, LayoutDashboard, Smartphone } from "lucide-astro";
 import Hero from "../components/Hero.astro";
 import Pillars from "../components/Pillars.astro";
 import NewsletterSignup from "../components/NewsletterSignup.astro";
+import PostLinks from "../components/PostLinks.astro";
+import { HOME_FEATURED, toLink } from "../data/relatedPosts";
+const featured = HOME_FEATURED.map((s) => toLink(s)!).filter(Boolean);
 import BaseLayout from "../layouts/BaseLayout.astro";
 import AppStoreButton from "../components/AppStoreButton.astro";
 
@@ -101,6 +104,14 @@ const description =
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- SPEC-120: enlaces a artículos desde la portada (antes no había ninguno). -->
+  <section class="py-16 md:py-20 px-6">
+    <div class="container mx-auto max-w-6xl">
+      <PostLinks posts={featured} eyebrow="Para empezar" title="Un artículo por cada pilar" />
+      <p class="mt-6 text-sm"><a href="/biblioteca" class="text-accent hover:underline">Ver todos los artículos →</a></p>
     </div>
   </section>
 

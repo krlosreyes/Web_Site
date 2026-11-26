@@ -1,0 +1,33 @@
+---
+/**
+ * SPEC-120: lista de artículos con enlaces HTML planos (rastreables).
+ */
+import type { PostLink } from '../data/relatedPosts';
+
+interface Props {
+    posts: PostLink[];
+    eyebrow: string;
+    title: string;
+    columns?: 2 | 3;
+}
+const { posts, eyebrow, title, columns = 3 } = Astro.props;
+---
+<section aria-label={title}>
+    <p class="text-[11px] font-bold text-warm uppercase tracking-[0.2em] mb-2">{eyebrow}</p>
+    <h2 class="text-xl md:text-2xl font-heading font-semibold text-text-primary tracking-tight mb-5">{title}</h2>
+    <ul class={`grid gap-4 ${columns === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
+        {posts.map((p) => (
+            <li>
+                <a
+                    href={p.href}
+                    data-umami-event="enlace_interno_articulo"
+                    data-umami-event-slug={p.slug}
+                    class="block h-full bg-bg-surface border border-white/[0.08] rounded-xl p-5 hover:border-accent/40 transition-colors"
+                >
+                    <p class="text-text-primary font-semibold leading-snug mb-2">{p.title}</p>
+                    <p class="text-sm text-text-secondary leading-relaxed">{p.description}</p>
+                </a>
+            </li>
+        ))}
+    </ul>
+</section>
