@@ -4,15 +4,16 @@ import Hero from "../components/Hero.astro";
 import Pillars from "../components/Pillars.astro";
 import TipsBox from "../components/TipsBox.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import AppStoreButton from "../components/AppStoreButton.astro";
 
 // SPEC-079 + SPEC-108: title="" explícito → BaseLayout renderiza solo
 // "Metamorfosis Real" como <title>, sin pipe huérfano.
 const description =
-  "Ecosistema de salud metabólica de alta autoridad. Optimiza tu biología con ciencia real y el motor de inteligencia de ElenaApp.";
+  "Mejora tu salud metabólica con ayuno intermitente, sueño, ejercicio e hidratación, con fuentes científicas. Calculadora de grasa y app Elena gratis.";
 ---
 
 <BaseLayout
-  title=""
+  title="Salud metabólica y ayuno intermitente"
   description={description}
   preloadImage="/header-bg.webp"
   preloadImageType="image/webp"
@@ -30,20 +31,22 @@ const description =
         class="bg-bg-elevated border border-white/[0.08] rounded-2xl p-6 md:p-10 grid md:grid-cols-2 gap-8 md:gap-12 items-center"
       >
         <div>
+          {/* SPEC-117: Elena ya está en App Store. Se retira el copy de
+              "próximo nivel" y las funciones que la app no tiene
+              ("Dynamic Protocol Logging", "dieta que cambia en tiempo real"). */}
           <div
             class="flex items-center gap-2 text-accent text-[11px] font-bold uppercase tracking-[0.2em] mb-4"
           >
             <Smartphone size={14} />
-            El próximo nivel: ElenaApp
+            Ya disponible: Elena para iPhone
           </div>
           <h2 class="text-3xl md:text-4xl font-heading font-bold text-text-primary tracking-tight mb-5">
-            Tu coach metabólico en tu bolsillo
+            Tu día metabólico en un solo puntaje
           </h2>
           <p class="text-gray-300 text-base md:text-lg mb-7 leading-relaxed">
-            Metamorfosis Real integra el motor de inteligencia de
-            <span class="text-text-primary font-semibold">ElenaApp</span>
-            para ofrecerte protocolos hiper-personalizados basados en tu IMR (Índice
-            de Metamorfosis Real).
+            <span class="text-text-primary font-semibold">Elena</span> reúne ayuno,
+            comida, sueño, ejercicio e hidratación en una sola pantalla y te dice
+            qué hacer ahora. Gratis, en español.
           </p>
 
           <ul class="space-y-3 mb-8">
@@ -54,8 +57,8 @@ const description =
                 <LayoutDashboard size={14} />
               </div>
               <p class="text-sm text-gray-300 leading-relaxed">
-                <strong class="text-text-primary font-semibold">Dynamic Protocol Logging:</strong>
-                tu dieta cambia en tiempo real según tu bio-feedback diario.
+                <strong class="text-text-primary font-semibold">Cada número con su fuente:</strong>
+                los cálculos de la app enlazan los estudios y guías en los que se basan.
               </p>
             </li>
             <li class="flex items-start gap-3">
@@ -65,15 +68,18 @@ const description =
                 <Database size={14} />
               </div>
               <p class="text-sm text-gray-300 leading-relaxed">
-                <strong class="text-text-primary font-semibold">Biometric Sync:</strong>
-                se integra con tus métricas de salud profunda para ajustar la intensidad.
+                <strong class="text-text-primary font-semibold">Con Apple Salud, si quieres:</strong>
+                lee tu peso, sueño y entrenamientos con tu permiso; si no, todo funciona con registro manual.
               </p>
             </li>
           </ul>
 
-          <a href="/quiz" class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-base rounded-lg font-semibold text-base hover:bg-accent-strong transition-colors">
-            Iniciar diagnóstico IMR →
-          </a>
+          <div class="flex flex-col sm:flex-row items-start gap-3">
+            <AppStoreButton source="home_app_section" />
+            <a href="/quiz" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-base text-text-primary border border-white/[0.12] hover:border-white/[0.2] transition-colors">
+              Calcular mi IMR →
+            </a>
+          </div>
         </div>
 
         <div class="relative">
@@ -82,7 +88,7 @@ const description =
           >
             <img
               src="/elena-mockup.webp"
-              alt="ElenaApp metabolic dashboard"
+              alt="Ilustración de la app Elena"
               width="1024"
               height="1024"
               loading="lazy"
@@ -95,22 +101,6 @@ const description =
             </div>
           </div>
 
-          <!-- Floating UI Elements — system tokens, sin animate-bounce ni shadow-2xl -->
-          <div
-            class="absolute top-8 -right-4 lg:-right-8 z-20 bg-bg-surface border border-white/[0.1] rounded-lg p-3 hidden lg:block"
-          >
-            <div class="text-accent font-bold text-lg leading-none">+14%</div>
-            <div class="text-[10px] text-text-muted uppercase tracking-wider mt-1">
-              Sensibilidad insulínica
-            </div>
-          </div>
-
-          <div class="absolute bottom-8 -left-4 lg:-left-8 z-20 bg-bg-surface border border-status-good/20 rounded-lg p-3 hidden lg:block">
-            <div class="text-status-good font-bold text-lg leading-none">Óptimo</div>
-            <div class="text-[10px] text-text-muted uppercase tracking-wider mt-1">
-              Estado cetogénico
-            </div>
-          </div>
         </div>
       </div>
     </div>

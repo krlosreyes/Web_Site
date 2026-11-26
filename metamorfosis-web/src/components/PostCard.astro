@@ -1,4 +1,5 @@
 ---
+import { ELENA_APP_STORE_URL } from "../lib/constants/app";
 import { Activity, Zap, Timer, TrendingDown, Wallet, BookOpen, Flame, Dumbbell } from "lucide-astro";
 
 export interface Props {
@@ -124,11 +125,19 @@ if (typeof post.metadata?.effort === 'number') {
                 <svg class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
             </a>
             
-            {/* ElenaApp CTA (Fake Button to show ecosystem link) */}
-            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#00C49A]/10 text-[#00C49A] rounded-full text-xs font-bold transition-colors">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                Activar Protocolo
-            </div>
+            {/* SPEC-117: antes era un botón falso ("Activar Protocolo") que no
+                llevaba a ningún lado. Ahora enlaza la app en App Store. */}
+            <a
+                href={ELENA_APP_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-umami-event="cta_app_store"
+                data-umami-event-source="post_card"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#00C49A]/10 text-[#00C49A] hover:bg-[#00C49A]/20 rounded-full text-xs font-bold transition-colors"
+            >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                Elena en iPhone
+            </a>
         </div>
     </div>
 </div>

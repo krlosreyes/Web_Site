@@ -1,4 +1,5 @@
 ---
+import AppStoreButton from "../components/AppStoreButton.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MedicalDisclaimer from "../components/MedicalDisclaimer.astro";
 
@@ -366,6 +367,9 @@ const description =
                         Iniciar diagnóstico IMR
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                     </a>
+                    {/* SPEC-117: el IMR también se sigue en la app. */}
+                    <p class="text-gray-300 text-sm mt-6 mb-3">¿Quieres llevar tus hábitos día a día?</p>
+                    <AppStoreButton source="imr_page" variant="secondary" />
                 </section>
             </div>
 

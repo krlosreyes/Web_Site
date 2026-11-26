@@ -5,7 +5,7 @@
  * publicados desde Firestore (filtra drafts según SPEC-015). Cache 1h en
  * el cliente / CDN para balancear frescura y carga.
  *
- * Si Carlos cambia el dominio, actualizar la constante BASE_URL.
+ * Si cambia el dominio, actualizar la constante BASE_URL.
  */
 
 import type { APIRoute } from 'astro';
@@ -28,7 +28,8 @@ const STATIC_PAGES: StaticPage[] = [
     { path: '/biblioteca', priority: 0.9, changefreq: 'daily' },
     { path: '/quiz', priority: 0.9, changefreq: 'monthly' },
     { path: '/comunidad', priority: 0.7, changefreq: 'monthly' },
-    { path: '/sobre-mi', priority: 0.6, changefreq: 'yearly' },
+    { path: '/sobre-nosotros', priority: 0.6, changefreq: 'yearly' },
+    { path: '/calculadora-grasa-corporal', priority: 0.9, changefreq: 'monthly' },
     // SPEC-051: removidas /calculadora (ahora redirect 301 a /quiz) y
     // /protocolo (experimento descartado, página borrada). Google las
     // descubrirá fuera del sitemap como 301/404 y dejará de indexarlas.

@@ -129,7 +129,7 @@ function wrapEmailHtml(opts: { subject: string; heading: string; bodyHtml: strin
           </tr>
           <tr>
             <td style="padding:24px 40px 32px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;color:#64748b;font-size:12px;">
-              <p style="margin:0 0 6px;font-weight:700;color:#cbd5e1;">— Carlos</p>
+              <p style="margin:0 0 6px;font-weight:700;color:#cbd5e1;">— Equipo Metamorfosis Real</p>
               <p style="margin:0;font-family:ui-monospace,monospace;letter-spacing:0.1em;">METAMORFOSIS REAL</p>
             </td>
           </tr>
@@ -180,7 +180,7 @@ ${RESOURCES_TEXT}
 
 Cualquier duda, puedes responder directamente a este email.
 
-— Carlos
+— Equipo Metamorfosis Real
 Metamorfosis Real`;
 
     const bodyHtml = `
@@ -251,7 +251,7 @@ ${RESOURCES_TEXT}
 
 Cualquier duda, puedes responder directamente a este email.
 
-— Carlos
+— Equipo Metamorfosis Real
 Metamorfosis Real`;
 
     const bodyHtml = `
@@ -325,7 +325,7 @@ ${RESOURCES_TEXT}
 
 Cualquier duda, puedes responder directamente a este email.
 
-— Carlos
+— Equipo Metamorfosis Real
 Metamorfosis Real`;
 
     const bodyHtml = `

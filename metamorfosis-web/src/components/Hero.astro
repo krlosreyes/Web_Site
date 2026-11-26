@@ -1,5 +1,6 @@
 ---
 import { ArrowRight } from 'lucide-astro';
+import { ELENA_APP_STORE_URL } from '../lib/constants/app';
 
 /**
  * SPEC-098: stats row reescrito. Eliminadas las métricas inventadas
@@ -9,7 +10,7 @@ import { ArrowRight } from 'lucide-astro';
  *
  * Tile 1: suscriptores reales del canal YouTube. Hardcoded acá —
  * actualizar manualmente cuando el canal crezca. Un commit + push
- * → 90-120s de deploy. Decisión Carlos 2026-05-19 (en vez de env
+ * → 90-120s de deploy. Decisión 2026-05-19 (en vez de env
  * var en Hostinger) por simplicidad operativa.
  *
  * Tile 2: statement honesto del estado del proyecto, sin número.
@@ -75,10 +76,12 @@ const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@Metamorfosisreal';
         </a>
         {/* CTA secundario — outline limpio. */}
         <a
-          href="#pilares"
+          href="/calculadora-grasa-corporal"
+          data-umami-event="cta_calculadora_grasa"
+          data-umami-event-source="hero"
           class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-bg-surface/60 text-text-primary font-semibold text-base border border-white/[0.12] hover:bg-bg-surface hover:border-white/[0.2] transition-colors"
         >
-          Explorar el ecosistema
+          Calcular mi grasa corporal
         </a>
       </div>
 
@@ -117,10 +120,23 @@ const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@Metamorfosisreal';
           </p>
         </a>
         <div class="hidden md:block w-px h-10 bg-white/[0.08]"></div>
-        <div>
-          <p class="text-2xl font-bold text-accent">BETA</p>
-          <p class="text-[11px] text-text-muted uppercase tracking-[0.2em] mt-0.5">Cohorte 2026 activa</p>
-        </div>
+        {/* SPEC-117: el tile "BETA · Cohorte 2026 activa" pasa a enlazar la
+            app, ya publicada en App Store (solo iPhone). */}
+        <a
+          href={ELENA_APP_STORE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-umami-event="cta_app_store"
+          data-umami-event-source="hero"
+          class="group block hover:-translate-y-0.5 transition-transform"
+          aria-label="Descargar Elena en App Store"
+        >
+          <p class="text-2xl font-bold text-accent group-hover:text-accent-strong transition-colors">Elena</p>
+          <p class="text-[11px] text-text-muted group-hover:text-text-secondary uppercase tracking-[0.2em] mt-0.5 inline-flex items-center gap-1 transition-colors">
+            Gratis en App Store
+            <span class="text-accent opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
+          </p>
+        </a>
         <div class="hidden md:block w-px h-10 bg-white/[0.08]"></div>
         <a
           href="/imr"
