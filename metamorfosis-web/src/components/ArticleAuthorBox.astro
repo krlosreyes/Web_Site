@@ -1,0 +1,41 @@
+---
+/**
+ * SPEC-116 (C1): firma y caja de autor al final del cuerpo del artículo.
+ * Datos en src/lib/constants/author.ts.
+ */
+import { ARTICLE_AUTHOR } from "../lib/constants/author";
+
+const { name, profilePath, role, notDoctor, howItsMade, reviewer } = ARTICLE_AUTHOR;
+---
+
+<aside
+    aria-label="Sobre el autor"
+    class="mt-0 mb-10 p-5 md:p-6 rounded-xl bg-bg-elevated border border-white/[0.1]"
+>
+    <p class="text-[11px] font-bold text-accent uppercase tracking-[0.18em] mb-2">
+        Sobre el autor
+    </p>
+    <p class="text-base font-semibold text-text-primary m-0">
+        Por <a href={profilePath} class="text-accent hover:underline">{name}</a>
+    </p>
+    <p class="text-sm text-gray-300 mt-1 mb-3">
+        {role}. {notDoctor}
+    </p>
+    {
+        reviewer && (
+            <p class="text-sm text-gray-300 mb-3">
+                Revisado por{" "}
+                {reviewer.url ? (
+                    <a href={reviewer.url} class="text-accent hover:underline">{reviewer.name}</a>
+                ) : (
+                    <strong>{reviewer.name}</strong>
+                )}
+                , {reviewer.credential}.
+            </p>
+        )
+    }
+    <p class="text-xs text-gray-400 leading-relaxed m-0">
+        <strong class="text-gray-300">Cómo se hizo este artículo:</strong>
+        {" "}{howItsMade}
+    </p>
+</aside>

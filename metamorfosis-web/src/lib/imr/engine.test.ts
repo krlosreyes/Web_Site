@@ -33,25 +33,22 @@ const expectClose = (actual: number, expected: number, tolerance = 1) => {
 
 describe('bodyFatNavy', () => {
     it('calcula bf para hombre con valores típicos', () => {
-        // Hombre 175cm, waist 90, neck 40 → 25.78% (verificado contra fórmula
-        // Hodgdon-Beckett: 86.010*log10(50) - 70.041*log10(175) + 36.76 = 25.78)
+        // SPEC-118: fórmula métrica. Hombre 175 cm, cintura 90, cuello 40:
+        //   495 / (1.0324 − 0.19077·log10(50) + 0.15456·log10(175)) − 450 = 19.21
+        // (la versión en pulgadas con las medidas convertidas da 19.32)
         const bf = bodyFatNavy({ heightCm: 175, waistCm: 90, neckCm: 40, gender: 'male' });
-        expectClose(bf, 25.78, 0.5);
+        expectClose(bf, 19.21, 0.1);
     });
 
     it('calcula bf para hombre delgado', () => {
-        // Hombre 180cm, waist 78, neck 38:
-        //   86.010 * log10(40) - 70.041 * log10(180) + 36.76
-        //   = 86.010 * 1.60206 - 70.041 * 2.25527 + 36.76
-        //   = 137.79 - 157.96 + 36.76 = 16.59
-        // (entre fitness ~14 y promedio ~20 según ACSM)
+        // Hombre 180 cm, cintura 78, cuello 38 (fórmula métrica) = 10.32
         const bf = bodyFatNavy({ heightCm: 180, waistCm: 78, neckCm: 38, gender: 'male' });
-        expectClose(bf, 16.59, 0.5);
+        expectClose(bf, 10.32, 0.1);
     });
 
     it('calcula bf para mujer con hipCm explícito', () => {
-        // Mujer 165cm, waist 80, hip 100, neck 33 → 58.72% (sobrepeso significativo;
-        // verificado contra fórmula 163.205*log10(147) - 97.684*log10(165) - 78.387)
+        // Mujer 165 cm, cintura 80, cadera 100, cuello 33 (fórmula métrica) = 31.89.
+        // La versión anterior (coeficientes en pulgadas) daba 58.72, imposible.
         const bf = bodyFatNavy({
             heightCm: 165,
             waistCm: 80,
@@ -59,7 +56,7 @@ describe('bodyFatNavy', () => {
             hipCm: 100,
             gender: 'female',
         });
-        expectClose(bf, 58.72, 0.5);
+        expectClose(bf, 31.89, 0.1);
     });
 
     it('mujer sin hipCm usa fallback waist*1.05', () => {
@@ -72,6 +69,15 @@ describe('bodyFatNavy', () => {
             gender: 'female',
         });
         expect(sinHip).toBeCloseTo(conHip, 5);
+    });
+
+    it('equivale a la versión en pulgadas con las medidas convertidas', () => {
+        const inches = (w: number, n: number, h: number) =>
+            86.01 * Math.log10(w / 2.54 - n / 2.54) - 70.041 * Math.log10(h / 2.54) + 36.76;
+        for (const [w, n, h] of [[90, 40, 175], [78, 38, 180], [105, 42, 170]]) {
+            const bf = bodyFatNavy({ heightCm: h, waistCm: w, neckCm: n, gender: 'male' });
+            expectClose(bf, inches(w, n, h), 0.4);
+        }
     });
 
     it('clamp inferior: nunca devuelve menos de 2%', () => {
@@ -224,6 +230,6 @@ describe('computeImr (smoke)', () => {
     });
 
     it('ENGINE_VERSION está exportado correctamente', () => {
-        expect(ENGINE_VERSION).toBe('spec-70.5-v1');
+        expect(ENGINE_VERSION).toBe('spec-118-v1');
     });
 });

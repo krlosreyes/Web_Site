@@ -18,5 +18,6 @@
  * huérfanos al sacar esta página.
  */
 export const prerender = false;
-return Astro.redirect('/quiz', 301);
+// SPEC-118: ahora existe una calculadora real; /calculadora apunta a ella.
+return Astro.redirect('/calculadora-grasa-corporal', 301);
 ---

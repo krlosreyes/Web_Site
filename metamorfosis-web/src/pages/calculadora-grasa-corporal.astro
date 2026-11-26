@@ -1,0 +1,242 @@
+---
+/**
+ * SPEC-118: calculadora pública de grasa corporal (US Navy, métrica) e índice
+ * cintura-estatura. Sin registro, todo en el navegador. Apunta a búsquedas
+ * con volumen real ("calculadora de grasa corporal", "us navy", "índice
+ * cintura altura calculadora"). La lógica vive en lib/calculators.
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+import MedicalDisclaimer from "../components/MedicalDisclaimer.astro";
+import AppStoreButton from "../components/AppStoreButton.astro";
+
+const title = "Calculadora de grasa corporal (método US Navy)";
+const description =
+    "Calcula gratis tu porcentaje de grasa corporal con una cinta métrica (fórmula US Navy) y tu índice cintura-estatura. Sin registro y con fuentes.";
+
+const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Calculadora de grasa corporal US Navy",
+    url: new URL("/calculadora-grasa-corporal", Astro.site!).toString(),
+    applicationCategory: "HealthApplication",
+    operatingSystem: "Web",
+    inLanguage: "es",
+    isAccessibleForFree: true,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "COP" },
+};
+---
+
+<BaseLayout title={title} description={description}>
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <main class="min-h-[80vh] py-16 md:py-20 px-6">
+        <div class="max-w-2xl mx-auto">
+            <p class="text-[11px] font-bold text-accent uppercase tracking-[0.2em] mb-3">Herramienta gratuita</p>
+            <h1 class="text-3xl md:text-4xl font-heading font-bold text-text-primary tracking-tight mb-4">
+                Calculadora de grasa corporal con cinta métrica
+            </h1>
+            <p class="text-gray-300 text-base md:text-lg leading-relaxed mb-8">
+                Estima tu porcentaje de grasa con la fórmula de la Marina de Estados Unidos (US Navy)
+                y calcula tu índice cintura-estatura. Solo necesitas una cinta métrica. No guardamos
+                tus medidas: todo se calcula en tu navegador.
+            </p>
+
+            <form id="bf-form" class="bg-bg-elevated border border-white/[0.08] rounded-2xl p-6 md:p-8 space-y-5" novalidate>
+                <fieldset>
+                    <legend class="text-sm font-semibold text-text-primary mb-2">Sexo</legend>
+                    <div class="flex gap-3">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="sex" value="female" class="peer sr-only" checked />
+                            <span class="block text-center px-4 py-2.5 rounded-lg border border-white/[0.12] text-text-secondary peer-checked:border-accent peer-checked:text-accent peer-checked:bg-accent/10">Mujer</span>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="sex" value="male" class="peer sr-only" />
+                            <span class="block text-center px-4 py-2.5 rounded-lg border border-white/[0.12] text-text-secondary peer-checked:border-accent peer-checked:text-accent peer-checked:bg-accent/10">Hombre</span>
+                        </label>
+                    </div>
+                </fieldset>
+
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <label class="block">
+                        <span class="text-sm font-semibold text-text-primary">Estatura (cm)</span>
+                        <input name="height" type="number" inputmode="decimal" min="120" max="230" step="0.1" placeholder="Ej. 165" class="mt-1.5 w-full rounded-lg bg-bg-base border border-white/[0.12] px-3 py-2.5 text-text-primary focus:border-accent focus:outline-none" />
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-semibold text-text-primary">Cintura (cm)</span>
+                        <input name="waist" type="number" inputmode="decimal" min="45" max="200" step="0.1" placeholder="A la altura del ombligo" class="mt-1.5 w-full rounded-lg bg-bg-base border border-white/[0.12] px-3 py-2.5 text-text-primary focus:border-accent focus:outline-none" />
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-semibold text-text-primary">Cuello (cm)</span>
+                        <input name="neck" type="number" inputmode="decimal" min="20" max="70" step="0.1" placeholder="Debajo de la nuez" class="mt-1.5 w-full rounded-lg bg-bg-base border border-white/[0.12] px-3 py-2.5 text-text-primary focus:border-accent focus:outline-none" />
+                    </label>
+                    <label class="block" id="hip-field">
+                        <span class="text-sm font-semibold text-text-primary">Cadera (cm)</span>
+                        <input name="hip" type="number" inputmode="decimal" min="50" max="200" step="0.1" placeholder="En la parte más ancha" class="mt-1.5 w-full rounded-lg bg-bg-base border border-white/[0.12] px-3 py-2.5 text-text-primary focus:border-accent focus:outline-none" />
+                    </label>
+                </div>
+
+                <p id="bf-error" class="hidden text-sm text-amber-400" role="alert"></p>
+
+                <button type="submit" data-umami-event="calculadora_grasa_calcular" class="w-full px-6 py-3 rounded-lg bg-accent text-bg-base font-semibold text-base hover:bg-accent-strong transition-colors">
+                    Calcular
+                </button>
+            </form>
+
+            <section id="bf-result" class="hidden mt-6 bg-bg-elevated border border-accent/30 rounded-2xl p-6 md:p-8" aria-live="polite">
+                <div class="grid sm:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em]">Grasa corporal estimada</p>
+                        <p class="text-4xl font-bold text-text-primary mt-1"><span id="bf-pct"></span> %</p>
+                        <p class="text-sm text-accent font-semibold mt-1" id="bf-cat"></p>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-bold text-text-muted uppercase tracking-[0.18em]">Índice cintura-estatura</p>
+                        <p class="text-4xl font-bold text-text-primary mt-1" id="whtr"></p>
+                        <p class="text-sm text-accent font-semibold mt-1" id="whtr-cat"></p>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-300 leading-relaxed mt-5" id="bf-advice"></p>
+                <div class="mt-6 pt-5 border-t border-white/[0.06]">
+                    <p class="text-sm text-gray-300 mb-3">Para que estos números bajen, lo que cuenta son los hábitos de cada día. Elena te ayuda a llevar tu ayuno, comida, sueño, ejercicio e hidratación.</p>
+                    <AppStoreButton source="calculadora_grasa" />
+                </div>
+            </section>
+
+            <section class="mt-14 space-y-8 text-gray-300 leading-relaxed">
+                <div>
+                    <h2 class="text-2xl font-bold text-text-primary tracking-tight mb-3">Cómo medirte bien</h2>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><strong class="text-text-primary">Cintura:</strong> a la altura del ombligo, al final de una exhalación normal, sin apretar la cinta.</li>
+                        <li><strong class="text-text-primary">Cuello:</strong> justo debajo de la nuez, con la cinta un poco inclinada hacia abajo por delante.</li>
+                        <li><strong class="text-text-primary">Cadera (mujeres):</strong> en la parte más ancha de los glúteos, con los pies juntos.</li>
+                        <li>Mídete en ayunas, a la misma hora, y repite cada medida dos veces. Usa el promedio.</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-bold text-text-primary tracking-tight mb-3">Tabla de grasa corporal por sexo</h2>
+                    <p class="mb-3">Rangos del American Council on Exercise (ACE) para adultos:</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm border border-white/[0.08] rounded-lg">
+                            <thead class="text-text-primary">
+                                <tr><th class="text-left p-3">Categoría</th><th class="text-left p-3">Mujeres</th><th class="text-left p-3">Hombres</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-t border-white/[0.06]"><td class="p-3">Grasa esencial</td><td class="p-3">10–13 %</td><td class="p-3">2–5 %</td></tr>
+                                <tr class="border-t border-white/[0.06]"><td class="p-3">Atletas</td><td class="p-3">14–20 %</td><td class="p-3">6–13 %</td></tr>
+                                <tr class="border-t border-white/[0.06]"><td class="p-3">Fitness</td><td class="p-3">21–24 %</td><td class="p-3">14–17 %</td></tr>
+                                <tr class="border-t border-white/[0.06]"><td class="p-3">Promedio</td><td class="p-3">25–31 %</td><td class="p-3">18–24 %</td></tr>
+                                <tr class="border-t border-white/[0.06]"><td class="p-3">Obesidad</td><td class="p-3">32 % o más</td><td class="p-3">25 % o más</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-bold text-text-primary tracking-tight mb-3">Qué es el índice cintura-estatura</h2>
+                    <p>Es tu cintura dividida entre tu estatura. Sirve para ver si acumulas grasa en el abdomen, que es la de más riesgo metabólico. La guía británica NICE recomienda mantener la cintura por debajo de la mitad de la estatura: de 0,40 a 0,49 es saludable, de 0,50 a 0,59 indica riesgo aumentado y desde 0,60 riesgo alto.</p>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-bold text-text-primary tracking-tight mb-3">¿Qué tan exacta es la fórmula US Navy?</h2>
+                    <p>Es una estimación a partir de perímetros, útil para seguir tu evolución con la misma cinta y el mismo método. Puede diferir de una bioimpedancia o de una densitometría (DEXA). Lo importante es la tendencia: si tu cintura y tu porcentaje bajan mes a mes, vas bien.</p>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-bold text-text-primary tracking-tight mb-3">Sigue aprendiendo</h2>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><a class="text-accent hover:underline" href="/posts/adios-a-la-bascula-la-guia-tecnica-para-medir-lo-que-realmente-importa">Cómo medir tu grasa corporal con cinta métrica</a></li>
+                        <li><a class="text-accent hover:underline" href="/posts/el-espejo-miente-por-que-estar-delgado-no-siempre-es-estar-sano">Delgado pero con grasa abdominal: el riesgo oculto</a></li>
+                        <li><a class="text-accent hover:underline" href="/imr">Qué es el IMR y cómo combina estas medidas con tus hábitos</a></li>
+                    </ul>
+                </div>
+
+                <div class="text-sm">
+                    <h2 class="text-lg font-semibold text-text-primary mb-2">Fuentes</h2>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li><a class="text-accent hover:underline" href="https://www.ncbi.nlm.nih.gov/books/NBK235939/" rel="noopener" target="_blank">Hodgdon JA, 1992. Body composition in the military services (NCBI Bookshelf)</a></li>
+                        <li><a class="text-accent hover:underline" href="https://pubmed.ncbi.nlm.nih.gov/8437737/" rel="noopener" target="_blank">Shake CL et al., 1993. Predicting percent body fat from circumference measurements (PubMed)</a></li>
+                        <li><a class="text-accent hover:underline" href="https://www.acefitness.org/about-ace/press-room/in-the-news/8602/body-fat-percentage-charting-averages-in-men-and-women-very-well-health/" rel="noopener" target="_blank">American Council on Exercise: rangos de grasa corporal</a></li>
+                        <li><a class="text-accent hover:underline" href="https://www.nice.org.uk/guidance/NG246/chapter/identifying-and-assessing-overweight-obesity-and-central-adiposity" rel="noopener" target="_blank">NICE NG246: índice cintura-estatura</a></li>
+                    </ul>
+                </div>
+
+                <MedicalDisclaimer />
+            </section>
+        </div>
+    </main>
+</BaseLayout>
+
+<script>
+    import { computeBodyComposition, validate, type Sex } from "../lib/calculators/bodyComposition";
+
+    const FAT_LABEL = {
+        esencial: "Grasa esencial (por debajo de lo habitual)",
+        atleta: "Rango de atletas",
+        fitness: "Rango fitness",
+        promedio: "Rango promedio",
+        obesidad: "Rango de obesidad",
+    } as const;
+    const WHTR_LABEL = {
+        bajo: "Por debajo de 0,40",
+        saludable: "Saludable (0,40–0,49)",
+        aumentado: "Riesgo aumentado (0,50–0,59)",
+        alto: "Riesgo alto (0,60 o más)",
+    } as const;
+    const ERRORS = {
+        estatura: "Revisa la estatura: debe estar entre 120 y 230 cm.",
+        cintura: "Revisa la cintura: debe estar entre 45 y 200 cm.",
+        cuello: "Revisa el cuello: debe estar entre 20 y 70 cm.",
+        cadera: "Para mujeres la fórmula necesita la cadera (entre 50 y 200 cm).",
+        cintura_menor_que_cuello: "La cintura debe ser mayor que el cuello. Revisa las medidas.",
+    } as const;
+
+    const form = document.getElementById("bf-form") as HTMLFormElement | null;
+    const hipField = document.getElementById("hip-field");
+    const errorEl = document.getElementById("bf-error");
+    const result = document.getElementById("bf-result");
+
+    const num = (name: string) => {
+        const el = form?.elements.namedItem(name) as HTMLInputElement | null;
+        const v = el ? parseFloat(el.value.replace(",", ".")) : NaN;
+        return Number.isFinite(v) ? v : NaN;
+    };
+    const currentSex = (): Sex =>
+        ((form?.querySelector('input[name="sex"]:checked') as HTMLInputElement | null)?.value as Sex) ?? "female";
+    const syncHip = () => hipField?.classList.toggle("hidden", currentSex() === "male");
+
+    form?.querySelectorAll('input[name="sex"]').forEach((r) => r.addEventListener("change", syncHip));
+    syncHip();
+
+    form?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const sex = currentSex();
+        const input = {
+            sex,
+            heightCm: num("height"),
+            waistCm: num("waist"),
+            neckCm: num("neck"),
+            hipCm: sex === "female" ? num("hip") : undefined,
+        };
+        const err = validate(input);
+        if (err) {
+            if (errorEl) { errorEl.textContent = ERRORS[err]; errorEl.classList.remove("hidden"); }
+            result?.classList.add("hidden");
+            return;
+        }
+        errorEl?.classList.add("hidden");
+        const r = computeBodyComposition(input);
+        const set = (id: string, text: string) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+        set("bf-pct", r.bodyFatPct.toLocaleString("es-CO", { maximumFractionDigits: 1 }));
+        set("bf-cat", FAT_LABEL[r.fatCategory]);
+        set("whtr", r.whtr.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        set("whtr-cat", WHTR_LABEL[r.whtrCategory]);
+        set(
+            "bf-advice",
+            r.whtrCategory === "aumentado" || r.whtrCategory === "alto" || r.fatCategory === "obesidad"
+                ? "Tu resultado sugiere grasa abdominal por encima de lo recomendado. Es una estimación, no un diagnóstico: coméntalo con tu médico, sobre todo si tienes antecedentes de diabetes, presión alta o colesterol alto."
+                : "Tu resultado está dentro de rangos habituales. Repite la medición cada 2 a 4 semanas con la misma cinta para ver la tendencia.",
+        );
+        result?.classList.remove("hidden");
+        result?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+</script>

@@ -49,9 +49,19 @@ export interface ComputeImrInput {
 }
 
 /**
- * Body Fat por método Navy (Hodgdon-Beckett). Aproximación útil cuando no hay
- * bioimpedancia. Para mujeres requiere perímetro de cadera; si no viene, se
- * estima como 1.05 * cintura (aproximación conservadora).
+ * Body Fat por método Navy (Hodgdon & Beckett). Aproximación útil cuando no
+ * hay bioimpedancia. Para mujeres requiere perímetro de cadera; si no viene,
+ * se estima como 1.05 * cintura (aproximación conservadora).
+ *
+ * SPEC-118 (26-nov-2026): antes se usaban los coeficientes de la versión en
+ * PULGADAS (86.010 / 70.041 / 36.76 y 163.205 / 97.684 / 78.387) con medidas
+ * en CENTÍMETROS. Eso sobrestimaba la grasa unos 6 puntos en hombres
+ * (175 cm, cintura 90, cuello 40: 25,8 % en vez de 19,2 %) y daba cifras
+ * imposibles en mujeres. Ahora se usa la versión métrica (cm):
+ *   Hombres: 495 / (1.0324 − 0.19077·log10(cintura − cuello) + 0.15456·log10(estatura)) − 450
+ *   Mujeres: 495 / (1.29579 − 0.35004·log10(cintura + cadera − cuello) + 0.22100·log10(estatura)) − 450
+ * Comprobado: convertir las medidas a pulgadas y usar la versión en
+ * pulgadas da el mismo resultado (±0,2 puntos).
  *
  * Referencias:
  *   - U.S. Navy circumference method, Hodgdon & Beckett (1984).
@@ -65,22 +75,18 @@ export function bodyFatNavy(input: {
 }): number {
     const { heightCm, waistCm, neckCm, hipCm, gender } = input;
     if (gender === 'male') {
-        // Hombres: 86.010 * log10(waist - neck) - 70.041 * log10(height) + 36.76
-        return Math.max(
-            2,
-            86.010 * Math.log10(Math.max(1, waistCm - neckCm)) -
-                70.041 * Math.log10(heightCm) +
-                36.76
-        );
+        const density =
+            1.0324 -
+            0.19077 * Math.log10(Math.max(1, waistCm - neckCm)) +
+            0.15456 * Math.log10(heightCm);
+        return Math.max(2, 495 / density - 450);
     }
-    // Mujeres: 163.205 * log10(waist + hip - neck) - 97.684 * log10(height) - 78.387
     const hip = hipCm ?? waistCm * 1.05;
-    return Math.max(
-        2,
-        163.205 * Math.log10(Math.max(1, waistCm + hip - neckCm)) -
-            97.684 * Math.log10(heightCm) -
-            78.387
-    );
+    const density =
+        1.29579 -
+        0.35004 * Math.log10(Math.max(1, waistCm + hip - neckCm)) +
+        0.221 * Math.log10(heightCm);
+    return Math.max(2, 495 / density - 450);
 }
 
 /**
@@ -261,4 +267,4 @@ export function computeImr(input: ComputeImrInput): ImrResult {
 }
 
 /** Versión del motor; etiqueta cada cálculo en `imr.history.engineVersion`. */
-export const ENGINE_VERSION = 'spec-70.5-v1' as const;
+export const ENGINE_VERSION = 'spec-118-v1' as const;

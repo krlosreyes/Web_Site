@@ -18,6 +18,7 @@
  */
 
 import type { APIRoute } from 'astro';
+import { ENGINE_VERSION } from '../../../lib/imr/engine';
 import { db, auth, FieldValue } from '../../../lib/firebaseAdmin';
 import { COLLECTIONS, SCHEMA_VERSION } from '../../../lib/constants/firestore';
 import type { ImrResult, UserDoc } from '../../../lib/types/user';
@@ -179,7 +180,7 @@ export const POST: APIRoute = async ({ request }) => {
                 'imr.history': FieldValue.arrayUnion({
                     ...body.imrResult,
                     computedAt: now,
-                    engineVersion: 'spec-70.5-v1',
+                    engineVersion: ENGINE_VERSION,
                 }),
             });
         }

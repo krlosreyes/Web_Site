@@ -18,6 +18,9 @@ import { marked } from "marked";
 import { enrichArticleHtml } from "../../lib/utils/enrichArticleHtml";
 import MedicalDisclaimer from "../../components/MedicalDisclaimer.astro";
 import { buildMetaDescription } from "../../lib/utils/metaDescription";
+import { getPostSeo } from "../../data/seoOverrides";
+import { buildAuthorJsonLd, buildReviewerJsonLd } from "../../lib/utils/articleAuthor";
+import ArticleAuthorBox from "../../components/ArticleAuthorBox.astro";
 
 export const prerender = false;
 
@@ -113,7 +116,11 @@ const cleanText = (text: string, prefix: string) => {
 };
 
 const cleanedContent = cleanText(article.content || "", "CONTENIDO");
-const processedTitle = cleanText(article.title || "", "TÍTULO");
+// SPEC-118: título y descripción para buscadores (src/data/seoOverrides.ts).
+// Si el artículo tiene uno, reemplaza al título de Firestore en el H1, el
+// <title> y el JSON-LD, para que los tres coincidan.
+const seo = getPostSeo(slugStr);
+const processedTitle = seo?.title ?? cleanText(article.title || "", "TÍTULO");
 // SPEC-065: enriquece el HTML de marked con callouts diferenciados,
 // IDs en H2, listas ✅/❌ y TOC auto-generado (≥3 H2). Si el contenido
 // no usa los prefijos especiales, el output es el mismo que antes.
@@ -150,7 +157,7 @@ const ogImage = (article.images && article.images[0]) || '/og-image.jpg';
 // SPEC-115 (T6): `description` manual si existe; si no, derivada del cuerpo
 // limpio (sin markdown ni prefijo CONTENIDO) y cortada en frontera de
 // oración/palabra. Antes: substring(0,160) que cortaba a media palabra.
-const articleDescription = buildMetaDescription(article.description, cleanedContent);
+const articleDescription = seo?.description ?? buildMetaDescription(article.description, cleanedContent);
 
 const jsonLd = {
     '@context': 'https://schema.org',
@@ -162,11 +169,9 @@ const jsonLd = {
     image: ogImage.startsWith('http') ? ogImage : new URL(ogImage, Astro.site!).toString(),
     datePublished: publishedAtIso,
     dateModified: updatedAtIso || publishedAtIso,
-    author: {
-        '@type': 'Organization',
-        name: 'Metamorfosis Real',
-        url: Astro.site!.origin,
-    },
+    // SPEC-116 (C1): autor persona (E-E-A-T); revisor solo si existe de verdad.
+    author: buildAuthorJsonLd(Astro.site!.origin),
+    ...(buildReviewerJsonLd() ? { reviewedBy: buildReviewerJsonLd() } : {}),
     publisher: {
         '@type': 'Organization',
         name: 'Metamorfosis Real',
@@ -294,13 +299,13 @@ const jsonLd = {
             </div>
         </div>
 
-        <!-- Footer Sections Container (Reactions, Quiz, References, CTA)
+        {/* Footer Sections Container (Reactions, Quiz, References, CTA)
              SPEC-068: pt-12 md:pt-16 controla el espaciado entre el último
-             elemento del prose y la primera card de footer. Antes el gap
-             dependía del margin-bottom del último child del .prose (un <ol>
-             con my-20 dejaba 80px; un <p> mucho menos), produciendo
-             inconsistencia entre artículos. -->
+             elemento del prose y la primera card de footer, para que no
+             dependa del margin-bottom del último hijo del .prose. */}
         <div class="container mx-auto px-6 pt-12 md:pt-16 pb-24 max-w-3xl">
+            <ArticleAuthorBox />
+
             {/* SPEC-032: reacciones del artículo (👍/👎)
                 SPEC-035: hasQuiz cambia el CTA del anónimo a "Contesta el test"
                 con scroll a #quiz-section, en lugar de mandar a /login. */}
