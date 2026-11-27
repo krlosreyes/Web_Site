@@ -56,7 +56,9 @@ interface QuizState {
     weight: number;
     height: number;
     waist: number;
-    bodyFat: number;
+    /** SPEC-121: cuello y cadera (mujeres) para la fórmula US Navy. */
+    neck: number;
+    hip: number | null;
     fastingHours: number;
     dinnerHour: number;
     exerciseMinutes: number;
@@ -102,18 +104,25 @@ function quizToPayload(quiz: QuizState): OnboardPayload {
     // (probablemente dará score bajo). El gate de 18+ se hace antes en UI.
     const age = calculateAge(quiz.birthDate);
 
-    // El quiz captura un bodyFat estimado (4 buckets); puede no ser exacto.
-    // Calculamos un fallback Navy si tuviéramos perímetros de cuello, pero por
-    // ahora el quiz no los pide explícitos — usamos el valor estimado del quiz.
-    const bodyFat = quiz.bodyFat;
+    // SPEC-121: el % de grasa se calcula con la fórmula US Navy (la misma de
+    // la calculadora y de la app Elena). Antes la persona elegía un rango
+    // a ojo (10/18/25/35 %) y la app luego daba otra cifra.
+    const bodyFat =
+        Math.round(
+            bodyFatNavy({
+                heightCm: quiz.height,
+                waistCm: quiz.waist,
+                neckCm: quiz.neck,
+                hipCm: quiz.gender === 'female' ? (quiz.hip ?? undefined) : undefined,
+                gender: quiz.gender,
+            }) * 100,
+        ) / 100;
     const result: ImrResult = computeImr({
         heightCm: quiz.height,
         weightKg: quiz.weight,
         waistCm: quiz.waist,
-        // Quiz actual no captura perímetros de cuello/cadera; el motor cae a
-        // bodyFat explícito del quiz, así que neckCm es indiferente. Pasamos
-        // un valor neutro para evitar NaN si el motor lo evalúa.
-        neckCm: quiz.gender === 'male' ? 38 : 32,
+        neckCm: quiz.neck,
+        hipCm: quiz.gender === 'female' ? (quiz.hip ?? undefined) : undefined,
         age,
         gender: quiz.gender,
         bodyFatPct: bodyFat,
@@ -138,8 +147,8 @@ function quizToPayload(quiz: QuizState): OnboardPayload {
             heightCm: quiz.height,
             weightKg: quiz.weight,
             waistCm: quiz.waist,
-            neckCm: null,
-            hipCm: null,
+            neckCm: quiz.neck,
+            hipCm: quiz.gender === 'female' ? quiz.hip : null,
             bodyFatPct: bodyFat,
             leanMassPct: 100 - bodyFat,
         },
@@ -187,7 +196,8 @@ const IMRQuiz = () => {
         weight: 75,
         height: 175,
         waist: 85,
-        bodyFat: 20,
+        neck: 38,
+        hip: null,
         fastingHours: 12,
         dinnerHour: 20,
         exerciseMinutes: 30,
@@ -249,6 +259,21 @@ const IMRQuiz = () => {
         // exige autorización de tutor para tratamiento de datos de menores que
         // no podemos verificar online.
         const computedAge = calculateAge(bioData.birthDate);
+        if (subStep === 4) {
+            const neckOk = Number.isFinite(bioData.neck) && bioData.neck >= 20 && bioData.neck <= 70;
+            if (!neckOk) {
+                alert('Ingresa la medida de tu cuello en centímetros (entre 20 y 70).');
+                return;
+            }
+            if (bioData.gender === 'female' && !(bioData.hip && bioData.hip >= 50 && bioData.hip <= 200)) {
+                alert('Ingresa la medida de tu cadera en centímetros (entre 50 y 200).');
+                return;
+            }
+            if (bioData.gender === 'male' && bioData.waist <= bioData.neck) {
+                alert('La cintura debe ser mayor que el cuello. Revisa las dos medidas.');
+                return;
+            }
+        }
         if (subStep === 1) {
             if (!bioData.birthDate) {
                 alert('Por favor ingresa tu fecha de nacimiento para continuar.');
@@ -498,14 +523,22 @@ const IMRQuiz = () => {
                     {subStep === 4 && (
                         <div className="space-y-6 animate-slide-up text-center">
                             <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">Tu composición corporal</h2>
-                            <p className="text-text-secondary text-sm leading-relaxed">¿Cómo describirías tu porcentaje de grasa actual? Elige la opción que más se acerque.</p>
-                            <div className="grid gap-3 text-left mt-4">
-                                {[10, 18, 25, 35].map(bf => (
-                                    <button key={bf} onClick={() => {setBioData({...bioData, bodyFat: bf}); nextSubStep();}} className="p-4 bg-bg-elevated border border-white/[0.06] rounded-xl text-left hover:border-accent/40 hover:bg-white/[0.04] transition-colors flex justify-between items-center group">
-                                        <span className="text-text-primary font-medium text-sm">{bf < 15 ? 'Deportista / muy definido' : bf < 22 ? 'Promedio / saludable' : bf < 30 ? 'Algo de sobrepeso' : 'Necesito mejorar bastante'}</span>
-                                        <span className="text-lg font-bold text-text-muted group-hover:text-accent transition-colors">~{bf}%</span>
-                                    </button>
-                                ))}
+                            <p className="text-text-secondary text-base leading-relaxed">
+                                {bioData.gender === 'female'
+                                    ? 'Con tu cuello y tu cadera calculamos tu % de grasa con la fórmula US Navy, la misma de la app Elena.'
+                                    : 'Con tu cuello calculamos tu % de grasa con la fórmula US Navy, la misma de la app Elena.'}
+                            </p>
+                            <div className="grid gap-5 text-left">
+                                <div>
+                                    <label className="text-sm font-semibold text-text-secondary ml-1">Cuello, justo debajo de la nuez (cm)</label>
+                                    <input type="number" inputMode="decimal" className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-4 px-5 text-text-primary outline-none focus:border-accent text-xl font-semibold mt-2 transition-colors" onChange={e => setBioData({...bioData, neck: parseFloat(e.target.value)})} value={bioData.neck || ''} />
+                                </div>
+                                {bioData.gender === 'female' && (
+                                    <div>
+                                        <label className="text-sm font-semibold text-text-secondary ml-1">Cadera, en la parte más ancha (cm)</label>
+                                        <input type="number" inputMode="decimal" className="w-full bg-bg-base/60 border border-white/[0.08] rounded-lg py-4 px-5 text-text-primary outline-none focus:border-accent text-xl font-semibold mt-2 transition-colors" onChange={e => setBioData({...bioData, hip: e.target.value ? parseFloat(e.target.value) : null})} value={bioData.hip ?? ''} />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

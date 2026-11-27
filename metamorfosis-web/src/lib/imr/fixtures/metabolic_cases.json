@@ -1,0 +1,166 @@
+{
+  "engineVersion": "spec-118-v1",
+  "note": "Casos compartidos app/sitio (SPEC-306). Si cambias una fórmula, actualiza este archivo en ambos repos. En mujeres sin cadera no se calcula grasa (bodyFatPct null).",
+  "cases": [
+    {
+      "name": "mujer_sin_cadera",
+      "input": {
+        "gender": "female",
+        "age": 46,
+        "weightKg": 65,
+        "heightCm": 165,
+        "waistCm": 80,
+        "neckCm": 33,
+        "hipCm": null
+      },
+      "expected": {
+        "bodyFatPct": null,
+        "metabolicAge": null,
+        "whtr": 0.485,
+        "whtrCategory": "saludable",
+        "fatCategory": null,
+        "bmrMifflin": 1290.2
+      }
+    },
+    {
+      "name": "mujer_con_cadera",
+      "input": {
+        "gender": "female",
+        "age": 46,
+        "weightKg": 65,
+        "heightCm": 165,
+        "waistCm": 80,
+        "neckCm": 33,
+        "hipCm": 100
+      },
+      "expected": {
+        "bodyFatPct": 31.89,
+        "metabolicAge": 52,
+        "whtr": 0.485,
+        "whtrCategory": "saludable",
+        "fatCategory": "promedio",
+        "bmrMifflin": 1290.2
+      }
+    },
+    {
+      "name": "hombre_promedio",
+      "input": {
+        "gender": "male",
+        "age": 35,
+        "weightKg": 85,
+        "heightCm": 175,
+        "waistCm": 90,
+        "neckCm": 40,
+        "hipCm": null
+      },
+      "expected": {
+        "bodyFatPct": 19.21,
+        "metabolicAge": 41,
+        "whtr": 0.514,
+        "whtrCategory": "aumentado",
+        "fatCategory": "promedio",
+        "bmrMifflin": 1773.8
+      }
+    },
+    {
+      "name": "hombre_sobrepeso",
+      "input": {
+        "gender": "male",
+        "age": 45,
+        "weightKg": 100,
+        "heightCm": 180,
+        "waistCm": 100,
+        "neckCm": 40,
+        "hipCm": null
+      },
+      "expected": {
+        "bodyFatPct": 25.16,
+        "metabolicAge": 55,
+        "whtr": 0.556,
+        "whtrCategory": "aumentado",
+        "fatCategory": "obesidad",
+        "bmrMifflin": 1905.0
+      }
+    },
+    {
+      "name": "hombre_atletico",
+      "input": {
+        "gender": "male",
+        "age": 30,
+        "weightKg": 75,
+        "heightCm": 180,
+        "waistCm": 80,
+        "neckCm": 38,
+        "hipCm": null
+      },
+      "expected": {
+        "bodyFatPct": 12.05,
+        "metabolicAge": 26,
+        "whtr": 0.444,
+        "whtrCategory": "saludable",
+        "fatCategory": "atletas",
+        "bmrMifflin": 1730.0
+      }
+    },
+    {
+      "name": "mujer_joven",
+      "input": {
+        "gender": "female",
+        "age": 28,
+        "weightKg": 58,
+        "heightCm": 160,
+        "waistCm": 68,
+        "neckCm": 31,
+        "hipCm": 92
+      },
+      "expected": {
+        "bodyFatPct": 24.09,
+        "metabolicAge": 30,
+        "whtr": 0.425,
+        "whtrCategory": "saludable",
+        "fatCategory": "fitness",
+        "bmrMifflin": 1279.0
+      }
+    },
+    {
+      "name": "mujer_mayor",
+      "input": {
+        "gender": "female",
+        "age": 62,
+        "weightKg": 72,
+        "heightCm": 158,
+        "waistCm": 92,
+        "neckCm": 34,
+        "hipCm": 104
+      },
+      "expected": {
+        "bodyFatPct": 40.94,
+        "metabolicAge": 76,
+        "whtr": 0.582,
+        "whtrCategory": "aumentado",
+        "fatCategory": "obesidad",
+        "bmrMifflin": 1236.5
+      }
+    },
+    {
+      "name": "hombre_mayor",
+      "input": {
+        "gender": "male",
+        "age": 67,
+        "weightKg": 82,
+        "heightCm": 170,
+        "waistCm": 98,
+        "neckCm": 39,
+        "hipCm": null
+      },
+      "expected": {
+        "bodyFatPct": 26.28,
+        "metabolicAge": 73,
+        "whtr": 0.576,
+        "whtrCategory": "aumentado",
+        "fatCategory": "obesidad",
+        "bmrMifflin": 1552.5
+      }
+    }
+  ]
+}

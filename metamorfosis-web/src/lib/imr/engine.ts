@@ -81,7 +81,13 @@ export function bodyFatNavy(input: {
             0.15456 * Math.log10(heightCm);
         return Math.max(2, 495 / density - 450);
     }
-    const hip = hipCm ?? waistCm * 1.05;
+    // SPEC-121: en mujeres la cadera es obligatoria. Antes se estimaba como
+    // cintura × 1,05, lo que da valores irreales en mujeres delgadas (2 % para
+    // 170 cm y cintura 60). La app Elena aplica la misma regla.
+    if (hipCm == null || hipCm <= 0) {
+        throw new Error('bodyFatNavy: la fórmula para mujeres necesita la cadera');
+    }
+    const hip = hipCm;
     const density =
         1.29579 -
         0.35004 * Math.log10(Math.max(1, waistCm + hip - neckCm)) +

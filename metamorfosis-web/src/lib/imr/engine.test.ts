@@ -59,16 +59,8 @@ describe('bodyFatNavy', () => {
         expectClose(bf, 31.89, 0.1);
     });
 
-    it('mujer sin hipCm usa fallback waist*1.05', () => {
-        const sinHip = bodyFatNavy({ heightCm: 165, waistCm: 80, neckCm: 33, gender: 'female' });
-        const conHip = bodyFatNavy({
-            heightCm: 165,
-            waistCm: 80,
-            neckCm: 33,
-            hipCm: 80 * 1.05,
-            gender: 'female',
-        });
-        expect(sinHip).toBeCloseTo(conHip, 5);
+    it('mujer sin cadera: no se calcula (SPEC-121)', () => {
+        expect(() => bodyFatNavy({ heightCm: 165, waistCm: 80, neckCm: 33, gender: 'female' })).toThrow();
     });
 
     it('equivale a la versión en pulgadas con las medidas convertidas', () => {
